@@ -248,11 +248,14 @@
   min-width: 0;
   min-height: 0;
   border: 1px solid var(--hair);
-  transition: border-color var(--fast) var(--ease);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
-.column--over {
+.column--eligible {
   border-color: var(--accent);
-  background: rgba(85, 185, 247, 0.03);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.column--eligible .column__head {
+  color: var(--paper);
 }
 .column__head {
   display: flex;
@@ -276,6 +279,7 @@
   color: var(--fg3);
 }
 .column__list {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
@@ -298,6 +302,29 @@
   color: var(--fg3);
   font-size: 12px;
 }
+.column__drop-indicator {
+  position: relative;
+  flex: none;
+  height: 2px;
+  transform-origin: center;
+  background: var(--accent);
+}
+.column__drop-indicator::before,
+.column__drop-indicator::after {
+  position: absolute;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--accent);
+  background: var(--ink);
+  content: '';
+}
+.column__drop-indicator::before {
+  left: -1px;
+}
+.column__drop-indicator::after {
+  right: -1px;
+}
 .board-card {
   position: relative;
   display: flex;
@@ -311,7 +338,8 @@
   color: var(--paper);
   cursor: grab;
   touch-action: none;
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+    opacity var(--dur-fast) var(--ease);
 }
 .board-card:hover {
   border-color: var(--fg3);
@@ -320,8 +348,12 @@
 .board-card:active {
   cursor: grabbing;
 }
-.board-card--dragging {
-  opacity: 0.18;
+.board-card--source {
+  opacity: 0.24;
+  border-color: var(--accent);
+  border-style: dashed;
+  background: transparent;
+  cursor: grabbing;
 }
 .board-card--overlay {
   width: 100%;
@@ -329,6 +361,7 @@
   cursor: grabbing;
   border-color: var(--accent);
   background: var(--ink-2);
+  pointer-events: none;
 }
 .board-card__bar {
   position: absolute;

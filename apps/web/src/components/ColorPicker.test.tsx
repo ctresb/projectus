@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from './ColorPicker'
 import { NewTagRow } from './TagPicker'
@@ -9,7 +9,7 @@ const cores = [
 ]
 
 describe('ColorPicker', () => {
-  it('abre uma paleta compacta e seleciona uma cor', () => {
+  it('abre uma paleta compacta e seleciona uma cor', async () => {
     const onChange = vi.fn()
     render(<ColorPicker cores={cores} value="#55B9F7" label="Cor da tarefa" onChange={onChange} />)
 
@@ -18,9 +18,10 @@ describe('ColorPicker', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Verde' }))
 
     expect(onChange).toHaveBeenCalledWith('#61E141')
+    await settlePaletteExit()
   })
 
-  it('mostra a cor da tag antes de adicionar', () => {
+  it('mostra a cor da tag antes de adicionar', async () => {
     const onCreate = vi.fn()
     render(<NewTagRow cores={cores} onCreate={onCreate} />)
 
@@ -31,5 +32,12 @@ describe('ColorPicker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /adicionar/i }))
     expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ titulo: 'bug', cor: '#61E141' }))
+    await settlePaletteExit()
   })
 })
+
+async function settlePaletteExit() {
+  await act(async () => {
+    await new Promise((resolve) => window.setTimeout(resolve, 180))
+  })
+}
