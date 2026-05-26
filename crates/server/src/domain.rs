@@ -301,6 +301,8 @@ pub struct ApiCapabilities {
     pub api_version: u32,
     pub arquivo: bool,
     pub config_autosave: bool,
+    pub data_root: String,
+    pub data_root_label: String,
 }
 
 impl Default for ApiCapabilities {
@@ -309,6 +311,8 @@ impl Default for ApiCapabilities {
             api_version: API_VERSION,
             arquivo: true,
             config_autosave: true,
+            data_root: String::new(),
+            data_root_label: String::new(),
         }
     }
 }
@@ -337,6 +341,7 @@ pub struct BackupCredentials {
 pub struct BackupCredentialStatus {
     pub fixadas: bool,
     pub access_key_id_mascarada: Option<String>,
+    pub store_nome: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

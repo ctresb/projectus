@@ -80,7 +80,13 @@ export type ArchivedItem = {
   arquivado_em: string
 }
 export type ArchiveIndex = { revision: number; itens: ArchivedItem[] }
-export type ApiCapabilities = { api_version: number; arquivo: boolean; config_autosave: boolean }
+export type ApiCapabilities = {
+  api_version: number
+  arquivo: boolean
+  config_autosave: boolean
+  data_root: string
+  data_root_label: string
+}
 export type Bootstrap = { config: Config; board: Board; ideias: Ideas; capacidades?: ApiCapabilities }
 export type DocumentResponse<T> = { dados: T; markdown: string }
 export type Snapshot = {
@@ -94,13 +100,17 @@ export type RemoteHistory = { snapshots: Snapshot[] }
 export type BackupCredentialStatus = {
   fixadas: boolean
   access_key_id_mascarada: string | null
+  store_nome: string
 }
 export type DaemonStatus = {
   suportado: boolean
   instalado: boolean
   instalacao_disponivel: boolean
-  plist: string | null
+  service_path: string | null
   executavel: string
+  plataforma: string
+  autostart_nome: string
+  instalacao_manual: string | null
 }
 export type EntityCard = ProjectCard | TaskCard
 export type LiveEvent = {
