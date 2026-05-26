@@ -24,7 +24,7 @@ describe('useDocumentAutosave', () => {
       }),
     )
     expect(save).not.toHaveBeenCalled()
-    await act(async () => vi.advanceTimersByTimeAsync(700))
+    await act(async () => vi.advanceTimersByTimeAsync(1000))
     expect(onStart).toHaveBeenCalledOnce()
     expect(save).toHaveBeenCalledOnce()
     expect(onSaved).toHaveBeenCalledWith('salvo')
@@ -46,7 +46,7 @@ describe('useDocumentAutosave', () => {
       { initialProps: { keyValue: 'ideia-1' } },
     )
     rerender({ keyValue: 'ideia-2' })
-    await act(async () => vi.advanceTimersByTimeAsync(699))
+    await act(async () => vi.advanceTimersByTimeAsync(999))
     expect(save).not.toHaveBeenCalled()
     await act(async () => vi.advanceTimersByTimeAsync(1))
     expect(save).toHaveBeenCalledOnce()

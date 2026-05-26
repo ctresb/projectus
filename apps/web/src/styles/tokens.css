@@ -1,3 +1,5 @@
+/* Tokens espelhados de tokens.json — manter sincronizado.
+   Edite tokens.json primeiro; depois reflita aqui. */
 @font-face {
   font-family: 'JetBrains Mono';
   src: url('/fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
@@ -9,19 +11,41 @@
   font-weight: 300 700;
 }
 :root {
+  /* sistema (estrutura do app — não personalizável pelo usuário) */
   --ink: #1a1a1a;
   --ink-2: #2a2a2a;
   --ink-3: #3a3a3a;
+  --hair: #3a3a3a;
   --paper: #f5f2ea;
   --fg2: #b8b3a4;
   --fg3: #6e6a60;
-  --hair: #3a3a3a;
+  /* acento — dinâmico, sobrescrito por App.tsx a partir de config.cor_principal */
   --accent: #55b9f7;
-  --green: #61e141;
-  --pink: #fe3867;
-  --yellow: #fad344;
+
+  /* semântico (estados do app — sucesso/erro/alerta) */
+  --ok: #61e141;
+  --erro: #ff4848;
+  --alerta: #fad344;
+
+  /* tipografia */
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 12px;
+  --text-md: 13px;
+  --text-lg: 14px;
+  --text-xl: 22px;
+  --lh-tight: 1.2;
+  --lh-snug: 1.4;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.55;
+  --track-tight: -0.02em;
+  --track-display: -0.045em;
+  --track-label: 0.08em;
+  --track-eyebrow: 0.22em;
+
+  /* espaçamento */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -30,9 +54,28 @@
   --s-6: 32px;
   --s-7: 48px;
   --s-8: 64px;
+
+  /* raios (PROJECTUS é flat — todos 0) */
+  --r-none: 0px;
+
+  /* movimento */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --fast: 120ms;
+  --dur-fast: 120ms;
   --dur: 200ms;
+  --dur-slow: 320ms;
+  /* aliases legados — não usar em código novo */
+  --fast: var(--dur-fast);
+
+  /* componentes — alturas de controle padrão */
+  --ctrl-lg: 40px;
+  --ctrl-md: 36px;
+  --ctrl-sm: 30px;
+  --ctrl-xs: 26px;
+
+  /* painéis */
+  --panel-pad: var(--s-4);
+  --panel-head-h: 48px;
+  --panel-scroll-max: 310px;
 }
 *,
 *::before,
@@ -48,12 +91,12 @@ body,
   overflow: hidden;
   background: var(--ink);
   color: var(--paper);
-  font: 14px/1.55 var(--font-mono);
+  font: var(--text-lg) / var(--lh-relaxed) var(--font-mono);
 }
 button,
 input {
   font: inherit;
-  border-radius: 0;
+  border-radius: var(--r-none);
 }
 button {
   cursor: pointer;
@@ -78,12 +121,12 @@ p {
 }
 h1 {
   font: 700 clamp(32px, 4vw, 46px) / 0.96 var(--font-display);
-  letter-spacing: -0.045em;
+  letter-spacing: var(--track-display);
 }
 a {
   color: var(--accent);
   text-decoration: none;
-  transition: color var(--fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease);
 }
 a:hover {
   color: var(--paper);
@@ -91,13 +134,13 @@ a:hover {
 kbd {
   border: 1px solid var(--hair);
   padding: 1px 5px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }
 .eyebrow {
   color: var(--fg3);
-  font-size: 10px;
-  letter-spacing: 0.22em;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-eyebrow);
   text-transform: uppercase;
 }
 .cursor {

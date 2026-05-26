@@ -1,0 +1,57 @@
+import { useState, type KeyboardEvent } from 'react'
+import type { ColorChoice, Tag } from '../lib/types'
+import { itemId } from '../lib/ids'
+
+type Props = {
+  cores: ColorChoice[]
+  onCreate: (tag: Tag) => void
+  placeholder?: string
+}
+
+function randomColor(cores: ColorChoice[], fallback = '#55B9F7'): string {
+  if (cores.length === 0) return fallback
+  return cores[Math.floor(Math.random() * cores.length)].valor
+}
+
+export function CommaTagsInput({ cores, onCreate, placeholder = 'digite uma tag e vírgula' }: Props) {
+  const [draft, setDraft] = useState('')
+
+  const commit = (raw: string) => {
+    const clean = raw.trim()
+    if (!clean) return
+    onCreate({ id: itemId('tag', clean), titulo: clean, cor: randomColor(cores) })
+  }
+
+  const handleChange = (value: string) => {
+    if (!value.includes(',')) {
+      setDraft(value)
+      return
+    }
+    const parts = value.split(',')
+    const tail = parts.pop() ?? ''
+    for (const part of parts) commit(part)
+    setDraft(tail.trimStart())
+  }
+
+  const handleKey = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      // Enter dentro do formulário do modal submeteria sem querer; intercepta sem criar tag.
+      event.preventDefault()
+    }
+  }
+
+  return (
+    <div className="comma-tags">
+      <input
+        className="comma-tags__input"
+        type="text"
+        value={draft}
+        placeholder={placeholder}
+        onChange={(event) => handleChange(event.target.value)}
+        onKeyDown={handleKey}
+        aria-label="Adicionar tags (separe com vírgula)"
+      />
+      <small className="comma-tags__hint">vírgula adiciona a tag · cor aleatória, edite depois</small>
+    </div>
+  )
+}

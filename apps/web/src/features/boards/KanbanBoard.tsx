@@ -23,6 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { motion } from 'motion/react'
 import type { Column, EntityCard, Tag } from '../../lib/types'
+import { EASE, EASE_CSS } from '../../lib/motion'
 
 type Props<T extends EntityCard> = {
   colunas: Column[]
@@ -111,7 +112,7 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
           />
         ))}
       </div>
-      <DragOverlay dropAnimation={{ duration: 160, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' }}>
+      <DragOverlay dropAnimation={{ duration: 160, easing: EASE_CSS }}>
         {activeCard ? <CardSurface card={activeCard} tags={tags} overlay width={overlayWidth} /> : null}
       </DragOverlay>
     </DndContext>
@@ -209,7 +210,7 @@ function SortableCard<T extends EntityCard>({
       }
       whileHover={isDragging ? undefined : { y: -1 }}
       whileTap={{ scale: 0.985 }}
-      transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
+      transition={{ duration: 0.12, ease: EASE }}
       {...attributes}
       {...listeners}
       onClick={() => {

@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ColorChoice } from '../lib/types'
+import { EASE } from '../lib/motion'
 
 type Props = {
   cores: ColorChoice[]
@@ -70,7 +71,7 @@ export function ColorPicker({ cores, value, onChange, label = 'Escolher cor' }: 
           style={{ '--swatch': value } as CSSProperties}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.97 }}
-          transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
+          transition={{ duration: 0.12, ease: EASE }}
         />
       </span>
       {createPortal(
@@ -84,7 +85,7 @@ export function ColorPicker({ cores, value, onChange, label = 'Escolher cor' }: 
               initial={{ opacity: 0, y: -4, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.98 }}
-              transition={{ duration: 0.14, ease: [0.2, 0.7, 0.2, 1] }}
+              transition={{ duration: 0.14, ease: EASE }}
               role="listbox"
               aria-label={label}
             >

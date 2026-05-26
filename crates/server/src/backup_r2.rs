@@ -51,13 +51,37 @@ impl BackupService {
     }
 
     pub async fn snapshot(&self, origin: SnapshotOrigin) -> Result<SnapshotRecord> {
+        let result = self.snapshot_inner(origin).await;
+        if let Err(err) = &result {
+            self.storage.emit_with(
+                "backup_falhou",
+                "backup",
+                "backup",
+                Some(serde_json::json!({ "mensagem": format!("{err:#}") })),
+            );
+        }
+        result
+    }
+
+    async fn snapshot_inner(&self, origin: SnapshotOrigin) -> Result<SnapshotRecord> {
         let (client, bucket) = self.client().await?;
         let created = Utc::now();
         let id = format!("{}-{}", created.format("%Y%m%dT%H%M%SZ"), id8());
         let (staging, manifest_files) = stage_snapshot(self.storage.root())?;
-        let bytes_total = manifest_files.iter().map(|file| file.bytes).sum();
+        let bytes_total: u64 = manifest_files.iter().map(|file| file.bytes).sum();
+        let arquivos_total = manifest_files.len();
+        self.storage.emit_with(
+            "backup_iniciado",
+            "backup",
+            &id,
+            Some(serde_json::json!({
+                "arquivos_total": arquivos_total,
+                "bytes_total": bytes_total,
+            })),
+        );
 
-        for file in &manifest_files {
+        let mut bytes_enviados: u64 = 0;
+        for (index, file) in manifest_files.iter().enumerate() {
             let bytes = fs::read(staging.path().join("PROJECTUS").join(&file.caminho))?;
             let key = format!("r2-syncs/{id}/PROJECTUS/{}", file.caminho);
             client
@@ -74,6 +98,18 @@ impl BackupService {
                         manifest_files.len()
                     )
                 })?;
+            bytes_enviados += file.bytes;
+            self.storage.emit_with(
+                "backup_progresso",
+                "backup",
+                &id,
+                Some(serde_json::json!({
+                    "arquivos_enviados": index + 1,
+                    "arquivos_total": arquivos_total,
+                    "bytes_enviados": bytes_enviados,
+                    "bytes_total": bytes_total,
+                })),
+            );
         }
 
         let manifest = Manifest {

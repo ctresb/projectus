@@ -20,7 +20,11 @@ export function useWorkspace() {
 
   useEffect(() => {
     void refresh()
-    return api.events(() => void refresh())
+    return api.events((event) => {
+      // Backup events drive the SnapshotButton; they don't change board/ideas/config.
+      if (event.tipo.startsWith('backup_')) return
+      void refresh()
+    })
   }, [refresh])
 
   return { workspace, setWorkspace, erro, carregando, refresh }

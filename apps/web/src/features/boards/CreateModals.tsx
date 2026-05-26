@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Modal } from '../../components/Modal'
 import { ColorPicker } from '../../components/ColorPicker'
-import { NewTagRow, TagPicker } from '../../components/TagPicker'
+import { CommaTagsInput } from '../../components/CommaTagsInput'
+import { TagPicker } from '../../components/TagPicker'
 import type { ColorChoice, Tag } from '../../lib/types'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
@@ -88,7 +89,7 @@ export function CreateProjectModal({
           <div>
             <span className="field-label">tags</span>
             <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
-            <NewTagRow
+            <CommaTagsInput
               cores={cores}
               onCreate={(tag) => {
                 setNovasTags((current) => [...current, tag])
@@ -174,7 +175,7 @@ export function CreateTaskModal({
           <div>
             <span className="field-label">tags da tarefa</span>
             <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
-            <NewTagRow
+            <CommaTagsInput
               cores={cores}
               onCreate={(tag) => {
                 setNovasTags((current) => [...current, tag])

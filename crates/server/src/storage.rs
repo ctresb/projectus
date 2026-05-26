@@ -948,14 +948,12 @@ impl Storage {
 
     fn migrate_config(&self) -> StoreResult<()> {
         let mut config: Config = read_json(&self.root.join("config.json"))?;
-        let legacy_palette = config.cores.iter().any(|color| color.id == "lilas");
-        if config.schema_version >= SCHEMA_VERSION && !legacy_palette {
+        if config.schema_version >= SCHEMA_VERSION {
             return Ok(());
         }
         let before = config.revision;
-        if legacy_palette {
-            config.cores = default_colors();
-        }
+        // Schema bump → reseed the palette from tokens.json. No retrocompat for old paper/ink swatches.
+        config.cores = default_colors();
         config.schema_version = SCHEMA_VERSION;
         config.revision += 1;
         atomic_json(&self.root.join("config.json"), &config)?;
@@ -1129,11 +1127,22 @@ impl Storage {
     }
 
     pub(crate) fn emit(&self, kind: &str, entity: &str, id: &str) {
+        self.emit_with(kind, entity, id, None);
+    }
+
+    pub(crate) fn emit_with(
+        &self,
+        kind: &str,
+        entity: &str,
+        id: &str,
+        dados: Option<Value>,
+    ) {
         let _ = self.events.send(LiveEvent {
             tipo: kind.to_owned(),
             entidade: entity.to_owned(),
             entidade_id: id.to_owned(),
             timestamp: Utc::now(),
+            dados,
         });
     }
 }
@@ -1251,7 +1260,7 @@ fn first_column(columns: &[Column]) -> String {
 }
 
 fn config_default_color() -> String {
-    "#55B9F7".to_owned()
+    default_cor_principal()
 }
 
 fn column_insert_index(cards: &[ProjectCard], status: &str, requested: usize) -> usize {
@@ -1522,13 +1531,20 @@ mod tests {
         let (dir, store) = store();
         let mut config = store.config().unwrap();
         config.schema_version = 1;
-        config.cores[4].id = "lilas".into();
+        config.cores = vec![ColorChoice {
+            id: "lilas".into(),
+            titulo: "Lilás".into(),
+            valor: "#ABCDEF".into(),
+        }];
         atomic_json(&store.root().join("config.json"), &config).unwrap();
         drop(store);
         let migrated = Storage::open(dir.path().join("PROJECTUS")).unwrap();
         let saved = migrated.config().unwrap();
         assert_eq!(saved.schema_version, SCHEMA_VERSION);
         assert!(!saved.cores.iter().any(|color| color.id == "lilas"));
+        assert!(saved.cores.iter().any(|color| color.id == "agua-verde"));
+        assert!(saved.cores.iter().any(|color| color.id == "roxo"));
+        assert_eq!(saved.cores.len(), 12);
         let revision = saved.revision;
         drop(migrated);
         let reopened = Storage::open(dir.path().join("PROJECTUS")).unwrap();

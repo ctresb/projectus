@@ -22,7 +22,7 @@ use crate::{
     backup_r2::BackupService,
     daemon,
     domain::*,
-    lan::{self, LanService},
+    lan::LanService,
     storage::{Storage, StoreError},
 };
 
@@ -501,33 +501,19 @@ async fn daemon_restart() -> Result<Json<daemon::DaemonStatus>, ApiError> {
 }
 
 async fn lan_status(State(state): State<AppState>) -> Result<Json<LanStatus>, ApiError> {
-    let porta = state.storage.config()?.porta;
-    Ok(Json(state.lan.status(porta).await))
+    let config = state.storage.config()?;
+    Ok(Json(state.lan.status(config.porta, config.lan_exposto)))
 }
 
 async fn lan_toggle(
     State(state): State<AppState>,
     Json(input): Json<LanToggle>,
 ) -> Result<Json<LanStatus>, ApiError> {
-    let porta = state.storage.config()?.porta;
-    if input.ativo {
-        let router_state = state.clone();
-        if let Err(err) = state
-            .lan
-            .enable(porta, move || router(router_state))
-            .await
-        {
-            return Err(ApiError {
-                status: StatusCode::CONFLICT,
-                message: err,
-            });
-        }
-    } else {
-        state.lan.disable().await;
-    }
-    state.storage.set_lan_exposto(input.ativo)?;
-    let _ = lan::lan_urls(porta); // touch to ensure linked
-    Ok(Json(state.lan.status(porta).await))
+    let saved = state.storage.set_lan_exposto(input.ativo)?;
+    // Tenta reiniciar automaticamente quando o daemon está instalado; ignora se não está
+    // (dev runs) — a UI mostra `precisa_reiniciar` e pede ação manual.
+    let _ = daemon::restart();
+    Ok(Json(state.lan.status(saved.porta, saved.lan_exposto)))
 }
 
 async fn events(

@@ -3,8 +3,10 @@ import { Archive, CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizon
 import { motion } from 'motion/react'
 import type { Config } from '../../lib/types'
 import { SaveIndicator } from '../../components/SaveIndicator'
+import { SnapshotButton } from '../../components/SnapshotButton'
 import { Logo } from '../../components/Logo'
 import { HostButton } from '../../components/HostButton'
+import { EASE } from '../../lib/motion'
 
 export type Screen = 'projetos' | 'ideias' | 'arquivo' | 'backup' | 'config'
 
@@ -13,14 +15,14 @@ export function Shell({
   projectTitle,
   config,
   onNavigate,
-  onSave,
+  onSnapshotError,
   children,
 }: {
   screen: Screen
   projectTitle?: string
   config: Config
   onNavigate: (screen: Screen) => void
-  onSave: () => void
+  onSnapshotError: (message: string) => void
   children: ReactNode
 }) {
   const nav = [
@@ -43,9 +45,7 @@ export function Shell({
         </div>
         <SaveIndicator />
         <HostButton porta={config.porta} />
-        <button className="save-button" type="button" onClick={onSave}>
-          <span>$</span> [SAVE] <small>R2</small>
-        </button>
+        <SnapshotButton onError={onSnapshotError} />
         <div className="local">
           <span className="local__dot" />
           local
@@ -62,7 +62,7 @@ export function Shell({
                   onClick={() => onNavigate(id)}
                   whileHover={{ x: 2 }}
                   whileTap={{ scale: 0.985 }}
-                  transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
+                  transition={{ duration: 0.12, ease: EASE }}
                 >
                   <Icon size={15} /> {label}
                 </motion.button>

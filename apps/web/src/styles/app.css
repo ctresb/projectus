@@ -81,7 +81,7 @@
 .local__dot {
   width: 8px;
   height: 8px;
-  background: var(--green);
+  background: var(--ok);
 }
 .body {
   display: grid;
@@ -153,7 +153,7 @@
   color: var(--fg3);
 }
 .status--ok {
-  color: var(--green);
+  color: var(--ok);
 }
 .main {
   min-width: 0;
@@ -215,10 +215,10 @@
   border-color: var(--accent);
 }
 .btn--danger {
-  color: var(--pink);
+  color: var(--erro);
 }
 .btn--danger:hover {
-  border-color: var(--pink);
+  border-color: var(--erro);
 }
 .icon-btn {
   display: inline-flex;
@@ -499,6 +499,21 @@ input::placeholder {
   flex-wrap: wrap;
   gap: var(--s-2);
 }
+.comma-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-top: var(--s-2);
+}
+.comma-tags__input {
+  min-height: var(--ctrl-md);
+}
+.comma-tags__hint {
+  color: var(--fg3);
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+  text-transform: none;
+}
 .new-tag-row {
   display: grid;
   grid-template-columns: minmax(126px, 1fr) auto auto auto;
@@ -545,8 +560,8 @@ input::placeholder {
   color: var(--fg3);
 }
 .catalog-tag-editor__remove:hover {
-  border-color: var(--pink);
-  color: var(--pink);
+  border-color: var(--erro);
+  color: var(--erro);
 }
 .tag-choice--active {
   background: var(--tag-color);
@@ -864,10 +879,29 @@ input::placeholder {
   display: flex;
   min-height: auto;
   flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--panel-pad);
   border: 1px solid var(--hair);
 }
+.panel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: var(--panel-head-h);
+  /* bleed pra colar nas bordas mantendo o padding lateral idêntico ao corpo */
+  margin: calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad)) 0;
+  padding: 0 var(--panel-pad);
+  border-bottom: 1px solid var(--hair);
+  background: var(--ink-2);
+  color: var(--fg2);
+  font-size: var(--text-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
 .panel__scroll {
-  max-height: 310px;
+  /* listas tomam edge-to-edge dentro do painel; as linhas têm padding próprio */
+  margin: 0 calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad));
+  max-height: var(--panel-scroll-max);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -879,26 +913,9 @@ input::placeholder {
 .panel__scroll::-webkit-scrollbar-thumb {
   background: var(--hair);
 }
-.panel > header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 48px;
-  padding: 0 var(--s-4);
-  border-bottom: 1px solid var(--hair);
-  background: var(--ink-2);
-  color: var(--fg2);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.panel > label,
 .panel > .btn,
-.panel-copy {
-  margin: var(--s-4);
-}
 .panel > .color-picker {
-  margin: 0 var(--s-4) var(--s-4);
+  align-self: flex-start;
 }
 .settings-autosave {
   align-self: center;
@@ -942,8 +959,8 @@ input::placeholder {
   font-size: 11px;
 }
 .icon-btn--danger:hover {
-  border-color: var(--pink);
-  color: var(--pink);
+  border-color: var(--erro);
+  color: var(--erro);
 }
 .setting-row input {
   min-width: 0;
@@ -952,28 +969,33 @@ input::placeholder {
   color: var(--fg3);
   font-size: 11px;
 }
-.panel-empty,
-.panel-copy {
+.panel-empty {
+  /* dentro de .panel__scroll (bled), precisa do próprio padding */
   color: var(--fg2);
-  font-size: 12px;
+  font-size: var(--text-base);
   padding: var(--s-3) var(--s-4);
+}
+.panel-copy {
+  /* .panel já provê padding via --panel-pad + gap; não duplicar */
+  color: var(--fg2);
+  font-size: var(--text-base);
+  line-height: var(--lh-relaxed);
 }
 .credential-state {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  margin: var(--s-4);
   padding: var(--s-3);
   border: 1px solid var(--hair);
   color: var(--fg3);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .credential-state strong {
-  color: var(--pink);
+  color: var(--erro);
   letter-spacing: 0.14em;
 }
 .credential-state--ok strong {
-  color: var(--green);
+  color: var(--ok);
 }
 .credential-state--ok span {
   color: var(--fg2);
@@ -1039,10 +1061,10 @@ input::placeholder {
   margin-right: var(--s-3);
 }
 .notice--ok strong {
-  color: var(--green);
+  color: var(--ok);
 }
 .notice--erro strong {
-  color: var(--pink);
+  color: var(--erro);
 }
 .notice--info strong {
   color: var(--accent);
@@ -1058,7 +1080,7 @@ input::placeholder {
   flex-direction: column;
   align-items: flex-start;
   gap: var(--s-4);
-  color: var(--pink);
+  color: var(--erro);
 }
 @media (max-width: 900px) {
   .topbar {
@@ -1218,6 +1240,94 @@ input::placeholder {
   border-color: var(--paper);
 }
 
+/* snapshot button — progress + estado, partilhado por topbar e BackupView */
+.snapshot-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  min-height: var(--ctrl-md);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--fg2);
+  font: inherit;
+  font-size: var(--text-base);
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.snapshot-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--paper);
+}
+.snapshot-button:disabled {
+  cursor: wait;
+  opacity: 1;
+}
+.snapshot-button__bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  pointer-events: none;
+  transition: width var(--dur) var(--ease);
+}
+.snapshot-button__content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.snapshot-button__label {
+  white-space: nowrap;
+  min-width: 92px;
+  text-align: left;
+}
+.snapshot-button__spin {
+  animation: save-spin 1s linear infinite;
+}
+.snapshot-button--running {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.snapshot-button--done {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.snapshot-button--done .snapshot-button__bar {
+  background: color-mix(in srgb, var(--ok) 22%, transparent);
+}
+.snapshot-button--error {
+  border-color: var(--erro);
+  color: var(--erro);
+}
+.snapshot-button--error .snapshot-button__bar {
+  background: color-mix(in srgb, var(--erro) 22%, transparent);
+}
+.snapshot-button--primary {
+  /* variante usada na BackupView (header). Maior, com fundo accent quando idle. */
+  min-height: var(--ctrl-lg);
+  padding: 0 var(--s-5);
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--accent);
+}
+.snapshot-button--primary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--paper);
+}
+.snapshot-button--primary.snapshot-button--running,
+.snapshot-button--primary.snapshot-button--done,
+.snapshot-button--primary.snapshot-button--error {
+  background: transparent;
+}
+
 /* save indicator */
 .save-indicator {
   display: inline-flex;
@@ -1249,11 +1359,11 @@ input::placeholder {
   border-color: var(--accent);
 }
 .save-indicator--saved {
-  color: var(--green);
+  color: var(--ok);
 }
 .save-indicator--error {
-  color: var(--pink);
-  border-color: var(--pink);
+  color: var(--erro);
+  border-color: var(--erro);
 }
 .save-indicator__spin {
   animation: save-spin 1s linear infinite;
@@ -1269,9 +1379,8 @@ input::placeholder {
   border: 1px solid var(--hair);
   background: var(--ink);
   padding: var(--s-3);
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--fg2);
-  margin-bottom: var(--s-3);
 }
 .r2-help p {
   margin-bottom: var(--s-2);
@@ -1305,7 +1414,7 @@ input::placeholder {
 .field-error {
   display: block;
   margin-top: 4px;
-  color: var(--pink);
+  color: var(--erro);
   font-size: 11px;
   line-height: 1.45;
   letter-spacing: 0;
@@ -1313,7 +1422,6 @@ input::placeholder {
 }
 .btn--mini--inline {
   align-self: flex-start;
-  margin-bottom: var(--s-2);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1637,11 +1745,11 @@ input::placeholder {
   margin: 0;
 }
 .host-pop__hint--warn {
-  color: var(--pink);
+  color: var(--erro);
 }
 .host-pop__error {
-  border: 1px solid var(--pink);
-  color: var(--pink);
+  border: 1px solid var(--erro);
+  color: var(--erro);
   padding: var(--s-2) var(--s-3);
   font-size: 11px;
 }

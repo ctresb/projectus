@@ -36,7 +36,7 @@ export function useDocumentAutosave<T>({
           markError(error.message)
           actions.current.onError(error.message)
         })
-    }, 700)
+    }, 1000)
     return () => window.clearTimeout(timer)
   }, [ativo, dirty, documentKey])
 }

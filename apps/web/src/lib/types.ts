@@ -24,6 +24,7 @@ export type LanStatus = {
   porta: number
   urls: string[]
   erro: string | null
+  precisa_reiniciar: boolean
 }
 export type ProjectCard = {
   id: string
@@ -102,3 +103,10 @@ export type DaemonStatus = {
   executavel: string
 }
 export type EntityCard = ProjectCard | TaskCard
+export type LiveEvent = {
+  tipo: string
+  entidade: string
+  entidade_id: string
+  timestamp: string
+  dados?: Record<string, unknown> | null
+}

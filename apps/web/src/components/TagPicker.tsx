@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
+import { EASE } from '../lib/motion'
 import { ColorPicker } from './ColorPicker'
 
 export function TagPicker({
@@ -27,7 +28,7 @@ export function TagPicker({
           }
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
+          transition={{ duration: 0.12, ease: EASE }}
         >
           {tag.titulo}
         </motion.button>
@@ -70,7 +71,7 @@ export function NewTagRow({
         className="tag-choice tag-choice--active new-tag-row__preview"
         style={{ '--tag-color': color } as CSSProperties}
         animate={{ borderColor: color, backgroundColor: color }}
-        transition={{ duration: 0.14, ease: [0.2, 0.7, 0.2, 1] }}
+        transition={{ duration: 0.14, ease: EASE }}
       >
         {title.trim() || 'prévia'}
       </motion.span>

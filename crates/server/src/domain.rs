@@ -1,10 +1,29 @@
+use std::sync::OnceLock;
+
 use chrono::{DateTime, Utc};
 use rand::{Rng, distr::Alphanumeric};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 pub const API_VERSION: u32 = 3;
+
+const TOKENS_JSON: &str = include_str!("../../../apps/web/src/styles/tokens.json");
+
+#[derive(Debug, Deserialize)]
+struct TokensFile {
+    palette: Vec<ColorChoice>,
+    acento_default: String,
+    coluna_neutra_default: String,
+}
+
+fn tokens() -> &'static TokensFile {
+    static CELL: OnceLock<TokensFile> = OnceLock::new();
+    CELL.get_or_init(|| {
+        serde_json::from_str(TOKENS_JSON)
+            .expect("tokens.json malformed — palette/acento_default/coluna_neutra_default required")
+    })
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Column {
@@ -71,6 +90,9 @@ pub struct LanStatus {
     pub porta: u16,
     pub urls: Vec<String>,
     pub erro: Option<String>,
+    /// `true` quando o flag em config diverge do bind atual — o usuário precisa
+    /// reiniciar pra refletir a mudança.
+    pub precisa_reiniciar: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,7 +101,11 @@ pub struct LanToggle {
 }
 
 pub fn default_cor_principal() -> String {
-    "#55B9F7".to_owned()
+    tokens().acento_default.clone()
+}
+
+pub fn default_neutral_column_color() -> String {
+    tokens().coluna_neutra_default.clone()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -186,6 +212,8 @@ pub struct LiveEvent {
     pub entidade: String,
     pub entidade_id: String,
     pub timestamp: DateTime<Utc>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dados: Option<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -366,12 +394,13 @@ pub fn default_region() -> String {
 }
 
 pub fn default_columns() -> Vec<Column> {
+    let neutral = default_neutral_column_color();
     [
         ("planejado", "PLANEJADO", "#55B9F7"),
         ("fazendo", "FAZENDO", "#FAD344"),
         ("finalizando", "FINALIZANDO", "#FE3867"),
         ("pronto", "PRONTO", "#61E141"),
-        ("concluido", "CONCLUÍDO", "#B8B3A4"),
+        ("concluido", "CONCLUÍDO", neutral.as_str()),
     ]
     .into_iter()
     .map(|(id, titulo, cor)| Column {
@@ -383,27 +412,7 @@ pub fn default_columns() -> Vec<Column> {
 }
 
 pub fn default_colors() -> Vec<ColorChoice> {
-    [
-        ("azul", "Azul", "#55B9F7"),
-        ("verde", "Verde", "#61E141"),
-        ("rosa", "Rosa", "#FE3867"),
-        ("amarelo", "Amarelo", "#FAD344"),
-        ("papel", "Papel", "#F5F2EA"),
-        ("papel-2", "Papel fosco", "#EDE9DE"),
-        ("papel-3", "Papel antigo", "#DCD7C8"),
-        ("linha", "Linha", "#C8C2B0"),
-        ("texto-2", "Texto secundário", "#B8B3A4"),
-        ("texto-3", "Texto terciário", "#6E6A60"),
-        ("tinta-3", "Tinta elevada", "#3A3A3A"),
-        ("tinta-2", "Tinta superfície", "#2A2A2A"),
-    ]
-    .into_iter()
-    .map(|(id, titulo, valor)| ColorChoice {
-        id: id.to_owned(),
-        titulo: titulo.to_owned(),
-        valor: valor.to_owned(),
-    })
-    .collect()
+    tokens().palette.clone()
 }
 
 impl Default for Config {

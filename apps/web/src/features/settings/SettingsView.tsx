@@ -75,7 +75,7 @@ export function SettingsView({
           onConfig(fresh)
         })
         .finally(() => setSaving(false))
-    }, 500)
+    }, 1000)
     return () => window.clearTimeout(timer)
   }, [dirty, onConfig, onMessage, saving])
 

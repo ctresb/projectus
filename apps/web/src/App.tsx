@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Notice, type NoticeValue } from './components/Notice'
-import { api } from './lib/api'
 import type { Board, Config, Ideas } from './lib/types'
 import { useWorkspace } from './hooks/useWorkspace'
 import { BackupView } from './features/backup/BackupView'
@@ -62,15 +61,7 @@ export function App() {
       projectTitle={projectCard?.titulo}
       config={workspace.config}
       onNavigate={navigate}
-      onSave={async () => {
-        try {
-          await api.saveSnapshot()
-          message('ok', 'snapshot completo enviado ao R2')
-          await refresh()
-        } catch (error) {
-          message('erro', error instanceof Error ? error.message : 'falha no snapshot')
-        }
-      }}
+      onSnapshotError={(text) => message('erro', text)}
     >
       {screen === 'projetos' &&
         (projectCard ? (

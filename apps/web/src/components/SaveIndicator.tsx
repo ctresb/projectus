@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, CloudOff, Loader2 } from 'lucide-react'
 import { useSaveStatus } from '../hooks/useSaveStatus'
+import { EASE } from '../lib/motion'
 
 const tone: Record<string, string> = {
   idle: 'save-indicator--idle',
@@ -34,7 +35,7 @@ export function SaveIndicator() {
           initial={{ opacity: 0, y: -2 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 2 }}
-          transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
+          transition={{ duration: 0.12, ease: EASE }}
           className="save-indicator__inner"
         >
           {icon}

@@ -9,6 +9,7 @@ import type {
   IdeaCard,
   Ideas,
   LanStatus,
+  LiveEvent,
   Project,
   RemoteHistory,
 } from './types'
@@ -128,9 +129,15 @@ export const api = {
   daemonStatus: () => request<DaemonStatus>('/daemon/status'),
   installDaemon: () => request<DaemonStatus>('/daemon/instalar', { method: 'POST' }),
   restartDaemon: () => request<DaemonStatus>('/daemon/reiniciar', { method: 'POST' }),
-  events: (onChange: () => void) => {
+  events: (onEvent: (event: LiveEvent) => void) => {
     const source = new EventSource(`${base}/api/events`)
-    source.addEventListener('mudanca', onChange)
+    source.addEventListener('mudanca', (raw) => {
+      try {
+        onEvent(JSON.parse((raw as MessageEvent).data) as LiveEvent)
+      } catch {
+        /* malformed payload — skip */
+      }
+    })
     return () => source.close()
   },
 }
