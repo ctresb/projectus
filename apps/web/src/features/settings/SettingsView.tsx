@@ -1,10 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
 import { ColorPicker } from '../../components/ColorPicker'
 import { itemId } from '../../lib/ids'
 import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
+
+function isR2S3Endpoint(endpoint: string) {
+  try {
+    const url = new URL(endpoint)
+    return (
+      url.protocol === 'https:' &&
+      url.hostname.endsWith('.r2.cloudflarestorage.com') &&
+      (url.pathname === '' || url.pathname === '/')
+    )
+  } catch {
+    return false
+  }
+}
 
 export function SettingsView({
   config,
@@ -23,6 +36,7 @@ export function SettingsView({
   const [showCloudflareHelp, setShowCloudflareHelp] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const validR2Endpoint = isR2S3Endpoint(draft.r2.endpoint)
   const draftRef = useRef(config)
   useEffect(() => {
     if (dirty || saving) return
@@ -149,6 +163,7 @@ export function SettingsView({
                 <ColorPicker
                   cores={draft.cores}
                   value={column.cor}
+                  label={`Cor da coluna ${column.titulo}`}
                   onChange={(value) =>
                     change({
                       ...draft,
@@ -180,9 +195,17 @@ export function SettingsView({
           </header>
           <div className="panel__scroll">
             {draft.tags.map((tag) => (
-              <div className="setting-row" key={tag.id}>
+              <div className="setting-row setting-row--tag" key={tag.id}>
                 <input value={tag.titulo} onChange={(event) => updateTag(tag.id, { titulo: event.target.value })} />
-                <ColorPicker cores={draft.cores} value={tag.cor} onChange={(cor) => updateTag(tag.id, { cor })} />
+                <span className="tag-choice tag-choice--active setting-row__tag-preview" style={{ '--tag-color': tag.cor } as CSSProperties}>
+                  {tag.titulo.trim() || 'tag'}
+                </span>
+                <ColorPicker
+                  cores={draft.cores}
+                  value={tag.cor}
+                  label={`Cor da tag ${tag.titulo}`}
+                  onChange={(cor) => updateTag(tag.id, { cor })}
+                />
                 <button
                   className="icon-btn icon-btn--danger"
                   type="button"
@@ -203,6 +226,7 @@ export function SettingsView({
           <ColorPicker
             cores={draft.cores}
             value={draft.cor_principal ?? '#55B9F7'}
+            label="Cor principal do aplicativo"
             onChange={(value) => change({ ...draft, cor_principal: value })}
           />
         </section>
@@ -244,6 +268,11 @@ export function SettingsView({
               onChange={(event) => change({ ...draft, r2: { ...draft.r2, endpoint: event.target.value } })}
             />
             <small className="hint">use o endpoint S3 API da conta, não um domínio customizado.</small>
+            {draft.r2.endpoint.trim() && !validR2Endpoint && (
+              <small className="field-error">
+                ERR / este domínio não recebe snapshots. use https://&lt;account-id&gt;.r2.cloudflarestorage.com
+              </small>
+            )}
           </label>
           <label>
             bucket
@@ -284,7 +313,7 @@ export function SettingsView({
           <button
             className="btn btn--quiet"
             type="button"
-            disabled={!accessKey.trim() || !secretKey.trim() || dirty || saving}
+            disabled={!accessKey.trim() || !secretKey.trim() || dirty || saving || !validR2Endpoint}
             onClick={() => void saveCredentials()}
           >
             fixar credenciais no Keychain

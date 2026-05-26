@@ -10,6 +10,7 @@ import { ProjectsView } from './features/boards/ProjectsView'
 import { IdeasView } from './features/ideas/IdeasView'
 import { SettingsView } from './features/settings/SettingsView'
 import { Shell, type Screen } from './features/shell/Shell'
+import { REQUIRED_API_VERSION, ServerVersionRecovery } from './features/shell/ServerVersionRecovery'
 
 export function App() {
   const { workspace, setWorkspace, erro, carregando, refresh } = useWorkspace()
@@ -42,13 +43,8 @@ export function App() {
         </button>
       </div>
     )
-  if (workspace.capacidades?.api_version !== 2)
-    return (
-      <div className="boot boot--error">
-        <p>ERR / servidor local desatualizado</p>
-        <p>reinicie o serviço PROJECTUS para habilitar editor, configurações e Arquivo.</p>
-      </div>
-    )
+  if (workspace.capacidades?.api_version !== REQUIRED_API_VERSION)
+    return <ServerVersionRecovery version={workspace.capacidades?.api_version} onRecovered={refresh} />
 
   const projectCard = workspace.board.projetos.find((project) => project.id === openProject)
   const setBoard = (board: Board) => setWorkspace({ ...workspace, board })

@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import { Plus } from 'lucide-react'
+import { motion } from 'motion/react'
 import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
 import { ColorPicker } from './ColorPicker'
@@ -16,7 +17,7 @@ export function TagPicker({
   return (
     <div className="tag-picker">
       {disponiveis.map((tag) => (
-        <button
+        <motion.button
           className={value.includes(tag.id) ? 'tag-choice tag-choice--active' : 'tag-choice'}
           style={{ '--tag-color': tag.cor } as CSSProperties}
           key={tag.id}
@@ -24,9 +25,12 @@ export function TagPicker({
           onClick={() =>
             onChange(value.includes(tag.id) ? value.filter((id) => id !== tag.id) : [...value, tag.id])
           }
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
         >
           {tag.titulo}
-        </button>
+        </motion.button>
       ))}
       {disponiveis.length === 0 && <small>nenhuma tag criada</small>}
     </div>
@@ -62,7 +66,15 @@ export function NewTagRow({
           }
         }}
       />
-      <ColorPicker cores={cores} value={color} onChange={setColor} />
+      <motion.span
+        className="tag-choice tag-choice--active new-tag-row__preview"
+        style={{ '--tag-color': color } as CSSProperties}
+        animate={{ borderColor: color, backgroundColor: color }}
+        transition={{ duration: 0.14, ease: [0.2, 0.7, 0.2, 1] }}
+      >
+        {title.trim() || 'prévia'}
+      </motion.span>
+      <ColorPicker cores={cores} value={color} onChange={setColor} label="Cor da nova tag" />
       <button className="btn btn--quiet" type="button" onClick={submit} disabled={!title.trim()}>
         <Plus size={13} /> adicionar
       </button>

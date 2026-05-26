@@ -8,6 +8,7 @@ import type {
   DocumentResponse,
   IdeaCard,
   Ideas,
+  LanStatus,
   Project,
   RemoteHistory,
 } from './types'
@@ -122,8 +123,11 @@ export const api = {
   snapshots: () => request<RemoteHistory>('/backups'),
   saveSnapshot: () => request('/backups/save', { method: 'POST' }),
   restoreSnapshot: (id: string) => request(`/backups/${id}/restore`, { method: 'POST' }),
+  lanStatus: () => request<LanStatus>('/lan'),
+  toggleLan: (ativo: boolean) => request<LanStatus>('/lan', { method: 'POST', body: JSON.stringify({ ativo }) }),
   daemonStatus: () => request<DaemonStatus>('/daemon/status'),
   installDaemon: () => request<DaemonStatus>('/daemon/instalar', { method: 'POST' }),
+  restartDaemon: () => request<DaemonStatus>('/daemon/reiniciar', { method: 'POST' }),
   events: (onChange: () => void) => {
     const source = new EventSource(`${base}/api/events`)
     source.addEventListener('mudanca', onChange)

@@ -147,6 +147,19 @@ impl Storage {
         Ok(update)
     }
 
+    pub fn set_lan_exposto(&self, exposto: bool) -> StoreResult<Config> {
+        let _guard = self.writes.lock().expect("storage mutex poisoned");
+        let mut config = self.read_config_inner()?;
+        if config.lan_exposto == exposto {
+            return Ok(config);
+        }
+        config.lan_exposto = exposto;
+        config.revision += 1;
+        atomic_json(&self.root.join("config.json"), &config)?;
+        self.emit("lan_atualizada", "config", "config");
+        Ok(config)
+    }
+
     pub fn mark_r2_configured(&self, configured: bool) -> StoreResult<Config> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         let mut config = self.read_config_inner()?;

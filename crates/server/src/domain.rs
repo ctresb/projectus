@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub const SCHEMA_VERSION: u32 = 2;
-pub const API_VERSION: u32 = 2;
+pub const API_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Column {
@@ -61,6 +61,21 @@ pub struct Config {
     pub r2: R2Config,
     #[serde(default = "default_cor_principal")]
     pub cor_principal: String,
+    #[serde(default)]
+    pub lan_exposto: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanStatus {
+    pub ativo: bool,
+    pub porta: u16,
+    pub urls: Vec<String>,
+    pub erro: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanToggle {
+    pub ativo: bool,
 }
 
 pub fn default_cor_principal() -> String {
@@ -402,6 +417,7 @@ impl Default for Config {
             cores: default_colors(),
             r2: R2Config::default(),
             cor_principal: default_cor_principal(),
+            lan_exposto: false,
         }
     }
 }

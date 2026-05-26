@@ -47,6 +47,15 @@ pub fn install() -> Result<DaemonStatus> {
             bail!("execute scripts/instalar-autostart.sh para instalar o servidor persistente");
         }
         let executable = std::env::current_exe()?.to_string_lossy().to_string();
+        let working_directory = std::env::current_dir()?.to_string_lossy().to_string();
+        let web_dist = installed_web_dist()
+            .map(|path| {
+                format!(
+                    "<key>EnvironmentVariables</key><dict>\n<key>PROJECTUS_WEB_DIST</key><string>{}</string>\n</dict>\n",
+                    path.display()
+                )
+            })
+            .unwrap_or_default();
         let plist = plist_path()?;
         if let Some(parent) = plist.parent() {
             fs::create_dir_all(parent)?;
@@ -61,7 +70,8 @@ pub fn install() -> Result<DaemonStatus> {
 <plist version="1.0"><dict>
 <key>Label</key><string>{LABEL}</string>
 <key>ProgramArguments</key><array><string>{executable}</string></array>
-<key>RunAtLoad</key><true/>
+<key>WorkingDirectory</key><string>{working_directory}</string>
+{web_dist}<key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>
 <key>StandardOutPath</key><string>{}/server.log</string>
 <key>StandardErrorPath</key><string>{}/server.err.log</string>
@@ -87,6 +97,39 @@ pub fn install() -> Result<DaemonStatus> {
         }
         status()
     }
+}
+
+pub fn restart() -> Result<DaemonStatus> {
+    #[cfg(not(target_os = "macos"))]
+    bail!("reinício automático está disponível apenas no macOS");
+    #[cfg(target_os = "macos")]
+    {
+        let current = status()?;
+        if !current.instalado || !is_standalone_server() {
+            bail!("o servidor persistente não está instalado; instale o autostart primeiro");
+        }
+
+        // Returning before exiting lets the frontend start polling while launchd restarts this process.
+        std::thread::spawn(|| {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            std::process::exit(0);
+        });
+        Ok(current)
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn installed_web_dist() -> Option<PathBuf> {
+    std::env::var_os("PROJECTUS_WEB_DIST")
+        .map(PathBuf::from)
+        .filter(|path| path.exists())
+        .or_else(|| {
+            std::env::current_exe()
+                .ok()
+                .and_then(|path| path.ancestors().nth(3).map(PathBuf::from))
+                .map(|root| root.join("apps/web/dist"))
+                .filter(|path| path.exists())
+        })
 }
 
 fn is_standalone_server() -> bool {

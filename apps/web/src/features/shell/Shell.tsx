@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
 import { Archive, CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizontal } from 'lucide-react'
+import { motion } from 'motion/react'
 import type { Config } from '../../lib/types'
 import { SaveIndicator } from '../../components/SaveIndicator'
+import { Logo } from '../../components/Logo'
+import { HostButton } from '../../components/HostButton'
 
 export type Screen = 'projetos' | 'ideias' | 'arquivo' | 'backup' | 'config'
 
@@ -30,7 +33,7 @@ export function Shell({
   return (
     <div className="shell">
       <header className="topbar">
-        <strong className="brand">PROJECTUS</strong>
+        <Logo height={14} />
         <div className="crumbs">
           <button type="button" onClick={() => onNavigate('projetos')}>
             projectus
@@ -39,6 +42,7 @@ export function Shell({
           <strong>{projectTitle ?? screen}</strong>
         </div>
         <SaveIndicator />
+        <HostButton porta={config.porta} />
         <button className="save-button" type="button" onClick={onSave}>
           <span>$</span> [SAVE] <small>R2</small>
         </button>
@@ -52,13 +56,16 @@ export function Shell({
           <ul>
             {nav.map(({ id, label, icon: Icon }) => (
               <li key={id}>
-                <button
+                <motion.button
                   type="button"
                   className={screen === id ? 'rail__link rail__link--active' : 'rail__link'}
                   onClick={() => onNavigate(id)}
+                  whileHover={{ x: 2 }}
+                  whileTap={{ scale: 0.985 }}
+                  transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
                 >
                   <Icon size={15} /> {label}
-                </button>
+                </motion.button>
               </li>
             ))}
           </ul>

@@ -17,6 +17,13 @@ export type Config = {
   cores: ColorChoice[]
   r2: R2Config
   cor_principal: string
+  lan_exposto: boolean
+}
+export type LanStatus = {
+  ativo: boolean
+  porta: number
+  urls: string[]
+  erro: string | null
 }
 export type ProjectCard = {
   id: string

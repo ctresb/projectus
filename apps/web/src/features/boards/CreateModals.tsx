@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Modal } from '../../components/Modal'
-import { ColorSwatchButton } from '../../components/ColorSwatchButton'
+import { ColorPicker } from '../../components/ColorPicker'
 import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import type { ColorChoice, Tag } from '../../lib/types'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
@@ -83,7 +83,7 @@ export function CreateProjectModal({
         <div className="inline-options">
           <div>
             <span className="field-label">cor</span>
-            <ColorSwatchButton cores={cores} value={cor} onChange={setCor} />
+            <ColorPicker cores={cores} value={cor} onChange={setCor} label="Cor do projeto" />
           </div>
           <div>
             <span className="field-label">tags</span>
@@ -169,7 +169,7 @@ export function CreateTaskModal({
         <div className="inline-options">
           <div>
             <span className="field-label">cor</span>
-            <ColorSwatchButton cores={cores} value={cor} onChange={setCor} />
+            <ColorPicker cores={cores} value={cor} onChange={setCor} label="Cor da tarefa" />
           </div>
           <div>
             <span className="field-label">tags da tarefa</span>

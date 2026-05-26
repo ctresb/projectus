@@ -3,7 +3,7 @@ use std::{convert::Infallible, path::PathBuf, sync::Arc};
 use async_stream::stream;
 use axum::{
     Json, Router,
-    extract::{Multipart, Path, Query, State},
+    extract::{DefaultBodyLimit, Multipart, Path, Query, State},
     http::StatusCode,
     response::{
         IntoResponse, Sse,
@@ -22,6 +22,7 @@ use crate::{
     backup_r2::BackupService,
     daemon,
     domain::*,
+    lan::{self, LanService},
     storage::{Storage, StoreError},
 };
 
@@ -29,6 +30,7 @@ use crate::{
 pub struct AppState {
     pub storage: Arc<Storage>,
     pub backup: Arc<BackupService>,
+    pub lan: Arc<LanService>,
 }
 
 #[derive(Debug, Serialize)]
@@ -73,7 +75,7 @@ impl From<anyhow::Error> for ApiError {
     fn from(error: anyhow::Error) -> Self {
         Self {
             status: StatusCode::BAD_GATEWAY,
-            message: error.to_string(),
+            message: format!("{error:#}"),
         }
     }
 }
@@ -126,6 +128,9 @@ pub fn router(state: AppState) -> Router {
         .route("/backups/{id}/restore", post(restore_snapshot))
         .route("/daemon/status", get(daemon_status))
         .route("/daemon/instalar", post(daemon_install))
+        .route("/daemon/reiniciar", post(daemon_restart))
+        .route("/lan", get(lan_status).post(lan_toggle))
+        .layer(DefaultBodyLimit::max(32 * 1024 * 1024))
         .with_state(state.clone());
 
     let mut application = Router::new()
@@ -380,6 +385,9 @@ async fn idea_attachment(
     ))
 }
 
+const MAX_IMAGE_DIM: u32 = 1600;
+const MAX_IMAGE_BYTES: usize = 25 * 1024 * 1024;
+
 async fn image_from_multipart(mut multipart: Multipart) -> Result<(String, Vec<u8>), ApiError> {
     while let Some(field) = multipart.next_field().await.map_err(bad_request)? {
         let content_type = field.content_type().unwrap_or_default().to_owned();
@@ -390,12 +398,60 @@ async fn image_from_multipart(mut multipart: Multipart) -> Result<(String, Vec<u
             });
         }
         let name = field.file_name().unwrap_or("imagem.png").to_owned();
-        return Ok((name, field.bytes().await.map_err(bad_request)?.to_vec()));
+        let raw = field.bytes().await.map_err(bad_request)?.to_vec();
+        if raw.len() > MAX_IMAGE_BYTES {
+            return Err(ApiError {
+                status: StatusCode::PAYLOAD_TOO_LARGE,
+                message: "imagem maior que 25 MB; reduza antes de enviar".into(),
+            });
+        }
+        let (final_name, final_bytes) = downscale_if_huge(name, raw);
+        return Ok((final_name, final_bytes));
     }
     Err(ApiError {
         status: StatusCode::BAD_REQUEST,
         message: "nenhuma imagem recebida".into(),
     })
+}
+
+/// Decode image; if either dim > MAX_IMAGE_DIM, downscale (Lanczos3) and re-encode as JPEG (quality 82) or PNG (if alpha).
+/// On any decode failure, fall through and store original bytes.
+fn downscale_if_huge(name: String, raw: Vec<u8>) -> (String, Vec<u8>) {
+    let Ok(img) = image::load_from_memory(&raw) else {
+        return (name, raw);
+    };
+    let (w, h) = (img.width(), img.height());
+    if w <= MAX_IMAGE_DIM && h <= MAX_IMAGE_DIM {
+        return (name, raw);
+    }
+    let resized = img.resize(MAX_IMAGE_DIM, MAX_IMAGE_DIM, image::imageops::FilterType::Lanczos3);
+    let has_alpha = matches!(
+        resized.color(),
+        image::ColorType::La8 | image::ColorType::La16 | image::ColorType::Rgba8 | image::ColorType::Rgba16
+    );
+    let mut out = std::io::Cursor::new(Vec::new());
+    let final_name = if has_alpha {
+        if resized.write_to(&mut out, image::ImageFormat::Png).is_err() {
+            return (name, raw);
+        }
+        swap_extension(&name, "png")
+    } else {
+        let rgb = resized.to_rgb8();
+        let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut out, 82);
+        if encoder.encode(&rgb, rgb.width(), rgb.height(), image::ExtendedColorType::Rgb8).is_err() {
+            return (name, raw);
+        }
+        swap_extension(&name, "jpg")
+    };
+    (final_name, out.into_inner())
+}
+
+fn swap_extension(name: &str, ext: &str) -> String {
+    let stem = std::path::Path::new(name)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("imagem");
+    format!("{stem}.{ext}")
 }
 
 async fn backup_credentials(
@@ -438,6 +494,40 @@ async fn daemon_status() -> Result<Json<daemon::DaemonStatus>, ApiError> {
 
 async fn daemon_install() -> Result<Json<daemon::DaemonStatus>, ApiError> {
     Ok(Json(daemon::install().map_err(anyhow::Error::from)?))
+}
+
+async fn daemon_restart() -> Result<Json<daemon::DaemonStatus>, ApiError> {
+    Ok(Json(daemon::restart().map_err(anyhow::Error::from)?))
+}
+
+async fn lan_status(State(state): State<AppState>) -> Result<Json<LanStatus>, ApiError> {
+    let porta = state.storage.config()?.porta;
+    Ok(Json(state.lan.status(porta).await))
+}
+
+async fn lan_toggle(
+    State(state): State<AppState>,
+    Json(input): Json<LanToggle>,
+) -> Result<Json<LanStatus>, ApiError> {
+    let porta = state.storage.config()?.porta;
+    if input.ativo {
+        let router_state = state.clone();
+        if let Err(err) = state
+            .lan
+            .enable(porta, move || router(router_state))
+            .await
+        {
+            return Err(ApiError {
+                status: StatusCode::CONFLICT,
+                message: err,
+            });
+        }
+    } else {
+        state.lan.disable().await;
+    }
+    state.storage.set_lan_exposto(input.ativo)?;
+    let _ = lan::lan_urls(porta); // touch to ensure linked
+    Ok(Json(state.lan.status(porta).await))
 }
 
 async fn events(

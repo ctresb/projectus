@@ -11,6 +11,7 @@ use aws_sdk_s3::{Client, primitives::ByteStream};
 use chrono::Utc;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
+use url::Url;
 use walkdir::WalkDir;
 
 use crate::{
@@ -53,15 +54,12 @@ impl BackupService {
         let (client, bucket) = self.client().await?;
         let created = Utc::now();
         let id = format!("{}-{}", created.format("%Y%m%dT%H%M%SZ"), id8());
-        let files = durable_files(self.storage.root())?;
-        let mut manifest_files = Vec::with_capacity(files.len());
-        let mut bytes_total = 0_u64;
+        let (staging, manifest_files) = stage_snapshot(self.storage.root())?;
+        let bytes_total = manifest_files.iter().map(|file| file.bytes).sum();
 
-        for path in &files {
-            let relative = path.strip_prefix(self.storage.root())?;
-            let bytes = fs::read(path)?;
-            bytes_total += bytes.len() as u64;
-            let key = format!("r2-syncs/{id}/PROJECTUS/{}", remote_path(relative));
+        for file in &manifest_files {
+            let bytes = fs::read(staging.path().join("PROJECTUS").join(&file.caminho))?;
+            let key = format!("r2-syncs/{id}/PROJECTUS/{}", file.caminho);
             client
                 .put_object()
                 .bucket(&bucket)
@@ -69,12 +67,13 @@ impl BackupService {
                 .body(ByteStream::from(bytes.clone()))
                 .send()
                 .await
-                .with_context(|| format!("falha ao enviar {}", relative.display()))?;
-            manifest_files.push(ManifestFile {
-                caminho: remote_path(relative),
-                bytes: bytes.len() as u64,
-                sha256: hash(&bytes),
-            });
+                .with_context(|| {
+                    format!(
+                        "falha ao enviar PROJECTUS/{}; o snapshot integral de {} arquivos foi interrompido",
+                        file.caminho,
+                        manifest_files.len()
+                    )
+                })?;
         }
 
         let manifest = Manifest {
@@ -175,6 +174,7 @@ impl BackupService {
         if config.r2.endpoint.trim().is_empty() || config.r2.bucket.trim().is_empty() {
             bail!("configure endpoint e bucket do R2 antes de salvar");
         }
+        validate_r2_endpoint(&config.r2.endpoint)?;
         let credentials = secrets::load()?;
         let sdk_config = aws_config::defaults(BehaviorVersion::latest())
             .endpoint_url(config.r2.endpoint)
@@ -193,6 +193,20 @@ impl BackupService {
             .build();
         Ok((Client::from_conf(s3_config), config.r2.bucket))
     }
+}
+
+fn validate_r2_endpoint(raw: &str) -> Result<()> {
+    let endpoint = Url::parse(raw.trim()).context("endereço S3 do R2 inválido")?;
+    let hostname = endpoint.host_str().unwrap_or_default();
+    if endpoint.scheme() != "https"
+        || !hostname.ends_with(".r2.cloudflarestorage.com")
+        || endpoint.path() != "/"
+    {
+        bail!(
+            "endereço R2 inválido para snapshot: use o endpoint S3 API no formato https://<account-id>.r2.cloudflarestorage.com; domínios públicos/customizados não aceitam upload S3"
+        );
+    }
+    Ok(())
 }
 
 async fn get_remote_history(client: &Client, bucket: &str) -> Result<RemoteHistory> {
@@ -220,6 +234,27 @@ fn durable_files(root: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+fn stage_snapshot(root: &Path) -> Result<(TempDir, Vec<ManifestFile>)> {
+    let staging = tempfile::tempdir()?;
+    let staged_root = staging.path().join("PROJECTUS");
+    let mut manifest_files = Vec::new();
+    for source in durable_files(root)? {
+        let relative = source.strip_prefix(root)?;
+        let staged = staged_root.join(relative);
+        if let Some(parent) = staged.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(&source, &staged)?;
+        let bytes = fs::read(&staged)?;
+        manifest_files.push(ManifestFile {
+            caminho: remote_path(relative),
+            bytes: bytes.len() as u64,
+            sha256: hash(&bytes),
+        });
+    }
+    Ok((staging, manifest_files))
+}
+
 fn remote_path(relative: &Path) -> String {
     relative
         .components()
@@ -235,4 +270,52 @@ fn hash(bytes: &[u8]) -> String {
 #[allow(dead_code)]
 fn write_manifest_locally(path: &Path, manifest: &Manifest) -> Result<()> {
     atomic_json(path, manifest).map_err(Into::into)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stages_the_entire_projectus_tree_for_a_snapshot() {
+        let source = tempfile::tempdir().unwrap();
+        let root = source.path().join("PROJECTUS");
+        for relative in [
+            "config.json",
+            "board.json",
+            "history.json",
+            "projetos/jogo-12345678/project.json",
+            "projetos/jogo-12345678/tarefas/card-12345678/card.md",
+            "ideias/ideia-12345678/note.md",
+            "arquivo/task-12345678/card.md",
+            "arquivo/index.json",
+        ] {
+            let path = root.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, relative).unwrap();
+        }
+        fs::write(root.join(".DS_Store"), "ignored").unwrap();
+        fs::write(root.join("history.json.tmp-write"), "ignored").unwrap();
+
+        let (staging, files) = stage_snapshot(&root).unwrap();
+        let paths = files
+            .iter()
+            .map(|file| file.caminho.as_str())
+            .collect::<Vec<_>>();
+
+        assert_eq!(paths.len(), 8);
+        assert!(paths.contains(&"config.json"));
+        assert!(paths.contains(&"board.json"));
+        assert!(paths.contains(&"ideias/ideia-12345678/note.md"));
+        assert!(paths.contains(&"arquivo/task-12345678/card.md"));
+        assert!(staging.path().join("PROJECTUS/config.json").exists());
+        assert!(!paths.contains(&".DS_Store"));
+    }
+
+    #[test]
+    fn accepts_only_the_cloudflare_r2_s3_endpoint() {
+        assert!(validate_r2_endpoint("https://conta.r2.cloudflarestorage.com").is_ok());
+        assert!(validate_r2_endpoint("https://bucket.c3b.fun/").is_err());
+        assert!(validate_r2_endpoint("https://conta.r2.cloudflarestorage.com/bucket").is_err());
+    }
 }

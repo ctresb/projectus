@@ -52,6 +52,10 @@ export function BackupView({
           <Save size={15} /> {loading ? 'enviando...' : '[SAVE] agora'}
         </button>
       </header>
+      <p className="panel-copy">
+        cada snapshot envia a pasta integral <code>~/Documents/PROJECTUS</code>: configurações, kanbans, ideias,
+        Arquivo, históricos e anexos.
+      </p>
       {!config.r2.configurado ? (
         <div className="empty">
           <p>R2 ainda não configurado.</p>
@@ -93,4 +97,3 @@ export function BackupView({
     </section>
   )
 }
-

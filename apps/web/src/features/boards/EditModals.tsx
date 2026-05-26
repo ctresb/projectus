@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { ExternalLink, X } from 'lucide-react'
+import { motion } from 'motion/react'
 import { Modal } from '../../components/Modal'
 import { ArchiveAction } from '../../components/ArchiveAction'
-import { ColorSwatchButton } from '../../components/ColorSwatchButton'
+import { ColorPicker } from '../../components/ColorPicker'
 import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import { api } from '../../lib/api'
 import type { ColorChoice, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
@@ -103,23 +104,36 @@ export function EditProjectModal({
           </span>
         </label>
         <span className="field-label">cor</span>
-        <ColorSwatchButton cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
+        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label="Cor do projeto" />
         <span className="field-label">tags</span>
         <TagPicker disponiveis={tagsDisponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="catalog">
           <span className="field-label">tags disponíveis nas tarefas</span>
           <div className="catalog__tags">
             {taskTags.map((tag) => (
-              <span className="catalog-tag" key={tag.id}>
-                {tag.titulo}
+              <motion.div className="catalog-tag-editor" layout key={tag.id}>
+                <span className="tag-choice tag-choice--active" style={{ '--tag-color': tag.cor } as CSSProperties}>
+                  {tag.titulo}
+                </span>
+                <ColorPicker
+                  cores={cores}
+                  value={tag.cor}
+                  label={`Cor da tag ${tag.titulo}`}
+                  onChange={(cor) =>
+                    change(() =>
+                      setTaskTags(taskTags.map((current) => (current.id === tag.id ? { ...current, cor } : current))),
+                    )
+                  }
+                />
                 <button
+                  className="catalog-tag-editor__remove"
                   type="button"
                   aria-label={`Remover ${tag.titulo}`}
                   onClick={() => change(() => setTaskTags(taskTags.filter((current) => current.id !== tag.id)))}
                 >
                   <X size={12} />
                 </button>
-              </span>
+              </motion.div>
             ))}
             {taskTags.length === 0 && <small>crie tags para organizar tarefas</small>}
           </div>
@@ -216,7 +230,7 @@ export function EditTaskModal({
           <input value={titulo} onChange={(event) => change(() => setTitulo(event.target.value))} />
         </label>
         <span className="field-label">cor</span>
-        <ColorSwatchButton cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
+        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label="Cor da tarefa" />
         <span className="field-label">tags</span>
         <TagPicker disponiveis={project.tags_disponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="editor-form__markdown">

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { Config, DocumentResponse, IdeaCard, Ideas } from '../../lib/types'
-import { ColorSwatchButton } from '../../components/ColorSwatchButton'
+import { ColorPicker } from '../../components/ColorPicker'
 import { ArchiveAction } from '../../components/ArchiveAction'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { markdownBody } from '../../lib/markdown'
@@ -177,9 +177,10 @@ function IdeaEditor({
           }
         />
         <div className="idea-editor__actions">
-          <ColorSwatchButton
+          <ColorPicker
             cores={cores}
             value={color}
+            label="Cor da ideia"
             onChange={(value) =>
               edit(() => {
                 setColor(value)
