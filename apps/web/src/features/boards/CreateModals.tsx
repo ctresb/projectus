@@ -68,7 +68,7 @@ export function CreateProjectModal({
         </label>
         <div className="editor-form__markdown">
           <span>descrição</span>
-          <DeferredMarkdownEditor ref={editor} markdown={markdown} onChange={setMarkdown} />
+          <DeferredMarkdownEditor ref={editor} documentKey="novo-projeto" markdown={markdown} onChange={setMarkdown} />
         </div>
         <label>
           repositório GitHub
@@ -164,7 +164,7 @@ export function CreateTaskModal({
         </label>
         <div className="editor-form__markdown">
           <span>descrição</span>
-          <DeferredMarkdownEditor ref={editor} markdown={markdown} onChange={setMarkdown} />
+          <DeferredMarkdownEditor ref={editor} documentKey="nova-tarefa" markdown={markdown} onChange={setMarkdown} />
         </div>
         <div className="inline-options">
           <div>

@@ -121,14 +121,14 @@ export function ProjectDetail({
           setDocument(updated)
           void onRefresh()
         }}
-        onDelete={async () => {
+        onArchive={async () => {
           try {
             const fresh = await api.bootstrap()
-            await api.deleteProject(project.id, fresh.board.revision)
+            await api.archiveProject(project.id, fresh.board.revision)
             setEditProject(false)
             await onRefresh()
             onBack()
-            onMessage('ok', 'projeto arquivado na lixeira local')
+            onMessage('ok', 'projeto movido para Arquivo')
           } catch (error) {
             onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar')
           }
@@ -146,12 +146,12 @@ export function ProjectDetail({
             setDocument({ ...document, dados: updated })
             setTaskOpen(updated.tarefas.find((item) => item.id === taskOpen.id) ?? null)
           }}
-          onDelete={async () => {
+          onArchive={async () => {
             try {
-              const updated = await api.deleteTask(project.id, taskOpen.id, project.revision)
-              setDocument({ ...document, dados: updated })
+              await api.archiveTask(project.id, taskOpen.id, project.revision)
+              await load()
               setTaskOpen(null)
-              onMessage('ok', 'tarefa arquivada na lixeira local')
+              onMessage('ok', 'tarefa movida para Arquivo')
             } catch (error) {
               onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar')
             }

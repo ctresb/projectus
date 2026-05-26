@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
-import { CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizontal } from 'lucide-react'
+import { Archive, CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizontal } from 'lucide-react'
 import type { Config } from '../../lib/types'
 import { SaveIndicator } from '../../components/SaveIndicator'
 
-export type Screen = 'projetos' | 'ideias' | 'backup' | 'config'
+export type Screen = 'projetos' | 'ideias' | 'arquivo' | 'backup' | 'config'
 
 export function Shell({
   screen,
@@ -23,6 +23,7 @@ export function Shell({
   const nav = [
     { id: 'projetos' as const, label: 'projetos', icon: FolderKanban },
     { id: 'ideias' as const, label: 'ideias', icon: Lightbulb },
+    { id: 'arquivo' as const, label: 'arquivo', icon: Archive },
     { id: 'backup' as const, label: 'backups', icon: CloudUpload },
     { id: 'config' as const, label: 'config', icon: Settings },
   ]

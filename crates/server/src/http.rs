@@ -86,8 +86,11 @@ pub fn router(state: AppState) -> Router {
         .route("/config", get(config).put(update_config))
         .route("/history", get(history))
         .route("/events", get(events))
+        .route("/archive", get(archive))
+        .route("/archive/{id}/restore", post(restore_archived))
         .route("/projects", post(create_project))
         .route("/projects/move", post(move_project))
+        .route("/projects/{id}/archive", post(archive_project))
         .route(
             "/projects/{id}",
             get(project).put(update_project).delete(delete_project),
@@ -95,6 +98,10 @@ pub fn router(state: AppState) -> Router {
         .route("/projects/{id}/anexos", post(project_attachment))
         .route("/projects/{id}/tasks", post(create_task))
         .route("/projects/{project_id}/tasks/move", post(move_task))
+        .route(
+            "/projects/{project_id}/tasks/{task_id}/archive",
+            post(archive_task),
+        )
         .route(
             "/projects/{project_id}/tasks/{task_id}",
             get(task_markdown).put(update_task).delete(delete_task),
@@ -104,6 +111,7 @@ pub fn router(state: AppState) -> Router {
             post(task_attachment),
         )
         .route("/ideas", get(ideas).post(create_idea))
+        .route("/ideas/{id}/archive", post(archive_idea))
         .route(
             "/ideas/{id}",
             get(idea).put(update_idea).delete(delete_idea),
@@ -144,7 +152,7 @@ pub fn router(state: AppState) -> Router {
 async fn health(State(state): State<AppState>) -> Result<Json<serde_json::Value>, ApiError> {
     let config = state.storage.config()?;
     Ok(Json(
-        serde_json::json!({"ok": true, "porta": config.porta, "raiz": state.storage.root()}),
+        serde_json::json!({"ok": true, "porta": config.porta, "raiz": state.storage.root(), "api_version": API_VERSION}),
     ))
 }
 
@@ -167,6 +175,23 @@ async fn history(
     State(state): State<AppState>,
 ) -> Result<Json<crate::domain::HistoryLog>, ApiError> {
     Ok(Json(state.storage.history()?))
+}
+
+async fn archive(State(state): State<AppState>) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.archive()?))
+}
+
+#[derive(Deserialize)]
+struct RevisionInput {
+    revision: u64,
+}
+
+async fn restore_archived(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Json(input): Json<RestoreArchive>,
+) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.restore_archived(&id, input)?))
 }
 
 async fn project(
@@ -202,6 +227,14 @@ async fn delete_project(
     Query(query): Query<RevisionQuery>,
 ) -> Result<Json<Board>, ApiError> {
     Ok(Json(state.storage.delete_project(&id, query.revision)?))
+}
+
+async fn archive_project(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Json(input): Json<RevisionInput>,
+) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.archive_project(&id, input.revision)?))
 }
 
 async fn move_project(
@@ -260,6 +293,18 @@ async fn delete_task(
     )?))
 }
 
+async fn archive_task(
+    State(state): State<AppState>,
+    Path((project_id, task_id)): Path<(String, String)>,
+    Json(input): Json<RevisionInput>,
+) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.archive_task(
+        &project_id,
+        &task_id,
+        input.revision,
+    )?))
+}
+
 async fn ideas(State(state): State<AppState>) -> Result<Json<IdeasIndex>, ApiError> {
     Ok(Json(state.storage.ideas()?))
 }
@@ -292,6 +337,14 @@ async fn delete_idea(
     Query(query): Query<RevisionQuery>,
 ) -> Result<Json<IdeasIndex>, ApiError> {
     Ok(Json(state.storage.delete_idea(&id, query.revision)?))
+}
+
+async fn archive_idea(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Json(input): Json<RevisionInput>,
+) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.archive_idea(&id, input.revision)?))
 }
 
 async fn project_attachment(

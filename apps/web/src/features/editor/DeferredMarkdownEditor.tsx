@@ -4,6 +4,7 @@ import type { MarkdownEditorHandle } from './MarkdownEditor'
 const LoadedEditor = lazy(() => import('./MarkdownEditor').then((module) => ({ default: module.MarkdownEditor })))
 
 type Props = {
+  documentKey: string
   markdown: string
   onChange: (markdown: string) => void
   uploadImage?: (file: File) => Promise<string>

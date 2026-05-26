@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
 import { ColorPicker } from '../../components/ColorPicker'
 import { itemId } from '../../lib/ids'
+import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
 
 export function SettingsView({
   config,
@@ -20,54 +21,89 @@ export function SettingsView({
   const [credentialStatus, setCredentialStatus] = useState<BackupCredentialStatus | null>(null)
   const [daemon, setDaemon] = useState<DaemonStatus | null>(null)
   const [showCloudflareHelp, setShowCloudflareHelp] = useState(false)
-  useEffect(() => setDraft(config), [config])
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const draftRef = useRef(config)
+  useEffect(() => {
+    if (dirty || saving) return
+    draftRef.current = config
+    setDraft(config)
+  }, [config, dirty, saving])
   useEffect(() => {
     void api.daemonStatus().then(setDaemon).catch(() => undefined)
     void api.credentialStatus().then(setCredentialStatus).catch(() => undefined)
   }, [])
 
-  const save = async () => {
+  useEffect(() => {
+    if (!dirty || saving) return
+    markSaving()
+    const timer = window.setTimeout(() => {
+      const submitted = draftRef.current
+      setDirty(false)
+      setSaving(true)
+      void api
+        .updateConfig(submitted)
+        .then((saved) => {
+          const hasNewerChange = draftRef.current !== submitted
+          const next = hasNewerChange ? { ...draftRef.current, revision: saved.revision } : saved
+          draftRef.current = next
+          setDraft(next)
+          onConfig(next)
+          if (hasNewerChange) setDirty(true)
+          else markSaved()
+        })
+        .catch(async (error: Error) => {
+          markError(error.message)
+          onMessage('erro', error.message)
+          const fresh = (await api.bootstrap()).config
+          draftRef.current = fresh
+          setDraft(fresh)
+          onConfig(fresh)
+        })
+        .finally(() => setSaving(false))
+    }, 500)
+    return () => window.clearTimeout(timer)
+  }, [dirty, onConfig, onMessage, saving])
+
+  const change = (next: Config) => {
+    draftRef.current = next
+    setDraft(next)
+    onConfig(next)
+    setDirty(true)
+  }
+
+  const saveCredentials = async () => {
     try {
-      const saved = await api.updateConfig(draft)
-      onConfig(saved)
-      const hasNewCredentials = Boolean(accessKey.trim() && secretKey.trim())
-      if (hasNewCredentials) {
-        await api.saveCredentials({ access_key_id: accessKey.trim(), secret_access_key: secretKey.trim() })
-        setAccessKey('')
-        setSecretKey('')
-        const [workspace, status] = await Promise.all([api.bootstrap(), api.credentialStatus()])
-        setDraft(workspace.config)
-        setCredentialStatus(status)
-        onConfig(workspace.config)
-        onMessage('ok', 'configurações salvas e credenciais R2 fixadas no Keychain')
-      } else {
-        onMessage('ok', 'configurações salvas')
-      }
+      await api.saveCredentials({ access_key_id: accessKey.trim(), secret_access_key: secretKey.trim() })
+      setAccessKey('')
+      setSecretKey('')
+      setCredentialStatus(await api.credentialStatus())
+      onMessage('ok', 'credenciais R2 fixadas no Keychain')
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível salvar')
+      onMessage('erro', error instanceof Error ? error.message : 'não foi possível salvar credenciais')
     }
   }
 
   const addTag = () => {
     const id = itemId('tag', 'nova tag')
-    setDraft({ ...draft, tags: [...draft.tags, { id, titulo: 'nova tag', cor: draft.cores[0].valor }] })
+    change({ ...draft, tags: [...draft.tags, { id, titulo: 'nova tag', cor: draft.cores[0].valor }] })
   }
-  const updateTag = (id: string, change: Partial<Tag>) =>
-    setDraft({ ...draft, tags: draft.tags.map((tag) => (tag.id === id ? { ...tag, ...change } : tag)) })
+  const updateTag = (id: string, update: Partial<Tag>) =>
+    change({ ...draft, tags: draft.tags.map((tag) => (tag.id === id ? { ...tag, ...update } : tag)) })
   const addColumn = () => {
     const column: Column = {
       id: itemId('coluna', 'nova coluna'),
       titulo: 'NOVA COLUNA',
       cor: draft.cores[0].valor,
     }
-    setDraft({ ...draft, colunas: [...draft.colunas, column] })
+    change({ ...draft, colunas: [...draft.colunas, column] })
   }
   const removeColumn = (id: string) => {
     if (draft.colunas.length === 1) {
       onMessage('erro', 'mantenha pelo menos uma coluna')
       return
     }
-    setDraft({ ...draft, colunas: draft.colunas.filter((column) => column.id !== id) })
+    change({ ...draft, colunas: draft.colunas.filter((column) => column.id !== id) })
   }
   const moveColumn = (index: number, direction: -1 | 1) => {
     const destination = index + direction
@@ -75,7 +111,7 @@ export function SettingsView({
     const columns = [...draft.colunas]
     const [column] = columns.splice(index, 1)
     columns.splice(destination, 0, column)
-    setDraft({ ...draft, colunas: columns })
+    change({ ...draft, colunas: columns })
   }
 
   return (
@@ -85,9 +121,7 @@ export function SettingsView({
           <span className="eyebrow">config</span>
           <h1>configurações</h1>
         </div>
-        <button className="btn btn--primary" type="button" onClick={() => void save()}>
-          salvar configurações
-        </button>
+        <span className="settings-autosave">{dirty || saving ? 'salvando automaticamente...' : 'salvamento automático ativo'}</span>
       </header>
       <div className="settings-grid">
         <section className="panel">
@@ -104,7 +138,7 @@ export function SettingsView({
                 <input
                   value={column.titulo}
                   onChange={(event) =>
-                    setDraft({
+                    change({
                       ...draft,
                       colunas: draft.colunas.map((item) =>
                         item.id === column.id ? { ...item, titulo: event.target.value.toUpperCase() } : item,
@@ -116,7 +150,7 @@ export function SettingsView({
                   cores={draft.cores}
                   value={column.cor}
                   onChange={(value) =>
-                    setDraft({
+                    change({
                       ...draft,
                       colunas: draft.colunas.map((item) => (item.id === column.id ? { ...item, cor: value } : item)),
                     })
@@ -153,7 +187,7 @@ export function SettingsView({
                   className="icon-btn icon-btn--danger"
                   type="button"
                   aria-label="Remover tag"
-                  onClick={() => setDraft({ ...draft, tags: draft.tags.filter((item) => item.id !== tag.id) })}
+                  onClick={() => change({ ...draft, tags: draft.tags.filter((item) => item.id !== tag.id) })}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -169,7 +203,7 @@ export function SettingsView({
           <ColorPicker
             cores={draft.cores}
             value={draft.cor_principal ?? '#55B9F7'}
-            onChange={(value) => setDraft({ ...draft, cor_principal: value })}
+            onChange={(value) => change({ ...draft, cor_principal: value })}
           />
         </section>
         <section className="panel">
@@ -207,7 +241,7 @@ export function SettingsView({
             <input
               placeholder="https://<account-id>.r2.cloudflarestorage.com"
               value={draft.r2.endpoint}
-              onChange={(event) => setDraft({ ...draft, r2: { ...draft.r2, endpoint: event.target.value } })}
+              onChange={(event) => change({ ...draft, r2: { ...draft.r2, endpoint: event.target.value } })}
             />
             <small className="hint">use o endpoint S3 API da conta, não um domínio customizado.</small>
           </label>
@@ -215,7 +249,7 @@ export function SettingsView({
             bucket
             <input
               value={draft.r2.bucket}
-              onChange={(event) => setDraft({ ...draft, r2: { ...draft.r2, bucket: event.target.value } })}
+              onChange={(event) => change({ ...draft, r2: { ...draft.r2, bucket: event.target.value } })}
             />
             <small className="hint">apenas o nome do bucket.</small>
           </label>
@@ -247,6 +281,14 @@ export function SettingsView({
                 : 'nenhuma credencial fixada — preencha access + secret e clique em salvar.'}
             </span>
           </div>
+          <button
+            className="btn btn--quiet"
+            type="button"
+            disabled={!accessKey.trim() || !secretKey.trim() || dirty || saving}
+            onClick={() => void saveCredentials()}
+          >
+            fixar credenciais no Keychain
+          </button>
         </section>
         <section className="panel">
           <header>servidor local</header>
@@ -255,7 +297,7 @@ export function SettingsView({
             <input
               type="number"
               value={draft.porta}
-              onChange={(event) => setDraft({ ...draft, porta: Number(event.target.value) })}
+              onChange={(event) => change({ ...draft, porta: Number(event.target.value) })}
             />
           </label>
           <p className="panel-copy">

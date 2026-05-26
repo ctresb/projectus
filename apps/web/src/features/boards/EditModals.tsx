@@ -8,7 +8,7 @@ import { api } from '../../lib/api'
 import type { ColorChoice, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { markdownBody } from '../../lib/markdown'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
-import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
+import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
 
 export function EditProjectModal({
   aberto,
@@ -18,7 +18,7 @@ export function EditProjectModal({
   tagsDisponiveis,
   onClose,
   onSaved,
-  onDelete,
+  onArchive,
   onError,
 }: {
   aberto: boolean
@@ -28,7 +28,7 @@ export function EditProjectModal({
   tagsDisponiveis: Tag[]
   onClose: () => void
   onSaved: (document: { dados: Project; markdown: string }) => void
-  onDelete: () => Promise<void>
+  onArchive: () => Promise<void>
   onError: (message: string) => void
 }) {
   const [titulo, setTitulo] = useState(project.titulo)
@@ -42,6 +42,7 @@ export function EditProjectModal({
 
   useEffect(() => {
     if (!aberto) return
+    let cancelled = false
     setTitulo(project.titulo)
     setGithub(project.github_url)
     setCor(card.cor)
@@ -50,37 +51,35 @@ export function EditProjectModal({
     setDirty(false)
     setMarkdownLoaded(false)
     void api.project(project.id).then((doc) => {
+      if (cancelled) return
       setMarkdown(markdownBody(doc.markdown))
       setMarkdownLoaded(true)
     })
-  }, [aberto, card.cor, card.tags, project.github_url, project.id, project.tags_disponiveis, project.titulo])
+    return () => {
+      cancelled = true
+    }
+  }, [aberto, project.id])
 
-  useEffect(() => {
-    if (!dirty || !aberto || !markdownLoaded) return
-    markSaving()
-    const timer = window.setTimeout(() => {
+  useDocumentAutosave({
+    ativo: aberto && markdownLoaded,
+    dirty,
+    documentKey: project.id,
+    onStart: () => {
       setDirty(false)
-      void api
-        .updateProject(project.id, {
-          revision: project.revision,
-          titulo,
-          github_url: github,
-          markdown,
-          cor,
-          tags,
-          tags_disponiveis: taskTags,
-        })
-        .then((doc) => {
-          markSaved()
-          onSaved(doc)
-        })
-        .catch((error: Error) => {
-          markError(error.message)
-          onError(error.message)
-        })
-    }, 1000)
-    return () => window.clearTimeout(timer)
-  }, [aberto, cor, dirty, github, markdown, markdownLoaded, onError, onSaved, project.id, project.revision, tags, taskTags, titulo])
+    },
+    save: () =>
+      api.updateProject(project.id, {
+        revision: project.revision,
+        titulo,
+        github_url: github,
+        markdown,
+        cor,
+        tags,
+        tags_disponiveis: taskTags,
+      }),
+    onSaved,
+    onError,
+  })
 
   const change = (action: () => void) => {
     action()
@@ -130,6 +129,7 @@ export function EditProjectModal({
           <span>descrição</span>
           {markdownLoaded ? (
             <DeferredMarkdownEditor
+              documentKey={`projeto-${project.id}`}
               markdown={markdown}
               onChange={(value) => {
                 if (value !== markdown) change(() => setMarkdown(value))
@@ -141,7 +141,7 @@ export function EditProjectModal({
           )}
         </div>
         <footer className="form-actions form-actions--spread">
-          <ArchiveAction entidade="este projeto" onArchive={onDelete} />
+          <ArchiveAction entidade="este projeto" onArchive={onArchive} />
         </footer>
       </div>
     </Modal>
@@ -155,7 +155,7 @@ export function EditTaskModal({
   cores,
   onClose,
   onSaved,
-  onDelete,
+  onArchive,
   onError,
 }: {
   aberto: boolean
@@ -164,7 +164,7 @@ export function EditTaskModal({
   cores: ColorChoice[]
   onClose: () => void
   onSaved: (updated: Project) => void
-  onDelete: () => Promise<void>
+  onArchive: () => Promise<void>
   onError: (message: string) => void
 }) {
   const [titulo, setTitulo] = useState(task.titulo)
@@ -176,35 +176,33 @@ export function EditTaskModal({
 
   useEffect(() => {
     if (!aberto) return
+    let cancelled = false
     setTitulo(task.titulo)
     setCor(task.cor)
     setTags(task.tags)
     setDirty(false)
     setMarkdownLoaded(false)
     void api.taskMarkdown(project.id, task.id).then(({ markdown: content }) => {
+      if (cancelled) return
       setMarkdown(markdownBody(content))
       setMarkdownLoaded(true)
     })
-  }, [aberto, project.id, task.cor, task.id, task.tags, task.titulo])
+    return () => {
+      cancelled = true
+    }
+  }, [aberto, project.id, task.id])
 
-  useEffect(() => {
-    if (!dirty || !aberto || !markdownLoaded) return
-    markSaving()
-    const timer = window.setTimeout(() => {
+  useDocumentAutosave({
+    ativo: aberto && markdownLoaded,
+    dirty,
+    documentKey: task.id,
+    onStart: () => {
       setDirty(false)
-      void api
-        .updateTask(project.id, task.id, { revision: project.revision, titulo, markdown, cor, tags })
-        .then((updated) => {
-          markSaved()
-          onSaved(updated)
-        })
-        .catch((error: Error) => {
-          markError(error.message)
-          onError(error.message)
-        })
-    }, 1000)
-    return () => window.clearTimeout(timer)
-  }, [aberto, cor, dirty, markdown, markdownLoaded, onError, onSaved, project.id, project.revision, tags, task.id, titulo])
+    },
+    save: () => api.updateTask(project.id, task.id, { revision: project.revision, titulo, markdown, cor, tags }),
+    onSaved,
+    onError,
+  })
 
   const change = (action: () => void) => {
     action()
@@ -225,6 +223,7 @@ export function EditTaskModal({
           <span>descrição</span>
           {markdownLoaded ? (
             <DeferredMarkdownEditor
+              documentKey={`tarefa-${task.id}`}
               markdown={markdown}
               onChange={(value) => {
                 if (value !== markdown) change(() => setMarkdown(value))
@@ -236,7 +235,7 @@ export function EditTaskModal({
           )}
         </div>
         <footer className="form-actions form-actions--spread">
-          <ArchiveAction entidade="esta tarefa" onArchive={onDelete} />
+          <ArchiveAction entidade="esta tarefa" onArchive={onArchive} />
         </footer>
       </div>
     </Modal>

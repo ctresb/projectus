@@ -1,5 +1,6 @@
 import type {
   Board,
+  ArchiveIndex,
   BackupCredentialStatus,
   Bootstrap,
   Config,
@@ -43,6 +44,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   bootstrap: () => request<Bootstrap>('/bootstrap'),
   updateConfig: (config: Config) => request<Config>('/config', { method: 'PUT', body: JSON.stringify(config) }),
+  archive: () => request<ArchiveIndex>('/archive'),
   project: (id: string) => request<DocumentResponse<Project>>(`/projects/${id}`),
   createProject: (input: {
     titulo: string
@@ -65,8 +67,8 @@ export const api = {
       tags_disponiveis?: import('./types').Tag[]
     },
   ) => request<DocumentResponse<Project>>(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
-  deleteProject: (id: string, revision: number) =>
-    request<Board>(`/projects/${id}?revision=${revision}`, { method: 'DELETE' }),
+  archiveProject: (id: string, revision: number) =>
+    request<ArchiveIndex>(`/projects/${id}/archive`, { method: 'POST', body: JSON.stringify({ revision }) }),
   moveProject: (input: { revision: number; id: string; status: string; indice: number }) =>
     request<Board>('/projects/move', { method: 'POST', body: JSON.stringify(input) }),
   createTask: (
@@ -88,8 +90,11 @@ export const api = {
     taskId: string,
     input: { revision: number; titulo: string; markdown: string; cor: string; tags: string[] },
   ) => request<Project>(`/projects/${projectId}/tasks/${taskId}`, { method: 'PUT', body: JSON.stringify(input) }),
-  deleteTask: (projectId: string, taskId: string, revision: number) =>
-    request<Project>(`/projects/${projectId}/tasks/${taskId}?revision=${revision}`, { method: 'DELETE' }),
+  archiveTask: (projectId: string, taskId: string, revision: number) =>
+    request<ArchiveIndex>(`/projects/${projectId}/tasks/${taskId}/archive`, {
+      method: 'POST',
+      body: JSON.stringify({ revision }),
+    }),
   moveTask: (projectId: string, input: { revision: number; id: string; status: string; indice: number }) =>
     request<Project>(`/projects/${projectId}/tasks/move`, { method: 'POST', body: JSON.stringify(input) }),
   idea: (id: string) => request<DocumentResponse<IdeaCard>>(`/ideas/${id}`),
@@ -97,8 +102,13 @@ export const api = {
     request<DocumentResponse<IdeaCard>>('/ideas', { method: 'POST', body: JSON.stringify(input) }),
   updateIdea: (id: string, input: { revision: number; titulo: string; markdown: string; cor: string }) =>
     request<DocumentResponse<IdeaCard>>(`/ideas/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
-  deleteIdea: (id: string, revision: number) =>
-    request<Ideas>(`/ideas/${id}?revision=${revision}`, { method: 'DELETE' }),
+  archiveIdea: (id: string, revision: number) =>
+    request<ArchiveIndex>(`/ideas/${id}/archive`, { method: 'POST', body: JSON.stringify({ revision }) }),
+  restoreArchived: (id: string, revision: number, destinoRevision: number) =>
+    request<ArchiveIndex>(`/archive/${id}/restore`, {
+      method: 'POST',
+      body: JSON.stringify({ revision, destino_revision: destinoRevision }),
+    }),
   ideas: () => request<Ideas>('/ideas'),
   uploadImage: async (path: string, image: File) => {
     const data = new FormData()

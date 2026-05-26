@@ -4,6 +4,7 @@ import { api } from './lib/api'
 import type { Board, Config, Ideas } from './lib/types'
 import { useWorkspace } from './hooks/useWorkspace'
 import { BackupView } from './features/backup/BackupView'
+import { ArchiveView } from './features/archive/ArchiveView'
 import { ProjectDetail } from './features/boards/ProjectDetail'
 import { ProjectsView } from './features/boards/ProjectsView'
 import { IdeasView } from './features/ideas/IdeasView'
@@ -39,6 +40,13 @@ export function App() {
         <button className="btn btn--quiet" type="button" onClick={() => void refresh()}>
           tentar novamente
         </button>
+      </div>
+    )
+  if (workspace.capacidades?.api_version !== 2)
+    return (
+      <div className="boot boot--error">
+        <p>ERR / servidor local desatualizado</p>
+        <p>reinicie o serviço PROJECTUS para habilitar editor, configurações e Arquivo.</p>
       </div>
     )
 
@@ -92,6 +100,9 @@ export function App() {
         <IdeasView config={workspace.config} ideas={workspace.ideias} onIdeas={setIdeas} onMessage={message} />
       )}
       {screen === 'backup' && <BackupView config={workspace.config} onMessage={message} />}
+      {screen === 'arquivo' && (
+        <ArchiveView board={workspace.board} ideas={workspace.ideias} onRefresh={refresh} onMessage={message} />
+      )}
       {screen === 'config' && <SettingsView config={workspace.config} onConfig={setConfig} onMessage={message} />}
       <Notice notice={notice} />
     </Shell>

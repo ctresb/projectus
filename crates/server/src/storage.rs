@@ -71,6 +71,7 @@ impl Storage {
         fs::create_dir_all(self.root.join("projetos"))?;
         fs::create_dir_all(self.root.join("ideias"))?;
         fs::create_dir_all(self.root.join("lixeira"))?;
+        fs::create_dir_all(self.root.join("arquivo"))?;
         write_default(&self.root.join("config.json"), &Config::default())?;
         write_default(&self.root.join("board.json"), &Board::default())?;
         write_default(&self.root.join("history.json"), &HistoryLog::default())?;
@@ -78,6 +79,12 @@ impl Storage {
             &self.root.join("ideias").join("ideas.json"),
             &IdeasIndex::default(),
         )?;
+        write_default(
+            &self.root.join("arquivo").join("index.json"),
+            &ArchiveIndex::default(),
+        )?;
+        self.migrate_config()?;
+        self.migrate_legacy_trash()?;
         Ok(())
     }
 
@@ -87,6 +94,7 @@ impl Storage {
             config: self.read_config_inner()?,
             board: self.read_board_inner()?,
             ideias: self.read_ideas_inner()?,
+            capacidades: ApiCapabilities::default(),
         })
     }
 
@@ -192,7 +200,10 @@ impl Storage {
         fs::create_dir_all(dir.join("tarefas"))?;
         let mut tags_disponiveis = config.tags.clone();
         for tag in &input.novas_tags {
-            if !tags_disponiveis.iter().any(|existing| existing.id == tag.id) {
+            if !tags_disponiveis
+                .iter()
+                .any(|existing| existing.id == tag.id)
+            {
                 tags_disponiveis.push(tag.clone());
             }
         }
@@ -304,7 +315,12 @@ impl Storage {
         })
     }
 
-    pub fn delete_project(&self, id: &str, revision: u64) -> StoreResult<Board> {
+    pub fn archive(&self) -> StoreResult<ArchiveIndex> {
+        let _guard = self.writes.lock().expect("storage mutex poisoned");
+        self.read_archive_inner()
+    }
+
+    pub fn archive_project(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         let mut board = self.read_board_inner()?;
         ensure_revision(board.revision, revision)?;
@@ -315,11 +331,15 @@ impl Storage {
             .ok_or(StoreError::NotFound)?;
         let card = board.projetos.remove(index);
         let source = self.root.join("projetos").join(&card.pasta);
-        let target =
-            self.root
-                .join("lixeira")
-                .join(format!("{}-{}", card.pasta, Utc::now().timestamp()));
-        fs::rename(source, target)?;
+        let archive = self.archive_item(
+            "projeto",
+            &card.id,
+            &card.titulo,
+            &source,
+            None,
+            None,
+            serde_json::to_value(&card)?,
+        )?;
         board.revision += 1;
         atomic_json(&self.root.join("board.json"), &board)?;
         self.history_inner(
@@ -332,7 +352,12 @@ impl Storage {
             None,
         )?;
         self.emit("projeto_arquivado", "projeto", id);
-        Ok(board)
+        Ok(archive)
+    }
+
+    pub fn delete_project(&self, id: &str, revision: u64) -> StoreResult<Board> {
+        self.archive_project(id, revision)?;
+        self.bootstrap().map(|bootstrap| bootstrap.board)
     }
 
     pub fn move_project(&self, input: MoveItem) -> StoreResult<Board> {
@@ -518,12 +543,12 @@ impl Storage {
         Ok(project)
     }
 
-    pub fn delete_task(
+    pub fn archive_task(
         &self,
         project_id: &str,
         task_id: &str,
         revision: u64,
-    ) -> StoreResult<Project> {
+    ) -> StoreResult<ArchiveIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         let current = self.project_inner(project_id)?;
         ensure_revision(current.dados.revision, revision)?;
@@ -536,11 +561,15 @@ impl Storage {
         let task = project.tarefas.remove(pos);
         let dir = self.root.join("projetos").join(&project.pasta);
         let source = dir.join("tarefas").join(&task.pasta);
-        let target =
-            self.root
-                .join("lixeira")
-                .join(format!("{}-{}", task.pasta, Utc::now().timestamp()));
-        fs::rename(source, target)?;
+        let archive = self.archive_item(
+            "tarefa",
+            &task.id,
+            &task.titulo,
+            &source,
+            Some(&project.id),
+            Some(&project.titulo),
+            serde_json::to_value(&task)?,
+        )?;
         project.revision += 1;
         atomic_json(&dir.join("project.json"), &project)?;
         self.history_inner(
@@ -553,7 +582,17 @@ impl Storage {
             Some(&dir),
         )?;
         self.emit("tarefa_arquivada", "tarefa", task_id);
-        Ok(project)
+        Ok(archive)
+    }
+
+    pub fn delete_task(
+        &self,
+        project_id: &str,
+        task_id: &str,
+        revision: u64,
+    ) -> StoreResult<Project> {
+        self.archive_task(project_id, task_id, revision)?;
+        self.project(project_id).map(|document| document.dados)
     }
 
     pub fn ideas(&self) -> StoreResult<IdeasIndex> {
@@ -662,7 +701,7 @@ impl Storage {
         })
     }
 
-    pub fn delete_idea(&self, id: &str, revision: u64) -> StoreResult<IdeasIndex> {
+    pub fn archive_idea(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         let mut ideas = self.read_ideas_inner()?;
         ensure_revision(ideas.revision, revision)?;
@@ -673,26 +712,15 @@ impl Storage {
             .ok_or(StoreError::NotFound)?;
         let idea = ideas.notas.remove(pos);
         let source = self.root.join("ideias").join(&idea.pasta);
-        let lixeira = self.root.join("lixeira");
-        fs::create_dir_all(&lixeira)?;
-        let base = format!("{}-{}", idea.pasta, Utc::now().timestamp());
-        let mut target = lixeira.join(&base);
-        let mut suffix = 0u32;
-        while target.exists() {
-            suffix += 1;
-            target = lixeira.join(format!("{base}-{suffix}"));
-        }
-        if !source.exists() {
-            ideas.revision += 1;
-            atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
-            self.emit("ideia_arquivada", "ideia", id);
-            return Ok(ideas);
-        }
-        fs::rename(&source, &target).map_err(|err| {
-            StoreError::Validation(format!(
-                "não foi possível mover a ideia para a lixeira: {err}"
-            ))
-        })?;
+        let archive = self.archive_item(
+            "ideia",
+            &idea.id,
+            &idea.titulo,
+            &source,
+            None,
+            None,
+            serde_json::to_value(&idea)?,
+        )?;
         ideas.revision += 1;
         atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
         self.history_inner(
@@ -705,7 +733,88 @@ impl Storage {
             None,
         )?;
         self.emit("ideia_arquivada", "ideia", id);
-        Ok(ideas)
+        Ok(archive)
+    }
+
+    pub fn delete_idea(&self, id: &str, revision: u64) -> StoreResult<IdeasIndex> {
+        self.archive_idea(id, revision)?;
+        self.ideas()
+    }
+
+    pub fn restore_archived(&self, id: &str, input: RestoreArchive) -> StoreResult<ArchiveIndex> {
+        let _guard = self.writes.lock().expect("storage mutex poisoned");
+        let mut archive = self.read_archive_inner()?;
+        ensure_revision(archive.revision, input.revision)?;
+        let position = archive
+            .itens
+            .iter()
+            .position(|item| item.id == id)
+            .ok_or(StoreError::NotFound)?;
+        let item = archive.itens[position].clone();
+        let source = self.root.join("arquivo").join(&item.pasta);
+        match item.entidade.as_str() {
+            "projeto" => {
+                let card: ProjectCard = serde_json::from_value(item.dados.clone())?;
+                let mut board = self.read_board_inner()?;
+                ensure_revision(board.revision, input.destino_revision)?;
+                let target = self.root.join("projetos").join(&card.pasta);
+                restore_directory(&source, &target)?;
+                board.projetos.push(card);
+                board.revision += 1;
+                atomic_json(&self.root.join("board.json"), &board)?;
+            }
+            "ideia" => {
+                let idea: IdeaCard = serde_json::from_value(item.dados.clone())?;
+                let mut ideas = self.read_ideas_inner()?;
+                ensure_revision(ideas.revision, input.destino_revision)?;
+                let target = self.root.join("ideias").join(&idea.pasta);
+                restore_directory(&source, &target)?;
+                ideas.notas.insert(0, idea);
+                ideas.revision += 1;
+                atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+            }
+            "tarefa" => {
+                let task: TaskCard = serde_json::from_value(item.dados.clone())?;
+                let project_id = item.projeto_id.as_deref().ok_or_else(|| {
+                    StoreError::Validation(
+                        "esta tarefa arquivada não possui projeto de origem".into(),
+                    )
+                })?;
+                let mut project = self.project_inner(project_id)?.dados;
+                ensure_revision(project.revision, input.destino_revision)?;
+                let target = self
+                    .root
+                    .join("projetos")
+                    .join(&project.pasta)
+                    .join("tarefas")
+                    .join(&task.pasta);
+                restore_directory(&source, &target)?;
+                project.tarefas.push(task);
+                project.revision += 1;
+                project.atualizado_em = Utc::now();
+                let dir = self.root.join("projetos").join(&project.pasta);
+                atomic_json(&dir.join("project.json"), &project)?;
+            }
+            _ => {
+                return Err(StoreError::Validation(
+                    "item legado sem metadados suficientes para restauração".into(),
+                ));
+            }
+        }
+        archive.itens.remove(position);
+        archive.revision += 1;
+        atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
+        self.history_inner(
+            "item_restaurado",
+            &item.entidade,
+            &item.entidade_id,
+            Some(serde_json::to_value(&item)?),
+            None,
+            None,
+            None,
+        )?;
+        self.emit("item_restaurado", &item.entidade, &item.entidade_id);
+        Ok(archive)
     }
 
     pub fn save_project_attachment(
@@ -772,11 +881,7 @@ impl Storage {
     }
 
     fn read_config_inner(&self) -> StoreResult<Config> {
-        let mut config: Config = read_json(&self.root.join("config.json"))?;
-        if config.cores.iter().any(|color| color.id == "lilas") {
-            config.cores = default_colors();
-        }
-        Ok(config)
+        read_json(&self.root.join("config.json"))
     }
 
     fn read_board_inner(&self) -> StoreResult<Board> {
@@ -785,6 +890,188 @@ impl Storage {
 
     fn read_ideas_inner(&self) -> StoreResult<IdeasIndex> {
         read_json(&self.root.join("ideias").join("ideas.json"))
+    }
+
+    fn read_archive_inner(&self) -> StoreResult<ArchiveIndex> {
+        read_json(&self.root.join("arquivo").join("index.json"))
+    }
+
+    fn archive_item(
+        &self,
+        entidade: &str,
+        entidade_id: &str,
+        titulo: &str,
+        source: &Path,
+        projeto_id: Option<&str>,
+        projeto_titulo: Option<&str>,
+        dados: Value,
+    ) -> StoreResult<ArchiveIndex> {
+        if !source.exists() {
+            return Err(StoreError::NotFound);
+        }
+        let mut archive = self.read_archive_inner()?;
+        let id = id8();
+        let pasta = stable_folder(titulo, &id);
+        let target = self.root.join("arquivo").join(&pasta);
+        fs::rename(source, target)?;
+        archive.itens.insert(
+            0,
+            ArchivedItem {
+                id,
+                entidade: entidade.to_owned(),
+                entidade_id: entidade_id.to_owned(),
+                titulo: titulo.to_owned(),
+                pasta,
+                projeto_id: projeto_id.map(str::to_owned),
+                projeto_titulo: projeto_titulo.map(str::to_owned),
+                arquivado_em: Utc::now(),
+                dados,
+            },
+        );
+        archive.revision += 1;
+        atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
+        Ok(archive)
+    }
+
+    fn migrate_config(&self) -> StoreResult<()> {
+        let mut config: Config = read_json(&self.root.join("config.json"))?;
+        let legacy_palette = config.cores.iter().any(|color| color.id == "lilas");
+        if config.schema_version >= SCHEMA_VERSION && !legacy_palette {
+            return Ok(());
+        }
+        let before = config.revision;
+        if legacy_palette {
+            config.cores = default_colors();
+        }
+        config.schema_version = SCHEMA_VERSION;
+        config.revision += 1;
+        atomic_json(&self.root.join("config.json"), &config)?;
+        self.history_inner(
+            "config_migrada",
+            "config",
+            "config",
+            Some(json!({"revision": before})),
+            Some(json!({"revision": config.revision, "schema_version": SCHEMA_VERSION})),
+            None,
+            None,
+        )?;
+        Ok(())
+    }
+
+    fn migrate_legacy_trash(&self) -> StoreResult<()> {
+        let trash = self.root.join("lixeira");
+        let entries: Vec<PathBuf> = fs::read_dir(&trash)?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect();
+        for source in entries {
+            let original = source
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("item-legado");
+            let (entidade, entidade_id, titulo, projeto_id, projeto_titulo, dados) =
+                self.legacy_item_metadata(original)?;
+            let mut archive = self.read_archive_inner()?;
+            let id = id8();
+            let pasta = stable_folder(&titulo, &id);
+            fs::rename(&source, self.root.join("arquivo").join(&pasta))?;
+            archive.itens.insert(
+                0,
+                ArchivedItem {
+                    id,
+                    entidade: entidade.clone(),
+                    entidade_id: entidade_id.clone(),
+                    titulo,
+                    pasta,
+                    projeto_id,
+                    projeto_titulo,
+                    arquivado_em: Utc::now(),
+                    dados,
+                },
+            );
+            archive.revision += 1;
+            atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
+            self.history_inner(
+                "item_legado_migrado_para_arquivo",
+                &entidade,
+                &entidade_id,
+                Some(json!({"pasta_lixeira": original})),
+                None,
+                None,
+                None,
+            )?;
+        }
+        Ok(())
+    }
+
+    fn legacy_item_metadata(
+        &self,
+        folder: &str,
+    ) -> StoreResult<(
+        String,
+        String,
+        String,
+        Option<String>,
+        Option<String>,
+        Value,
+    )> {
+        let history: HistoryLog = read_json(&self.root.join("history.json"))?;
+        let event = history.eventos.iter().rev().find(|event| {
+            event
+                .antes
+                .as_ref()
+                .and_then(|before| before.get("pasta"))
+                .and_then(Value::as_str)
+                .is_some_and(|pasta| folder.starts_with(pasta))
+        });
+        let Some(event) = event else {
+            return Ok((
+                "desconhecido".into(),
+                folder.into(),
+                "item legado".into(),
+                None,
+                None,
+                Value::Null,
+            ));
+        };
+        let dados = event.antes.clone().unwrap_or(Value::Null);
+        let titulo = dados
+            .get("titulo")
+            .and_then(Value::as_str)
+            .unwrap_or("item arquivado")
+            .to_owned();
+        let mut projeto_id = None;
+        let mut projeto_titulo = None;
+        if event.entidade == "tarefa" {
+            if let Ok(entries) = fs::read_dir(self.root.join("projetos")) {
+                for dir in entries.filter_map(Result::ok) {
+                    let path = dir.path();
+                    let Ok(log) = read_json::<HistoryLog>(&path.join("history.json")) else {
+                        continue;
+                    };
+                    if log
+                        .eventos
+                        .iter()
+                        .any(|item| item.entidade_id == event.entidade_id)
+                    {
+                        if let Ok(project) = read_json::<Project>(&path.join("project.json")) {
+                            projeto_id = Some(project.id);
+                            projeto_titulo = Some(project.titulo);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        Ok((
+            event.entidade.clone(),
+            event.entidade_id.clone(),
+            titulo,
+            projeto_id,
+            projeto_titulo,
+            dados,
+        ))
     }
 
     fn project_inner(&self, id: &str) -> StoreResult<DocumentResponse<Project>> {
@@ -904,6 +1191,17 @@ fn ensure_revision(current: u64, given: u64) -> StoreResult<()> {
     } else {
         Ok(())
     }
+}
+
+fn restore_directory(source: &Path, target: &Path) -> StoreResult<()> {
+    if target.exists() {
+        return Err(StoreError::Conflict);
+    }
+    if !source.exists() {
+        return Err(StoreError::NotFound);
+    }
+    fs::rename(source, target)?;
+    Ok(())
 }
 
 fn stable_folder(title: &str, id: &str) -> String {
@@ -1173,7 +1471,7 @@ mod tests {
     }
 
     #[test]
-    fn archives_an_idea_instead_of_deleting_its_folder() {
+    fn archives_and_restores_an_idea() {
         let (_dir, store) = store();
         let idea = store
             .create_idea(CreateIdea {
@@ -1182,16 +1480,166 @@ mod tests {
             })
             .unwrap();
         let ideas = store.ideas().unwrap();
-        let archived = store.delete_idea(&idea.dados.id, ideas.revision).unwrap();
-        assert!(archived.notas.is_empty());
+        let archived = store.archive_idea(&idea.dados.id, ideas.revision).unwrap();
+        assert!(store.ideas().unwrap().notas.is_empty());
         assert!(
             store
                 .root()
-                .join("lixeira")
+                .join("arquivo")
                 .read_dir()
                 .unwrap()
-                .next()
-                .is_some()
+                .filter_map(Result::ok)
+                .any(|entry| entry.file_name() != "index.json")
+        );
+        let restored = store
+            .restore_archived(
+                &archived.itens[0].id,
+                RestoreArchive {
+                    revision: archived.revision,
+                    destino_revision: store.ideas().unwrap().revision,
+                },
+            )
+            .unwrap();
+        assert!(restored.itens.is_empty());
+        assert_eq!(store.ideas().unwrap().notas[0].titulo, "Pista");
+    }
+
+    #[test]
+    fn persists_config_migration_once() {
+        let (dir, store) = store();
+        let mut config = store.config().unwrap();
+        config.schema_version = 1;
+        config.cores[4].id = "lilas".into();
+        atomic_json(&store.root().join("config.json"), &config).unwrap();
+        drop(store);
+        let migrated = Storage::open(dir.path().join("PROJECTUS")).unwrap();
+        let saved = migrated.config().unwrap();
+        assert_eq!(saved.schema_version, SCHEMA_VERSION);
+        assert!(!saved.cores.iter().any(|color| color.id == "lilas"));
+        let revision = saved.revision;
+        drop(migrated);
+        let reopened = Storage::open(dir.path().join("PROJECTUS")).unwrap();
+        assert_eq!(reopened.config().unwrap().revision, revision);
+    }
+
+    #[test]
+    fn archives_and_restores_a_task_in_its_project() {
+        let (_dir, store) = store();
+        let project = store
+            .create_project(CreateProject {
+                titulo: "Produto".into(),
+                github_url: "https://github.com/eu/produto".into(),
+                markdown: String::new(),
+                cor: None,
+                tags: Vec::new(),
+                novas_tags: Vec::new(),
+            })
+            .unwrap();
+        let with_task = store
+            .create_task(
+                &project.dados.id,
+                CreateTask {
+                    revision: project.dados.revision,
+                    titulo: "Entrega".into(),
+                    markdown: "- [ ] revisar".into(),
+                    cor: None,
+                    tags: Vec::new(),
+                    novas_tags: Vec::new(),
+                },
+            )
+            .unwrap();
+        let task_id = with_task.dados.tarefas[0].id.clone();
+        let archived = store
+            .archive_task(&project.dados.id, &task_id, with_task.dados.revision)
+            .unwrap();
+        let active = store.project(&project.dados.id).unwrap().dados;
+        assert!(active.tarefas.is_empty());
+        store
+            .restore_archived(
+                &archived.itens[0].id,
+                RestoreArchive {
+                    revision: archived.revision,
+                    destino_revision: active.revision,
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            store.project(&project.dados.id).unwrap().dados.tarefas[0].titulo,
+            "Entrega"
+        );
+    }
+
+    #[test]
+    fn migrates_a_legacy_trashed_task_into_restorable_archive() {
+        let (dir, store) = store();
+        let project = store
+            .create_project(CreateProject {
+                titulo: "Projeto legado".into(),
+                github_url: "https://github.com/eu/legado".into(),
+                markdown: String::new(),
+                cor: None,
+                tags: Vec::new(),
+                novas_tags: Vec::new(),
+            })
+            .unwrap();
+        let created = store
+            .create_task(
+                &project.dados.id,
+                CreateTask {
+                    revision: project.dados.revision,
+                    titulo: "Recuperar".into(),
+                    markdown: String::new(),
+                    cor: None,
+                    tags: Vec::new(),
+                    novas_tags: Vec::new(),
+                },
+            )
+            .unwrap();
+        let mut active = created.dados;
+        let task = active.tarefas.remove(0);
+        active.revision += 1;
+        let project_dir = store.root().join("projetos").join(&active.pasta);
+        atomic_json(&project_dir.join("project.json"), &active).unwrap();
+        fs::rename(
+            project_dir.join("tarefas").join(&task.pasta),
+            store
+                .root()
+                .join("lixeira")
+                .join(format!("{}-antigo", task.pasta)),
+        )
+        .unwrap();
+        store
+            .history_inner(
+                "tarefa_excluida",
+                "tarefa",
+                &task.id,
+                Some(json!(task)),
+                None,
+                None,
+                Some(&project_dir),
+            )
+            .unwrap();
+        drop(store);
+
+        let reopened = Storage::open(dir.path().join("PROJECTUS")).unwrap();
+        let archive = reopened.archive().unwrap();
+        assert_eq!(archive.itens[0].entidade, "tarefa");
+        assert_eq!(
+            archive.itens[0].projeto_id.as_deref(),
+            Some(project.dados.id.as_str())
+        );
+        reopened
+            .restore_archived(
+                &archive.itens[0].id,
+                RestoreArchive {
+                    revision: archive.revision,
+                    destino_revision: active.revision,
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            reopened.project(&project.dados.id).unwrap().dados.tarefas[0].titulo,
+            "Recuperar"
         );
     }
 }

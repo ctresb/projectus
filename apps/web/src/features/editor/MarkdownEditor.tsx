@@ -18,6 +18,7 @@ import {
   linkDialogPlugin,
   linkPlugin,
   listsPlugin,
+  markdownShortcutPlugin,
   quotePlugin,
   tablePlugin,
   thematicBreakPlugin,
@@ -25,9 +26,10 @@ import {
   type MDXEditorMethods,
   type Translation,
 } from '@mdxeditor/editor'
-import { forwardRef, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 
 type Props = {
+  documentKey: string
   markdown: string
   onChange: (markdown: string) => void
   uploadImage?: (file: File) => Promise<string>
@@ -109,11 +111,57 @@ const translate: Translation = (key, fallback, interpolations = {}) =>
   )
 
 export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function MarkdownEditor(
-  { markdown, onChange, uploadImage },
+  { documentKey, markdown, onChange, uploadImage },
   ref,
 ) {
   const editorRef = useRef<MDXEditorMethods>(null)
+  const previousDocument = useRef(documentKey)
+  const uploadImageRef = useRef(uploadImage)
+  uploadImageRef.current = uploadImage
   useImperativeHandle(ref, () => ({ focus: () => editorRef.current?.focus() }), [])
+  useEffect(() => {
+    if (previousDocument.current === documentKey) return
+    previousDocument.current = documentKey
+    editorRef.current?.setMarkdown(markdown)
+  }, [documentKey, markdown])
+  const plugins = useMemo(
+    () => [
+      headingsPlugin(),
+      listsPlugin(),
+      markdownShortcutPlugin(),
+      quotePlugin(),
+      thematicBreakPlugin(),
+      linkPlugin(),
+      linkDialogPlugin(),
+      tablePlugin(),
+      codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
+      codeMirrorPlugin({ codeBlockLanguages: { txt: 'Texto', ts: 'TypeScript', rust: 'Rust', json: 'JSON' } }),
+      diffSourcePlugin({ viewMode: 'rich-text' }),
+      imagePlugin({
+        imageUploadHandler: async (file) => {
+          if (!uploadImageRef.current) throw new Error('envio de imagem indisponível neste editor')
+          return uploadImageRef.current(file)
+        },
+      }),
+      toolbarPlugin({
+        toolbarContents: () => (
+          <DiffSourceToggleWrapper options={['rich-text', 'source']}>
+            <UndoRedo />
+            <BlockTypeSelect />
+            <BoldItalicUnderlineToggles />
+            <ListsToggle options={['check']} />
+            <ListsToggle options={['bullet', 'number']} />
+            <CreateLink />
+            <InsertImage />
+            <InsertTable />
+            <InsertThematicBreak />
+            <InsertCodeBlock />
+          </DiffSourceToggleWrapper>
+        ),
+      }),
+    ],
+    [],
+  )
   return (
     <div className="markdown-editor">
       <MDXEditor
@@ -124,35 +172,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
         placeholder="escreva em markdown..."
         translation={translate}
         contentEditableClassName="markdown-editor__content"
-        plugins={[
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          thematicBreakPlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          tablePlugin(),
-          codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
-          codeMirrorPlugin({ codeBlockLanguages: { txt: 'Texto', ts: 'TypeScript', rust: 'Rust', json: 'JSON' } }),
-          diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: markdown }),
-          ...(uploadImage ? [imagePlugin({ imageUploadHandler: uploadImage })] : []),
-          toolbarPlugin({
-            toolbarContents: () => (
-              <DiffSourceToggleWrapper options={['rich-text', 'source']}>
-                <UndoRedo />
-                <BlockTypeSelect />
-                <BoldItalicUnderlineToggles />
-                <ListsToggle options={['check']} />
-                <ListsToggle options={['bullet', 'number']} />
-                <CreateLink />
-                {uploadImage && <InsertImage />}
-                <InsertTable />
-                <InsertThematicBreak />
-                <InsertCodeBlock />
-              </DiffSourceToggleWrapper>
-            ),
-          }),
-        ]}
+        plugins={plugins}
       />
     </div>
   )

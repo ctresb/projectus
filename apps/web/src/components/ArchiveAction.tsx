@@ -12,7 +12,7 @@ export function ArchiveAction({
   if (confirming) {
     return (
       <div className="archive-confirm">
-        <span>mover {entidade} para a lixeira?</span>
+        <span>mover {entidade} para Arquivo?</span>
         <button className="btn btn--quiet" type="button" onClick={() => setConfirming(false)}>
           cancelar
         </button>

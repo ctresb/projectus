@@ -3,7 +3,8 @@ use rand::{Rng, distr::Alphanumeric};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
+pub const API_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Column {
@@ -118,6 +119,25 @@ pub struct IdeasIndex {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchiveIndex {
+    pub revision: u64,
+    pub itens: Vec<ArchivedItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchivedItem {
+    pub id: String,
+    pub entidade: String,
+    pub entidade_id: String,
+    pub titulo: String,
+    pub pasta: String,
+    pub projeto_id: Option<String>,
+    pub projeto_titulo: Option<String>,
+    pub arquivado_em: DateTime<Utc>,
+    pub dados: Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdeaCard {
     pub id: String,
     pub pasta: String,
@@ -228,10 +248,34 @@ pub struct UpdateIdea {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreArchive {
+    pub revision: u64,
+    pub destino_revision: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiCapabilities {
+    pub api_version: u32,
+    pub arquivo: bool,
+    pub config_autosave: bool,
+}
+
+impl Default for ApiCapabilities {
+    fn default() -> Self {
+        Self {
+            api_version: API_VERSION,
+            arquivo: true,
+            config_autosave: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bootstrap {
     pub config: Config,
     pub board: Board,
     pub ideias: IdeasIndex,
+    pub capacidades: ApiCapabilities,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -376,6 +420,15 @@ impl Default for IdeasIndex {
         Self {
             revision: 1,
             notas: Vec::new(),
+        }
+    }
+}
+
+impl Default for ArchiveIndex {
+    fn default() -> Self {
+        Self {
+            revision: 1,
+            itens: Vec::new(),
         }
     }
 }

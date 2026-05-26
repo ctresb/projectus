@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
-import { motion } from 'motion/react'
 import { api } from '../../lib/api'
 import type { Config, DocumentResponse, IdeaCard, Ideas } from '../../lib/types'
 import { ColorSwatchButton } from '../../components/ColorSwatchButton'
 import { ArchiveAction } from '../../components/ArchiveAction'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { markdownBody } from '../../lib/markdown'
-import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
+import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
 
 export function IdeasView({
   config,
@@ -40,10 +39,11 @@ export function IdeasView({
 
   const archive = async (id: string) => {
     try {
-      const next = await api.deleteIdea(id, ideas.revision)
+      await api.archiveIdea(id, ideas.revision)
+      const next = await api.ideas()
       onIdeas(next)
       setSelected(next.notas[0]?.id ?? null)
-      onMessage('ok', 'ideia arquivada na lixeira local')
+      onMessage('ok', 'ideia movida para Arquivo')
     } catch (error) {
       onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar a ideia')
     }
@@ -64,18 +64,15 @@ export function IdeasView({
         </label>
         <nav>
           {filtered.map((idea) => (
-            <motion.button
+            <button
               key={idea.id}
               className={idea.id === selected ? 'idea-link idea-link--active' : 'idea-link'}
               onClick={() => setSelected(idea.id)}
               type="button"
-              whileHover={{ x: 2 }}
-              whileTap={{ scale: 0.985 }}
-              transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
             >
               <span className="idea-link__bar" style={{ backgroundColor: idea.cor }} />
               <span className="idea-link__title">{idea.titulo}</span>
-            </motion.button>
+            </button>
           ))}
           {filtered.length === 0 && <small>nenhuma nota</small>}
         </nav>
@@ -87,6 +84,12 @@ export function IdeasView({
             revision={ideas.revision}
             cores={config.cores}
             onSaved={async () => onIdeas(await api.ideas())}
+            onPreview={(change) =>
+              onIdeas({
+                ...ideas,
+                notas: ideas.notas.map((idea) => (idea.id === selected ? { ...idea, ...change } : idea)),
+              })
+            }
             onArchive={() => archive(selected)}
             onMessage={onMessage}
           />
@@ -108,6 +111,7 @@ function IdeaEditor({
   revision,
   cores,
   onSaved,
+  onPreview,
   onArchive,
   onMessage,
 }: {
@@ -115,6 +119,7 @@ function IdeaEditor({
   revision: number
   cores: Config['cores']
   onSaved: () => Promise<void>
+  onPreview: (change: Partial<Pick<IdeaCard, 'titulo' | 'cor'>>) => void
   onArchive: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
@@ -127,6 +132,7 @@ function IdeaEditor({
 
   useEffect(() => {
     currentId.current = id
+    setNote(null)
     void api.idea(id).then((loaded) => {
       if (currentId.current !== id) return
       setNote(loaded)
@@ -137,25 +143,20 @@ function IdeaEditor({
     })
   }, [id])
 
-  useEffect(() => {
-    if (!dirty || !note) return
-    markSaving()
-    const timer = window.setTimeout(() => {
+  useDocumentAutosave({
+    ativo: Boolean(note),
+    dirty,
+    documentKey: id,
+    onStart: () => {
       setDirty(false)
-      void api
-        .updateIdea(note.dados.id, { revision, titulo: title, markdown, cor: color })
-        .then(async (updated) => {
-          setNote(updated)
-          markSaved()
-          await onSaved()
-        })
-        .catch((error: Error) => {
-          markError(error.message)
-          onMessage('erro', error.message)
-        })
-    }, 1000)
-    return () => window.clearTimeout(timer)
-  }, [color, dirty, markdown, note, onMessage, onSaved, revision, title])
+    },
+    save: () => api.updateIdea(note!.dados.id, { revision, titulo: title, markdown, cor: color }),
+    onSaved: async (updated) => {
+      if (currentId.current === updated.dados.id) setNote(updated)
+      await onSaved()
+    },
+    onError: (message) => onMessage('erro', message),
+  })
 
   if (!note) return <p className="loading">carregando nota...</p>
   const edit = (action: () => void) => {
@@ -165,13 +166,32 @@ function IdeaEditor({
   return (
     <>
       <header className="idea-editor__head">
-        <input className="idea-title" value={title} onChange={(event) => edit(() => setTitle(event.target.value))} />
+        <input
+          className="idea-title"
+          value={title}
+          onChange={(event) =>
+            edit(() => {
+              setTitle(event.target.value)
+              onPreview({ titulo: event.target.value })
+            })
+          }
+        />
         <div className="idea-editor__actions">
-          <ColorSwatchButton cores={cores} value={color} onChange={(value) => edit(() => setColor(value))} />
+          <ColorSwatchButton
+            cores={cores}
+            value={color}
+            onChange={(value) =>
+              edit(() => {
+                setColor(value)
+                onPreview({ cor: value })
+              })
+            }
+          />
           <ArchiveAction entidade="esta ideia" onArchive={onArchive} />
         </div>
       </header>
       <DeferredMarkdownEditor
+        documentKey={`ideia-${note.dados.id}`}
         markdown={markdown}
         onChange={(value) => {
           if (value !== markdown) edit(() => setMarkdown(value))
