@@ -13,6 +13,9 @@
     "server:dev": "cargo run -p projectus-server",
     "server:test": "cargo test --workspace",
     "instalar": "./scripts/instalar.sh",
-    "instalador": "./scripts/instalar.sh"
+    "instalar:macos": "./scripts/instalar-autostart-macos.sh",
+    "instalador": "./scripts/instalar.sh",
+    "build:linux": "./scripts/build-linux.sh",
+    "desktop:check": "./scripts/check-tauri-linux-deps.sh"
   }
 }
