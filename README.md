@@ -1,6 +1,7 @@
+![Projectus logo](logo.png)
 # PROJECTUS
 
-Kanban local para projetos abandonados, tarefas e ideias. A fonte de verdade fica em `~/Documents/PROJECTUS`, em JSON para estrutura e Markdown/anexos para conteúdo. A interface funciona no desktop Tauri para macOS e no navegador privado pela sua tailnet.
+Kanban local para projetos, tarefas e ideias. A fonte de verdade fica em `~/Documents/PROJECTUS`, em JSON para estrutura e Markdown/anexos para conteúdo. A interface funciona no desktop Tauri para macOS e no navegador privado pela sua tailnet.
 
 ## Stack
 
