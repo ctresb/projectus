@@ -5,8 +5,8 @@ use rand::{Rng, distr::Alphanumeric};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const SCHEMA_VERSION: u32 = 3;
-pub const API_VERSION: u32 = 3;
+pub const SCHEMA_VERSION: u32 = 4;
+pub const API_VERSION: u32 = 4;
 
 const TOKENS_JSON: &str = include_str!("../../../apps/web/src/styles/tokens.json");
 

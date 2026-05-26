@@ -1,9 +1,7 @@
-//! Estado da exposição LAN. NÃO roda um segundo listener — em macOS isso conflita
-//! (EADDRINUSE) ou exige permissão de rede local que pode pendurar a request.
-//!
-//! Em vez disso, o listener único é escolhido no boot (lib.rs): `0.0.0.0` se
-//! `config.lan_exposto`, senão `127.0.0.1`. Esta unidade só responde "como o
-//! servidor foi iniciado" + lista de IPs detectados; toggle exige restart.
+//! Estado da exposição LAN. O endpoint de controle do aplicativo permanece em
+//! loopback; quando ativado, um listener adicional atende a rede na porta
+//! escolhida. Se a porta publicada for a própria porta local, há apenas um
+//! listener wildcard.
 
 use std::{
     net::{IpAddr, Ipv4Addr},
@@ -14,7 +12,7 @@ use crate::domain::LanStatus;
 
 #[derive(Debug)]
 pub struct LanService {
-    /// O servidor inicializou ligado em 0.0.0.0?
+    /// O servidor inicializou com listener acessível pela LAN?
     bound_lan: bool,
     /// Erro do bind LAN no boot (se houve fallback pra loopback).
     boot_error: Option<String>,

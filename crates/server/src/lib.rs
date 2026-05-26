@@ -17,29 +17,40 @@ use storage::Storage;
 use tokio::net::TcpListener;
 use tracing::{info, warn};
 
+pub const LOCAL_CONTROL_PORT: u16 = 4387;
+
 pub async fn run() -> Result<()> {
     let storage = Arc::new(Storage::open_default()?);
     let config = storage.config()?;
-    let host = if config.lan_exposto { "0.0.0.0" } else { "127.0.0.1" };
-    let address = format!("{host}:{}", config.porta);
-    // Tenta o host pedido; se LAN falhar (permissão de rede local, EADDRINUSE…), cai pra loopback
-    // pra não derrubar o app inteiro e registra o erro pra UI exibir.
-    let (listener, bound_lan, bind_error) = match TcpListener::bind(&address).await {
-        Ok(l) => (l, config.lan_exposto, None),
-        Err(err) if config.lan_exposto => {
-            warn!(?err, "falha ao expor LAN, voltando a 127.0.0.1");
-            let fallback = format!("127.0.0.1:{}", config.porta);
-            let listener = TcpListener::bind(&fallback)
+    let local_address = format!("127.0.0.1:{LOCAL_CONTROL_PORT}");
+    let published_address = format!("0.0.0.0:{}", config.porta);
+    let (local_listener, lan_listener, bound_lan, bind_error) =
+        if config.lan_exposto && config.porta == LOCAL_CONTROL_PORT {
+            let listener = TcpListener::bind(&published_address)
                 .await
-                .with_context(|| format!("falha ao bind {fallback}"))?;
-            (
-                listener,
-                false,
-                Some(format!("não foi possível abrir {address}: {err}")),
-            )
-        }
-        Err(err) => return Err(err).with_context(|| format!("falha ao bind {address}")),
-    };
+                .with_context(|| format!("falha ao bind {published_address}"))?;
+            (listener, None, true, None)
+        } else {
+            let listener = TcpListener::bind(&local_address)
+                .await
+                .with_context(|| format!("falha ao bind {local_address}"))?;
+            if config.lan_exposto {
+                match TcpListener::bind(&published_address).await {
+                    Ok(published) => (listener, Some(published), true, None),
+                    Err(err) => {
+                        warn!(?err, "falha ao expor LAN; mantendo endpoint local");
+                        (
+                            listener,
+                            None,
+                            false,
+                            Some(format!("não foi possível abrir {published_address}: {err}")),
+                        )
+                    }
+                }
+            } else {
+                (listener, None, false, None)
+            }
+        };
     let backup = Arc::new(BackupService::new(storage.clone()));
     let lan_service = LanService::with_boot_state(bound_lan, bind_error);
     scheduler::spawn(storage.clone(), backup.clone());
@@ -48,7 +59,21 @@ pub async fn run() -> Result<()> {
         backup,
         lan: lan_service.clone(),
     };
-    info!(%address, root = %storage.root().display(), "PROJECTUS pronto");
-    axum::serve(listener, http::router(state)).await?;
+    let application = http::router(state);
+    if let Some(listener) = lan_listener {
+        let lan_application = application.clone();
+        tokio::spawn(async move {
+            if let Err(error) = axum::serve(listener, lan_application).await {
+                warn!(?error, "listener LAN encerrou");
+            }
+        });
+    }
+    info!(
+        local = %local_address,
+        lan = bound_lan.then_some(published_address.as_str()).unwrap_or("desligada"),
+        root = %storage.root().display(),
+        "PROJECTUS pronto"
+    );
+    axum::serve(local_listener, application).await?;
     Ok(())
 }

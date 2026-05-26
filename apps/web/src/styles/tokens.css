@@ -93,6 +93,11 @@ body,
   color: var(--paper);
   font: var(--text-lg) / var(--lh-relaxed) var(--font-mono);
 }
+body,
+#root {
+  user-select: none;
+  -webkit-user-select: none;
+}
 button,
 input {
   font: inherit;
@@ -104,6 +109,14 @@ button {
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+input,
+textarea,
+[contenteditable='true'],
+.cm-content {
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
 }
 :focus-visible {
   outline: 2px solid var(--accent);

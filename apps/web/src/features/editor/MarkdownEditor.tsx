@@ -26,7 +26,7 @@ import {
   type MDXEditorMethods,
   type Translation,
 } from '@mdxeditor/editor'
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, type MouseEvent } from 'react'
 
 type Props = {
   documentKey: string
@@ -162,8 +162,19 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
     ],
     [],
   )
+  const focusBlankSurface = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    if (
+      target.closest(
+        'button, input, textarea, select, a, [contenteditable="true"], .cm-editor, [role="combobox"], [role="dialog"]',
+      )
+    ) {
+      return
+    }
+    editorRef.current?.focus()
+  }
   return (
-    <div className="markdown-editor">
+    <div className="markdown-editor" onMouseDown={focusBlankSurface}>
       <MDXEditor
         ref={editorRef}
         className="projectus-mdx"

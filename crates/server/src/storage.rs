@@ -5,6 +5,7 @@ use std::{
 };
 
 use chrono::Utc;
+use rand::prelude::IndexedRandom;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -205,6 +206,9 @@ impl Storage {
         validate_github(&input.github_url)?;
         let mut board = self.read_board_inner()?;
         let config = self.read_config_inner()?;
+        let card_color = input
+            .cor
+            .unwrap_or_else(|| random_card_color(&config.cores));
         let now = Utc::now();
         let id = id8();
         let folder = stable_folder(&input.titulo, &id);
@@ -242,7 +246,7 @@ impl Storage {
             titulo: project.titulo.clone(),
             github_url: project.github_url.clone(),
             status: first_column(&project.colunas),
-            cor: input.cor.unwrap_or_else(config_default_color),
+            cor: card_color,
             tags: filter_tags(input.tags, &project.tags_disponiveis),
             criado_em: now,
             atualizado_em: now,
@@ -412,6 +416,10 @@ impl Storage {
         validate_title(&input.titulo)?;
         let current = self.project_inner(project_id)?;
         ensure_revision(current.dados.revision, input.revision)?;
+        let config = self.read_config_inner()?;
+        let card_color = input
+            .cor
+            .unwrap_or_else(|| random_card_color(&config.cores));
         let mut project = current.dados;
         let mut tag_catalog = project.tags_disponiveis.clone();
         for new_tag in input.novas_tags {
@@ -438,7 +446,7 @@ impl Storage {
             pasta: folder,
             titulo: input.titulo.trim().to_owned(),
             status: first_column(&project.colunas),
-            cor: input.cor.unwrap_or_else(config_default_color),
+            cor: card_color,
             tags: filter_tags(input.tags, &project.tags_disponiveis),
             criado_em: now,
             atualizado_em: now,
@@ -1261,6 +1269,13 @@ fn first_column(columns: &[Column]) -> String {
 
 fn config_default_color() -> String {
     default_cor_principal()
+}
+
+fn random_card_color(colors: &[ColorChoice]) -> String {
+    colors
+        .choose(&mut rand::rng())
+        .map(|color| color.valor.clone())
+        .unwrap_or_else(config_default_color)
 }
 
 fn column_insert_index(cards: &[ProjectCard], status: &str, requested: usize) -> usize {

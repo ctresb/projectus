@@ -330,7 +330,7 @@ export function SettingsView({
             />
           </label>
           <p className="panel-copy">
-            O servidor escuta em <code>127.0.0.1:{draft.porta}</code>. Use Tailscale Serve para publicar na sua tailnet.
+            A janela desktop usa <code>127.0.0.1:4387</code>. Ao hospedar na rede local, a interface web é publicada na porta <code>{draft.porta}</code>.
           </p>
           <p className="panel-copy">
             {daemon?.instalado

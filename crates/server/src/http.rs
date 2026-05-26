@@ -157,7 +157,13 @@ pub fn router(state: AppState) -> Router {
 async fn health(State(state): State<AppState>) -> Result<Json<serde_json::Value>, ApiError> {
     let config = state.storage.config()?;
     Ok(Json(
-        serde_json::json!({"ok": true, "porta": config.porta, "raiz": state.storage.root(), "api_version": API_VERSION}),
+        serde_json::json!({
+            "ok": true,
+            "porta": config.porta,
+            "porta_local": crate::LOCAL_CONTROL_PORT,
+            "raiz": state.storage.root(),
+            "api_version": API_VERSION
+        }),
     ))
 }
 
@@ -173,7 +179,12 @@ async fn update_config(
     State(state): State<AppState>,
     Json(input): Json<Config>,
 ) -> Result<Json<Config>, ApiError> {
-    Ok(Json(state.storage.update_config(input)?))
+    let current = state.storage.config()?;
+    let saved = state.storage.update_config(input)?;
+    if saved.lan_exposto && current.porta != saved.porta {
+        let _ = daemon::restart();
+    }
+    Ok(Json(saved))
 }
 
 async fn history(

@@ -4,6 +4,7 @@ import { ColorPicker } from '../../components/ColorPicker'
 import { CommaTagsInput } from '../../components/CommaTagsInput'
 import { TagPicker } from '../../components/TagPicker'
 import type { ColorChoice, Tag } from '../../lib/types'
+import { FALLBACK_COLOR, randomPaletteColor } from '../../lib/colors'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
 
@@ -31,7 +32,7 @@ export function CreateProjectModal({
   const [titulo, setTitulo] = useState('')
   const [github, setGithub] = useState('')
   const [markdown, setMarkdown] = useState('')
-  const [cor, setCor] = useState(cores[0]?.valor ?? '#55B9F7')
+  const [cor, setCor] = useState(FALLBACK_COLOR)
   const [tags, setTags] = useState<string[]>([])
   const [novasTags, setNovasTags] = useState<Tag[]>([])
   const allTags = [...tagsDisponiveis, ...novasTags]
@@ -42,7 +43,7 @@ export function CreateProjectModal({
       setTitulo(tituloInicial)
       setGithub('')
       setMarkdown('')
-      setCor(cores[0]?.valor ?? '#55B9F7')
+      setCor(randomPaletteColor(cores))
       setTags([])
       setNovasTags([])
       requestAnimationFrame(() => input.current?.focus())
@@ -128,7 +129,7 @@ export function CreateTaskModal({
 }) {
   const [titulo, setTitulo] = useState('')
   const [markdown, setMarkdown] = useState('')
-  const [cor, setCor] = useState(cores[0]?.valor ?? '#55B9F7')
+  const [cor, setCor] = useState(FALLBACK_COLOR)
   const [tags, setTags] = useState<string[]>([])
   const [novasTags, setNovasTags] = useState<Tag[]>([])
   const input = useRef<HTMLInputElement>(null)
@@ -138,7 +139,7 @@ export function CreateTaskModal({
     if (aberto) {
       setTitulo(tituloInicial)
       setMarkdown('')
-      setCor(cores[0]?.valor ?? '#55B9F7')
+      setCor(randomPaletteColor(cores))
       setTags([])
       setNovasTags([])
       requestAnimationFrame(() => input.current?.focus())

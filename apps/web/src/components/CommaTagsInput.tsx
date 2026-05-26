@@ -1,16 +1,12 @@
 import { useState, type KeyboardEvent } from 'react'
 import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
+import { randomPaletteColor } from '../lib/colors'
 
 type Props = {
   cores: ColorChoice[]
   onCreate: (tag: Tag) => void
   placeholder?: string
-}
-
-function randomColor(cores: ColorChoice[], fallback = '#55B9F7'): string {
-  if (cores.length === 0) return fallback
-  return cores[Math.floor(Math.random() * cores.length)].valor
 }
 
 export function CommaTagsInput({ cores, onCreate, placeholder = 'digite uma tag e vírgula' }: Props) {
@@ -19,7 +15,7 @@ export function CommaTagsInput({ cores, onCreate, placeholder = 'digite uma tag 
   const commit = (raw: string) => {
     const clean = raw.trim()
     if (!clean) return
-    onCreate({ id: itemId('tag', clean), titulo: clean, cor: randomColor(cores) })
+    onCreate({ id: itemId('tag', clean), titulo: clean, cor: randomPaletteColor(cores) })
   }
 
   const handleChange = (value: string) => {
