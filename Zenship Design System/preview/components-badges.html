@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; padding: 28px 32px; box-sizing: border-box; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-bottom: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 5px 9px;
+    border: 1px solid var(--ink);
+    background: var(--paper); color: var(--ink);
+  }
+  .badge::before { content: attr(data-glyph); font-weight: 400; color: var(--g); }
+  .ok   { --g: var(--accent-lime); }
+  .err  { --g: var(--accent-pink); }
+  .warn { --g: var(--accent-yellow); }
+  .info { --g: var(--accent-cyan); }
+  .filled { color: var(--paper); background: var(--ink); }
+  .filled.ok::before   { color: var(--accent-lime); }
+  .filled.err::before  { color: var(--accent-pink); }
+  .filled.warn::before { color: var(--accent-yellow); }
+  .filled.info::before { color: var(--accent-cyan); }
+  .pure { padding: 5px 9px; border: 1px solid var(--ink); }
+  .pure.ok-fill   { background: var(--accent-lime);   }
+  .pure.err-fill  { background: var(--accent-pink);   color: var(--ink); }
+  .pure.warn-fill { background: var(--accent-yellow); }
+  .pure.info-fill { background: var(--accent-cyan);   }
+  .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+  <div class="lbl">status · glyph + word, never color alone</div>
+  <div class="row">
+    <span class="badge ok"   data-glyph="●">ok</span>
+    <span class="badge warn" data-glyph="●">warn</span>
+    <span class="badge err"  data-glyph="●">err</span>
+    <span class="badge info" data-glyph="●">info</span>
+    <span class="badge"      data-glyph="○" style="--g: var(--ink-fg3)">idle</span>
+  </div>
+  <div class="lbl">filled · inverted</div>
+  <div class="row">
+    <span class="badge filled ok"   data-glyph="●">deployed</span>
+    <span class="badge filled warn" data-glyph="●">building</span>
+    <span class="badge filled err"  data-glyph="●">failed</span>
+    <span class="badge filled info" data-glyph="●">queued</span>
+  </div>
+  <div class="lbl">solid · accent fill · sparingly</div>
+  <div class="row">
+    <span class="badge pure ok-fill" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase">▲ live</span>
+    <span class="badge pure err-fill" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase">! rollback</span>
+    <span class="badge pure warn-fill" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase">⚠ preview</span>
+  </div>
+</body>
+</html>

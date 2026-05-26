@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .sw { padding: 22px 24px; min-height: 110px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--ink); }
+  .sw:nth-child(2n) { border-right: 0; }
+  .sw:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+  .name { font-family: var(--font-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .hex { font-family: var(--font-mono); font-size: 12px; opacity: 0.7; }
+  .var { font-family: var(--font-mono); font-size: 11px; opacity: 0.55; }
+  .ink-bg { background: var(--ink); color: var(--paper); }
+  .ink2-bg { background: var(--ink-2); color: var(--paper); }
+  .paper-bg { background: var(--paper); color: var(--ink); }
+  .paper2-bg { background: var(--paper-2); color: var(--ink); }
+  .ftr { border-top: 1px solid var(--ink); padding: 10px 24px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); background: var(--paper); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="sw ink-bg">
+      <div class="name">Ink</div>
+      <div><div class="hex">#0A0A0A</div><div class="var">--ink</div></div>
+    </div>
+    <div class="sw paper-bg">
+      <div class="name">Paper</div>
+      <div><div class="hex">#F5F2EA</div><div class="var">--paper</div></div>
+    </div>
+    <div class="sw ink2-bg">
+      <div class="name">Ink-2</div>
+      <div><div class="hex">#1A1A1A</div><div class="var">--ink-2 · raised surface on dark</div></div>
+    </div>
+    <div class="sw paper2-bg">
+      <div class="name">Paper-2</div>
+      <div><div class="hex">#EDE9DE</div><div class="var">--paper-2 · raised surface on light</div></div>
+    </div>
+  </div>
+  <div class="ftr">colors · ink & paper · 95% of every surface</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+# PROJECTUS
+
+Kanban local para projetos abandonados, tarefas e ideias. A fonte de verdade fica em `~/Documents/PROJECTUS`, em JSON para estrutura e Markdown/anexos para conteúdo. A interface funciona no desktop Tauri para macOS e no navegador privado pela sua tailnet.
+
+## Stack
+
+- React, Vite, TypeScript, Motion, Lucide, dnd-kit e MDXEditor.
+- Rust, Axum, arquivos atômicos, SSE e Cloudflare R2 via API S3.
+- Tauri v2 para a janela macOS.
+- `launchd` para manter o backend ativo no login.
+
+## Desenvolvimento
+
+```bash
+pnpm install
+cargo run -p projectus-server
+pnpm dev
+```
+
+Abra `http://localhost:5173`. O Vite encaminha `/api` e `/conteudo` ao backend em `127.0.0.1:4387`.
+
+Para testar o build servido diretamente pelo backend:
+
+```bash
+pnpm build
+cargo run -p projectus-server
+```
+
+Abra `http://127.0.0.1:4387`.
+
+## Desktop e servidor permanente
+
+O app Tauri inicia a API local enquanto sua janela estiver aberta. Para acesso pelo celular, snapshots automáticos e uso mesmo com a janela fechada, instale o servidor permanente no Mac:
+
+```bash
+chmod +x scripts/instalar-autostart.sh scripts/remover-autostart.sh
+./scripts/instalar-autostart.sh
+pnpm desktop:dev
+```
+
+O script compila `projectus-server` em release e registra `~/Library/LaunchAgents/com.projectus.server.plist` com `RunAtLoad` e `KeepAlive`. Quando o daemon já estiver ativo, o app desktop apenas consome essa mesma API, sem iniciar outro scheduler.
+
+Para criar o aplicativo e o instalador:
+
+```bash
+pnpm desktop:build
+```
+
+Os bundles macOS são gerados em `target/release/bundle/macos` e `target/release/bundle/dmg`.
+
+## Acesso via Tailscale
+
+Com o daemon ativo e a SPA compilada em `apps/web/dist`, publique apenas dentro da tailnet:
+
+```bash
+tailscale serve --bg http://127.0.0.1:4387
+```
+
+Não há autenticação adicional no v1. Controle o acesso pelas ACLs e dispositivos autorizados no Tailscale.
+
+## Dados locais
+
+```text
+~/Documents/PROJECTUS/
+  config.json
+  board.json
+  history.json
+  projetos/<slug>-<id8>/
+    project.json
+    project.md
+    history.json
+    _anexos/
+    tarefas/<slug>-<id8>/card.md
+  ideias/
+    ideas.json
+    <slug>-<id8>/note.md
+```
+
+Google Drive e iCloud não fazem parte do código. Configure esses clientes para copiar a pasta local se desejar.
+
+## R2
+
+Em `config`, informe endereço S3, bucket e as chaves R2 e use `fixar configuração e credenciais`. A interface confirma que as chaves estão protegidas no Keychain do macOS sem exibir o segredo. O botão `[SAVE]` envia uma cópia completa. O daemon também cria um snapshot após 24 horas sem backup.
+
+```text
+r2-syncs/
+  history.json
+  <timestamp>-<id8>/
+    PROJECTUS/...
+    manifest.json
+```
+
+Na restauração, todos os checksums SHA-256 são validados e a pasta atual é preservada como `PROJECTUS-recuperacao-<timestamp>-<id8>`.
+
+## Validação
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+cargo test --workspace
+```

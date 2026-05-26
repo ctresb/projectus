@@ -1,0 +1,12 @@
+node_modules/
+dist/
+target/
+.vite/
+.DS_Store
+*.log
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/target/
+.env
+.env.*
+!*.env.example
+

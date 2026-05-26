@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; height: 220px; box-sizing: border-box; position: relative; }
+  .canvas {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(10,10,10,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10,10,10,0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .marks {
+    position: absolute; inset: 0; padding: 32px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-fg2);
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .stamp {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-family: var(--font-display); font-weight: 700; font-size: 64px; letter-spacing: -0.04em; color: var(--ink);
+  }
+  .acc { color: var(--accent-pink); }
+  .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); position: absolute; bottom: 14px; left: 32px; }
+  .px { position: absolute; bottom: 14px; right: 32px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); }
+</style>
+</head>
+<body>
+  <div class="canvas"></div>
+  <div class="stamp">ma<span class="acc">.</span></div>
+  <div class="lbl">grid · 32px graph paper · 8% opacity</div>
+  <div class="px">.graph utility</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; padding: 24px 32px; box-sizing: border-box; }
+  .row { display: grid; grid-template-columns: 80px 1fr 110px; gap: 18px; align-items: baseline; padding: 8px 0; border-bottom: 1px dashed var(--hair); }
+  .row:last-child { border-bottom: 0; }
+  .tok { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-fg3); }
+  .spec { color: var(--ink); }
+  .px { font-family: var(--font-mono); font-size: 11px; color: var(--ink-fg2); text-align: right; }
+  .h1 { font-family: var(--font-display); font-weight: 700; font-size: 56px; line-height: 0.95; letter-spacing: -0.04em; }
+  .h2 { font-family: var(--font-display); font-weight: 600; font-size: 38px; line-height: 1.0; letter-spacing: -0.035em; }
+  .h3 { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 1.05; letter-spacing: -0.02em; }
+  .h4 { font-family: var(--font-mono); font-weight: 600; font-size: 18px; }
+  .body { font-family: var(--font-mono); font-size: 14px; }
+  .small { font-family: var(--font-mono); font-size: 12px; color: var(--ink-fg2); }
+  .micro { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); }
+</style>
+</head>
+<body>
+  <div class="row"><div class="tok">H1 · display</div><div class="spec h1">One command.</div><div class="px">88 / 700</div></div>
+  <div class="row"><div class="tok">H2 · display</div><div class="spec h2">Ship to prod.</div><div class="px">56 / 600</div></div>
+  <div class="row"><div class="tok">H3 · display</div><div class="spec h3">Cold start: 38ms</div><div class="px">28 / 600</div></div>
+  <div class="row"><div class="tok">H4 · mono</div><div class="spec h4">DEPLOYMENTS</div><div class="px">20 / 600</div></div>
+  <div class="row"><div class="tok">Body · mono</div><div class="spec body">No yaml. No build steps. Just ship.</div><div class="px">15 / 400</div></div>
+  <div class="row"><div class="tok">Small</div><div class="spec small">apex.zenship.dev · last deploy 4m ago</div><div class="px">13 / 400</div></div>
+  <div class="row"><div class="tok">Eyebrow</div><div class="spec micro">deployments · region · us-east-1</div><div class="px">11 / 500</div></div>
+</body>
+</html>

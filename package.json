@@ -1,0 +1,16 @@
+{
+  "name": "projectus",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.30.2",
+  "scripts": {
+    "dev": "pnpm --filter @projectus/web dev",
+    "build": "pnpm --filter @projectus/web build",
+    "test": "pnpm --filter @projectus/web test",
+    "typecheck": "pnpm --filter @projectus/web typecheck",
+    "desktop:dev": "pnpm --filter @projectus/desktop tauri dev",
+    "desktop:build": "pnpm --filter @projectus/desktop tauri build",
+    "server:dev": "cargo run -p projectus-server",
+    "server:test": "cargo test --workspace"
+  }
+}

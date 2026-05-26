@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--ink); color: var(--fg1); }
+  body { width: 700px; padding: 0; }
+  .nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--hair-dark); font-family: var(--font-mono); }
+  .brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.04em; color: var(--paper); display: flex; align-items: baseline; gap: 6px; }
+  .brand .dot { color: var(--accent-pink); }
+  .links { display: flex; gap: 22px; font-size: 12px; letter-spacing: 0.04em; }
+  .links a { color: var(--fg2); text-decoration: none; }
+  .links a.active { color: var(--paper); }
+  .right { display: flex; gap: 14px; align-items: center; font-size: 12px; }
+  .cta { font-family: var(--font-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.04em; padding: 8px 12px; background: var(--accent-pink); color: var(--ink); border: 1px solid var(--accent-pink); text-transform: lowercase; }
+  .footer { padding: 18px 20px; border-top: 1px solid var(--hair-dark); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--fg3); letter-spacing: 0.04em; }
+  .footer .l { display: flex; gap: 20px; }
+  .footer a { color: var(--fg3); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="#" class="brand"><img src="../assets/logo-paper.svg" alt="Zenship" style="width:110px;height:auto;display:block"></a>
+    <div class="links">
+      <a href="#" class="active">deploy</a>
+      <a href="#">docs</a>
+      <a href="#">changelog</a>
+      <a href="#">pricing</a>
+    </div>
+    <div class="right">
+      <a href="#" style="color:var(--fg2);text-decoration:none">sign in</a>
+      <button class="cta">$ npm i -g zenship</button>
+    </div>
+  </div>
+  <div style="height: 60px;"></div>
+  <div class="footer">
+    <div class="l">
+      <a href="#">docs</a>
+      <a href="#">github</a>
+      <a href="#">@zenshipdev</a>
+      <a href="#">status</a>
+    </div>
+    <span>© 2026 · made by 1 person</span>
+  </div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+/* ============================================================
+   ZENSHIP — colors_and_type.css
+   Edgy minimalism. Sumi ink on washi. One accent at a time.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+/* Brand display face — Zenship Ultra (custom, single weight, uppercase-only).
+   Supported glyphs: A–Z, 0–9, space, and ! + , - . : ; = ? _
+   unicode-range lets unsupported characters fall back to Space Grotesk
+   automatically — so a stray apostrophe or "$" still renders, just in the
+   fallback face. Pair with text-transform: uppercase on anything using it. */
+@font-face {
+  font-family: 'Zenship Ultra';
+  src: url('./fonts/ZenshipUltra-Regular.ttf') format('truetype');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0020,         /* space */
+    U+0021,         /* ! */
+    U+002B-002E,    /* + , - . */
+    U+0030-003B,    /* 0-9 : ; */
+    U+003D,         /* = */
+    U+003F,         /* ? */
+    U+0041-005A,    /* A-Z */
+    U+005F;         /* _ */
+}
+
+:root {
+  /* -------- Ink & paper (the whole system, basically) -------- */
+  --ink:        #1A1A1A;   /* near-black, not pure */
+  --ink-2:      #2A2A2A;   /* surface raised */
+  --ink-3:      #3A3A3A;   /* hairline contrast */
+  --paper:      #F5F2EA;   /* washi off-white, warm */
+  --paper-2:    #EDE9DE;   /* slightly deeper paper */
+  --paper-3:    #DCD7C8;   /* aged paper */
+  --hair:       #C8C2B0;   /* hairline rule on paper */
+  --hair-dark:  #3A3A3A;   /* hairline rule on ink */
+
+  /* -------- Neutrals on ink (text scale) -------- */
+  --fg1:        #F5F2EA;   /* primary text on dark */
+  --fg2:        #B8B3A4;   /* secondary */
+  --fg3:        #6E6A60;   /* tertiary, captions */
+  --fg-mute:    #45433D;   /* disabled / placeholder */
+
+  /* -------- Neutrals on paper -------- */
+  --ink-fg1:    #0A0A0A;   /* primary text on light */
+  --ink-fg2:    #45433D;   /* secondary */
+  --ink-fg3:    #78736A;   /* tertiary */
+  --ink-mute:   #A8A293;   /* disabled / placeholder */
+
+  /* -------- Accents (use ONE per surface, surgically) -------- */
+  --accent-blue:    #55B9F7;
+  --accent-green:   #61E141;
+  --accent-pink:    #FE3867;
+  --accent-yellow:  #FAD344;
+
+  /* Legacy aliases — kept so older usages don't break. Prefer the new names. */
+  --accent-cyan:    var(--accent-blue);
+  --accent-lime:    var(--accent-green);
+
+  /* Default accent — override at <html data-accent="green"> etc.  */
+  --accent:         var(--accent-pink);
+  --accent-ink:     #1A1A1A;   /* text color that sits ON the accent */
+
+  /* -------- Semantic (kept honest — no rainbow) -------- */
+  --ok:    var(--accent-green);
+  --warn:  var(--accent-yellow);
+  --err:   var(--accent-pink);
+  --info:  var(--accent-blue);
+
+  /* -------- Type families -------- */
+  --font-mono:    'JetBrains Mono', 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mega:    'Zenship Ultra', 'Space Grotesk', system-ui, sans-serif;
+  --font-body:    'JetBrains Mono', 'Space Mono', ui-monospace, monospace;
+  /* Body is mono on purpose. Monospace pulls the weight.
+     --font-display is Space Grotesk for medium display (h3, prices).
+     --font-mega is the brand's Zenship Ultra — uppercase only, big sizes only.
+     Always pair --font-mega with `text-transform: uppercase`. */
+
+  /* -------- Type scale (display in Space Grotesk, body in mono) -------- */
+  --fs-mega:   clamp(72px, 11vw, 184px);  /* hero, one word */
+  --fs-h1:     clamp(48px, 6vw,  88px);
+  --fs-h2:     clamp(34px, 4vw,  56px);
+  --fs-h3:     28px;
+  --fs-h4:     20px;
+  --fs-body:   15px;
+  --fs-small:  13px;
+  --fs-micro:  11px;
+
+  --lh-tight:  0.92;
+  --lh-snug:   1.1;
+  --lh-body:   1.55;
+  --lh-loose:  1.75;
+
+  --tracking-tight:  -0.04em;
+  --tracking-normal: -0.01em;
+  --tracking-wide:    0.08em;
+  --tracking-mega:    0.18em;  /* for caps labels */
+
+  /* -------- Spacing — graph-paper feel, 4px base -------- */
+  --s-0:  0px;
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 128px;
+  --s-11: 192px;
+
+  /* -------- Borders. Sharp. -------- */
+  --bw-1: 1px;
+  --bw-2: 2px;
+  --bw-3: 3px;
+  --radius: 0;   /* NEVER round. The whole system is 0. */
+
+  /* -------- Grid / graph paper -------- */
+  --grid-size: 32px;
+  --grid-line: rgba(10,10,10,0.05);
+  --grid-line-dark: rgba(245,242,234,0.06);
+
+  /* -------- Motion — restrained. No bounce. -------- */
+  --ease-out:  cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in:   cubic-bezier(0.6, 0, 0.8, 0.3);
+  --dur-fast:  120ms;
+  --dur:       200ms;
+  --dur-slow:  400ms;
+
+  /* -------- Shadow. We barely use it. -------- */
+  --shadow-hair: 0 0 0 1px var(--ink);
+  --shadow-hard: 6px 6px 0 0 var(--ink);   /* the only "real" shadow */
+}
+
+/* Accent overrides — set data-accent on <html> or a section */
+[data-accent="blue"]   { --accent: var(--accent-blue);   }
+[data-accent="green"]  { --accent: var(--accent-green);  }
+[data-accent="pink"]   { --accent: var(--accent-pink);   }
+[data-accent="yellow"] { --accent: var(--accent-yellow); }
+/* Legacy aliases */
+[data-accent="cyan"]   { --accent: var(--accent-blue);   }
+[data-accent="lime"]   { --accent: var(--accent-green);  }
+
+/* ============================================================
+   Semantic element styles
+   ============================================================ */
+
+html, body {
+  background: var(--paper);
+  color: var(--ink-fg1);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[data-theme="dark"], .dark {
+  background: var(--ink);
+  color: var(--fg1);
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+  margin: 0;
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+  margin: 0;
+}
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-normal);
+  margin: 0;
+}
+h4, .h4 {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--fs-h4);
+  line-height: var(--lh-snug);
+  margin: 0;
+}
+
+p, .body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+small, .small {
+  font-size: var(--fs-small);
+  color: var(--ink-fg2);
+}
+
+.micro, .eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-mega);
+  text-transform: uppercase;
+  color: var(--ink-fg2);
+}
+
+code, .code, kbd, pre, samp {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+pre, .codeblock {
+  background: var(--ink);
+  color: var(--fg1);
+  padding: var(--s-5) var(--s-5);
+  border: var(--bw-1) solid var(--ink);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--ink-fg1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--accent); }
+
+hr, .rule {
+  border: 0;
+  border-top: var(--bw-1) solid var(--hair);
+  margin: var(--s-6) 0;
+}
+
+/* Selection — accent, sharp */
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* Graph-paper background utility */
+.graph {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+.dark .graph, [data-theme="dark"].graph {
+  background-image:
+    linear-gradient(var(--grid-line-dark) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line-dark) 1px, transparent 1px);
+}
+
+/* Blinking cursor — the one ornament we allow */
+.cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  background: currentColor;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink { to { visibility: hidden; } }
+
+/* Terminal prompt utility */
+.prompt::before {
+  content: "$ ";
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+.prompt-arrow::before {
+  content: "❯ ";
+  color: var(--accent);
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,36 @@
+[package]
+name = "projectus-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+async-stream = "0.3"
+aws-config = "1"
+aws-credential-types = "1"
+aws-sdk-s3 = "1"
+axum = { version = "0.8", features = ["multipart"] }
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "6"
+futures-core = "0.3"
+hex = "0.4"
+keyring = { version = "3", features = ["apple-native"] }
+libc = "0.2"
+mime_guess = "2"
+rand = "0.9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+slug = "0.1"
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+walkdir = "2"
+
+[dev-dependencies]
+tempfile = "3"

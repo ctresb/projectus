@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; padding: 32px 36px; box-sizing: border-box; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); margin-bottom: 14px; }
+  .essence { font-family: var(--font-display); font-weight: 700; font-size: 38px; line-height: 1.0; letter-spacing: -0.04em; margin: 0 0 18px; max-width: 14ch; }
+  .essence em { font-style: normal; color: var(--accent-pink); }
+  .meta { font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--ink-fg1); }
+  .meta b { font-weight: 700; }
+  .row { display: grid; grid-template-columns: max-content 1fr; column-gap: 24px; row-gap: 6px; }
+  .k { color: var(--ink-fg3); }
+</style>
+</head>
+<body>
+  <div class="eyebrow">brand · essence</div>
+  <h1 class="essence">Built at 3am.<br>Shipped at 3:04.<span style="color:var(--accent-pink)">_</span></h1>
+  <div class="row meta">
+    <div class="k">FEELS LIKE</div><div>opening a sticker-covered ThinkPad in a quiet cafe</div>
+    <div class="k">NOT LIKE</div><div>Vercel, Railway, Linear, an AI startup with a 3D blob</div>
+    <div class="k">VOICE</div><div>direct, dry, slightly irreverent — talks to adults</div>
+    <div class="k">METAPHOR</div><div>sumi ink on washi paper. terminal as first-class UI.</div>
+  </div>
+</body>
+</html>

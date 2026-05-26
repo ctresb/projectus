@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; padding: 26px 32px; box-sizing: border-box; }
+  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: stretch; }
+  .demo { position: relative; padding: 18px; min-height: 100px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; }
+  .a { background: var(--paper); border: 1px solid var(--ink); }
+  .b { background: var(--paper); border: 1px solid var(--ink); box-shadow: 6px 6px 0 0 var(--ink); }
+  .c { background: var(--ink); color: var(--fg1); border: 1px solid var(--ink); }
+  .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-fg2); }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .ftr { margin-top: 22px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-fg2); line-height: 1.7; }
+  .ftr b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col">
+      <div class="demo a">1px hairline</div>
+      <div class="lbl">--bw-1 · default</div>
+    </div>
+    <div class="col">
+      <div class="demo b">hard shadow</div>
+      <div class="lbl">--shadow-hard · cta only</div>
+    </div>
+    <div class="col">
+      <div class="demo c">inverted block</div>
+      <div class="lbl">--ink fill · no border on dark</div>
+    </div>
+  </div>
+  <div class="ftr">
+    <b>radius: 0.</b> the whole system. no exceptions. <b>no soft shadows.</b> the one shadow is a 6px hard offset, no blur, no opacity. used on primary CTAs and nowhere else.
+  </div>
+</body>
+</html>

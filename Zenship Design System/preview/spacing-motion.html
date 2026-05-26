@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; padding: 26px 32px; box-sizing: border-box; }
+  .row { display: grid; grid-template-columns: 110px 1fr 110px; gap: 16px; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--hair); }
+  .row:last-child { border-bottom: 0; }
+  .tok { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-fg2); }
+  .px { font-family: var(--font-mono); font-size: 11px; color: var(--ink-fg2); text-align: right; }
+  .track { position: relative; height: 12px; background: var(--paper-2); border: 1px solid var(--ink); }
+  .dot { position: absolute; top: -3px; width: 18px; height: 18px; background: var(--accent-pink); border: 1px solid var(--ink); }
+  .ftr { margin-top: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-fg2); line-height: 1.7; }
+  .ftr b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="tok">--dur-fast</div>
+    <div class="track"><div class="dot" style="left: 12%;"></div></div>
+    <div class="px">120ms</div>
+  </div>
+  <div class="row">
+    <div class="tok">--dur</div>
+    <div class="track"><div class="dot" style="left: 32%;"></div></div>
+    <div class="px">200ms</div>
+  </div>
+  <div class="row">
+    <div class="tok">--dur-slow</div>
+    <div class="track"><div class="dot" style="left: 68%;"></div></div>
+    <div class="px">400ms</div>
+  </div>
+  <div class="ftr">
+    <b>cubic-bezier(0.2, 0.7, 0.2, 1)</b> · fades and 1–2px translations only · no springs · no bounces · the blinking cursor is the only ambient motion
+  </div>
+</body>
+</html>

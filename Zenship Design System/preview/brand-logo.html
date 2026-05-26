@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-accent="pink">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { width: 700px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid var(--ink); }
+  .row:last-child { border-bottom: 0; }
+  .lock { padding: 28px 22px; border-right: 1px solid var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; gap: 8px; }
+  .lock:last-child { border-right: 0; }
+  .lock img { width: 80%; max-width: 180px; height: auto; display: block; }
+  .name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg3); }
+  .dark { background: var(--ink); }
+  .dark .name { color: var(--fg3); }
+  .footer { padding: 10px 22px; display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-fg2); border-top: 1px solid var(--ink); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="lock"><img src="../assets/logo-ink.svg" alt="Zenship"><div class="name">on paper</div></div>
+    <div class="lock dark"><img src="../assets/logo-paper.svg" alt="Zenship"><div class="name">on ink</div></div>
+    <div class="lock"><img src="../assets/logo-pink.svg" alt="Zenship"><div class="name">pink</div></div>
+  </div>
+  <div class="row">
+    <div class="lock"><img src="../assets/logo-yellow.svg" alt="Zenship"><div class="name">yellow</div></div>
+    <div class="lock"><img src="../assets/logo-blue.svg" alt="Zenship"><div class="name">blue</div></div>
+    <div class="lock"><img src="../assets/logo-green.svg" alt="Zenship"><div class="name">green</div></div>
+  </div>
+  <div class="footer">
+    <span>wordmark · ZENSHIP · 6 colorways</span>
+    <span>assets/logo-*.svg</span>
+  </div>
+</body>
+</html>
