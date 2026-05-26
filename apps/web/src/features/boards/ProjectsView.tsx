@@ -29,7 +29,14 @@ export function ProjectsView({
   }, [])
   useQuickCreate({ ativo: !creating, onNovo: openCreator })
 
-  const create = async (input: { titulo: string; githubUrl: string; markdown: string; cor: string; tags: string[] }) => {
+  const create = async (input: {
+    titulo: string
+    githubUrl: string
+    markdown: string
+    cor: string
+    tags: string[]
+    novasTags: import('../../lib/types').Tag[]
+  }) => {
     try {
       await api.createProject({
         titulo: input.titulo,
@@ -37,6 +44,7 @@ export function ProjectsView({
         markdown: input.markdown,
         cor: input.cor,
         tags: input.tags,
+        novas_tags: input.novasTags,
       })
       setCreating(false)
       await onRefresh()

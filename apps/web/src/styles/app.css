@@ -296,6 +296,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
+  width: 100%;
+  box-sizing: border-box;
   padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
   border: 1px solid var(--hair);
   background: var(--ink);
@@ -315,7 +317,8 @@
   opacity: 0.18;
 }
 .board-card--overlay {
-  width: min(230px, 22vw);
+  width: 100%;
+  max-width: 100%;
   cursor: grabbing;
   border-color: var(--accent);
   background: var(--ink-2);
@@ -757,25 +760,41 @@ input::placeholder {
   overflow-y: auto;
 }
 .idea-link {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-2);
   min-height: 42px;
-  padding: 0 var(--s-3);
+  padding: 0 var(--s-3) 0 14px;
   border: 0;
-  border-left: 2px solid transparent;
   background: transparent;
   color: var(--fg2);
   text-align: left;
+  overflow: hidden;
 }
-.idea-link span {
-  width: 7px;
-  height: 7px;
+.idea-link__bar {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 2px;
+  transition: width var(--fast) var(--ease);
+}
+.idea-link__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.idea-link:hover .idea-link__bar {
+  width: 5px;
 }
 .idea-link--active {
   color: var(--paper);
-  border-left-color: var(--accent);
   background: var(--ink-2);
+}
+.idea-link--active .idea-link__bar {
+  width: 5px;
 }
 .idea-editor {
   display: flex;
@@ -787,11 +806,20 @@ input::placeholder {
   padding: var(--s-5) var(--s-6);
 }
 .idea-editor__head {
-  display: grid;
-  grid-template-columns: minmax(190px, 1fr) auto auto auto;
+  display: flex;
   align-items: center;
   gap: var(--s-3);
   margin-bottom: var(--s-4);
+}
+.idea-editor__head .idea-title {
+  flex: 1;
+  min-width: 0;
+}
+.idea-editor__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
 }
 .idea-title {
   height: auto;
@@ -1091,4 +1119,168 @@ input::placeholder {
     grid-template-rows: none;
     overflow-y: auto;
   }
+}
+
+/* swatch popover */
+.swatch-pop {
+  position: relative;
+  display: inline-flex;
+}
+.swatch-pop__trigger {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hair);
+  background: var(--ink-2);
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease);
+}
+.swatch-pop__trigger::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: var(--swatch);
+}
+.swatch-pop__trigger:hover,
+.swatch-pop__trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+}
+.swatch-pop__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(6, 27px);
+  gap: 4px;
+  padding: var(--s-2);
+  border: 1px solid var(--hair);
+  background: var(--ink);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* save indicator */
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--hair);
+  background: var(--ink-2);
+  color: var(--fg2);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  min-width: 130px;
+  justify-content: center;
+}
+.save-indicator__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.save-indicator__label {
+  white-space: nowrap;
+}
+.save-indicator--saving {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.save-indicator--saved {
+  color: var(--green);
+}
+.save-indicator--error {
+  color: var(--pink);
+  border-color: var(--pink);
+}
+.save-indicator__spin {
+  animation: save-spin 1s linear infinite;
+}
+@keyframes save-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* R2 helper */
+.r2-help {
+  border: 1px solid var(--hair);
+  background: var(--ink);
+  padding: var(--s-3);
+  font-size: 12px;
+  color: var(--fg2);
+  margin-bottom: var(--s-3);
+}
+.r2-help p {
+  margin-bottom: var(--s-2);
+  color: var(--paper);
+}
+.r2-help ul {
+  margin: 0;
+  padding-left: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.r2-help code {
+  background: var(--ink-2);
+  padding: 1px 5px;
+  border: 1px solid var(--hair);
+  font-size: 11px;
+}
+.r2-help em {
+  font-style: italic;
+  color: var(--fg2);
+}
+.hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg3);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.btn--mini--inline {
+  align-self: flex-start;
+  margin-bottom: var(--s-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* MDXEditor source mode dark theme */
+.markdown-editor [class*='_sourceContainer'] {
+  background: var(--ink-2);
+}
+.markdown-editor .cm-editor {
+  background: var(--ink-2);
+  color: var(--paper);
+}
+.markdown-editor .cm-editor.cm-focused {
+  outline: none;
+}
+.markdown-editor .cm-scroller {
+  background: var(--ink-2);
+}
+.markdown-editor .cm-content {
+  color: var(--paper);
+  caret-color: var(--accent);
+}
+.markdown-editor .cm-line {
+  color: var(--paper);
+}
+.markdown-editor .cm-gutters {
+  background: var(--ink);
+  color: var(--fg3);
+  border-right: 1px solid var(--hair);
+}
+.markdown-editor .cm-activeLine {
+  background: rgba(255, 255, 255, 0.03);
+}
+.markdown-editor .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.03);
+}
+.markdown-editor .cm-selectionBackground,
+.markdown-editor .cm-editor ::selection {
+  background: rgba(85, 185, 247, 0.25) !important;
 }

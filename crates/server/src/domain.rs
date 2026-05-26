@@ -58,6 +58,12 @@ pub struct Config {
     pub tags: Vec<Tag>,
     pub cores: Vec<ColorChoice>,
     pub r2: R2Config,
+    #[serde(default = "default_cor_principal")]
+    pub cor_principal: String,
+}
+
+pub fn default_cor_principal() -> String {
+    "#55B9F7".to_owned()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -157,6 +163,8 @@ pub struct CreateProject {
     pub cor: Option<String>,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub novas_tags: Vec<Tag>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -349,6 +357,7 @@ impl Default for Config {
             tags: Vec::new(),
             cores: default_colors(),
             r2: R2Config::default(),
+            cor_principal: default_cor_principal(),
         }
     }
 }

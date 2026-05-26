@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { ExternalLink, X } from 'lucide-react'
 import { Modal } from '../../components/Modal'
 import { ArchiveAction } from '../../components/ArchiveAction'
-import { ColorPicker } from '../../components/ColorPicker'
+import { ColorSwatchButton } from '../../components/ColorSwatchButton'
 import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import { api } from '../../lib/api'
 import type { ColorChoice, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { markdownBody } from '../../lib/markdown'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
+import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
 
 export function EditProjectModal({
   aberto,
@@ -38,7 +39,6 @@ export function EditProjectModal({
   const [tags, setTags] = useState(card.tags)
   const [taskTags, setTaskTags] = useState(project.tags_disponiveis)
   const [dirty, setDirty] = useState(false)
-  const [estado, setEstado] = useState('salvo localmente')
 
   useEffect(() => {
     if (!aberto) return
@@ -48,7 +48,6 @@ export function EditProjectModal({
     setTags(card.tags)
     setTaskTags(project.tags_disponiveis)
     setDirty(false)
-    setEstado('salvo localmente')
     setMarkdownLoaded(false)
     void api.project(project.id).then((doc) => {
       setMarkdown(markdownBody(doc.markdown))
@@ -58,7 +57,7 @@ export function EditProjectModal({
 
   useEffect(() => {
     if (!dirty || !aberto || !markdownLoaded) return
-    setEstado('salvando...')
+    markSaving()
     const timer = window.setTimeout(() => {
       setDirty(false)
       void api
@@ -72,14 +71,14 @@ export function EditProjectModal({
           tags_disponiveis: taskTags,
         })
         .then((doc) => {
-          setEstado('salvo localmente')
+          markSaved()
           onSaved(doc)
         })
         .catch((error: Error) => {
-          setEstado('não salvo')
+          markError(error.message)
           onError(error.message)
         })
-    }, 650)
+    }, 1000)
     return () => window.clearTimeout(timer)
   }, [aberto, cor, dirty, github, markdown, markdownLoaded, onError, onSaved, project.id, project.revision, tags, taskTags, titulo])
 
@@ -105,7 +104,7 @@ export function EditProjectModal({
           </span>
         </label>
         <span className="field-label">cor</span>
-        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
+        <ColorSwatchButton cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
         <span className="field-label">tags</span>
         <TagPicker disponiveis={tagsDisponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="catalog">
@@ -143,7 +142,6 @@ export function EditProjectModal({
         </div>
         <footer className="form-actions form-actions--spread">
           <ArchiveAction entidade="este projeto" onArchive={onDelete} />
-          <span className="save-state">{estado}</span>
         </footer>
       </div>
     </Modal>
@@ -175,7 +173,6 @@ export function EditTaskModal({
   const [cor, setCor] = useState(task.cor)
   const [tags, setTags] = useState(task.tags)
   const [dirty, setDirty] = useState(false)
-  const [estado, setEstado] = useState('salvo localmente')
 
   useEffect(() => {
     if (!aberto) return
@@ -183,7 +180,6 @@ export function EditTaskModal({
     setCor(task.cor)
     setTags(task.tags)
     setDirty(false)
-    setEstado('salvo localmente')
     setMarkdownLoaded(false)
     void api.taskMarkdown(project.id, task.id).then(({ markdown: content }) => {
       setMarkdown(markdownBody(content))
@@ -193,20 +189,20 @@ export function EditTaskModal({
 
   useEffect(() => {
     if (!dirty || !aberto || !markdownLoaded) return
-    setEstado('salvando...')
+    markSaving()
     const timer = window.setTimeout(() => {
       setDirty(false)
       void api
         .updateTask(project.id, task.id, { revision: project.revision, titulo, markdown, cor, tags })
         .then((updated) => {
-          setEstado('salvo localmente')
+          markSaved()
           onSaved(updated)
         })
         .catch((error: Error) => {
-          setEstado('não salvo')
+          markError(error.message)
           onError(error.message)
         })
-    }, 650)
+    }, 1000)
     return () => window.clearTimeout(timer)
   }, [aberto, cor, dirty, markdown, markdownLoaded, onError, onSaved, project.id, project.revision, tags, task.id, titulo])
 
@@ -222,7 +218,7 @@ export function EditTaskModal({
           <input value={titulo} onChange={(event) => change(() => setTitulo(event.target.value))} />
         </label>
         <span className="field-label">cor</span>
-        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
+        <ColorSwatchButton cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} />
         <span className="field-label">tags</span>
         <TagPicker disponiveis={project.tags_disponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="editor-form__markdown">
@@ -241,7 +237,6 @@ export function EditTaskModal({
         </div>
         <footer className="form-actions form-actions--spread">
           <ArchiveAction entidade="esta tarefa" onArchive={onDelete} />
-          <span className="save-state">{estado}</span>
         </footer>
       </div>
     </Modal>

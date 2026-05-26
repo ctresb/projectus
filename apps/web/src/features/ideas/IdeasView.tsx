@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
+import { motion } from 'motion/react'
 import { api } from '../../lib/api'
 import type { Config, DocumentResponse, IdeaCard, Ideas } from '../../lib/types'
-import { ColorPicker } from '../../components/ColorPicker'
+import { ColorSwatchButton } from '../../components/ColorSwatchButton'
 import { ArchiveAction } from '../../components/ArchiveAction'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { markdownBody } from '../../lib/markdown'
+import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
 
 export function IdeasView({
   config,
@@ -62,15 +64,18 @@ export function IdeasView({
         </label>
         <nav>
           {filtered.map((idea) => (
-            <button
+            <motion.button
               key={idea.id}
               className={idea.id === selected ? 'idea-link idea-link--active' : 'idea-link'}
               onClick={() => setSelected(idea.id)}
               type="button"
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.985 }}
+              transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
             >
-              <span style={{ backgroundColor: idea.cor }} />
-              {idea.titulo}
-            </button>
+              <span className="idea-link__bar" style={{ backgroundColor: idea.cor }} />
+              <span className="idea-link__title">{idea.titulo}</span>
+            </motion.button>
           ))}
           {filtered.length === 0 && <small>nenhuma nota</small>}
         </nav>
@@ -118,7 +123,6 @@ function IdeaEditor({
   const [markdown, setMarkdown] = useState('')
   const [color, setColor] = useState('#55B9F7')
   const [dirty, setDirty] = useState(false)
-  const [saved, setSaved] = useState('salvo localmente')
   const currentId = useRef(id)
 
   useEffect(() => {
@@ -135,21 +139,21 @@ function IdeaEditor({
 
   useEffect(() => {
     if (!dirty || !note) return
-    setSaved('salvando...')
+    markSaving()
     const timer = window.setTimeout(() => {
       setDirty(false)
       void api
         .updateIdea(note.dados.id, { revision, titulo: title, markdown, cor: color })
         .then(async (updated) => {
           setNote(updated)
-          setSaved('salvo localmente')
+          markSaved()
           await onSaved()
         })
         .catch((error: Error) => {
-          setSaved('não salvo')
+          markError(error.message)
           onMessage('erro', error.message)
         })
-    }, 650)
+    }, 1000)
     return () => window.clearTimeout(timer)
   }, [color, dirty, markdown, note, onMessage, onSaved, revision, title])
 
@@ -162,9 +166,10 @@ function IdeaEditor({
     <>
       <header className="idea-editor__head">
         <input className="idea-title" value={title} onChange={(event) => edit(() => setTitle(event.target.value))} />
-        <span className="save-state">{saved}</span>
-        <ColorPicker cores={cores} value={color} onChange={(value) => edit(() => setColor(value))} />
-        <ArchiveAction entidade="esta ideia" onArchive={onArchive} />
+        <div className="idea-editor__actions">
+          <ColorSwatchButton cores={cores} value={color} onChange={(value) => edit(() => setColor(value))} />
+          <ArchiveAction entidade="esta ideia" onArchive={onArchive} />
+        </div>
       </header>
       <DeferredMarkdownEditor
         markdown={markdown}

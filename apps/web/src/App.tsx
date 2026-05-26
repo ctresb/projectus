@@ -26,6 +26,11 @@ export function App() {
     return () => window.clearTimeout(timer)
   }, [notice])
 
+  useEffect(() => {
+    const color = workspace?.config.cor_principal
+    if (color) document.documentElement.style.setProperty('--accent', color)
+  }, [workspace?.config.cor_principal])
+
   if (carregando) return <div className="boot">iniciando projectus<span className="cursor" /></div>
   if (!workspace)
     return (

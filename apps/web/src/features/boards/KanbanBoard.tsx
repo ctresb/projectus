@@ -37,6 +37,7 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
   const [visualCards, setVisualCards] = useState(cards)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [committing, setCommitting] = useState(false)
+  const [overlayWidth, setOverlayWidth] = useState<number | null>(null)
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
@@ -50,18 +51,24 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
   const byColumn = useMemo(() => groupCards(visualCards, colunas), [colunas, visualCards])
   const activeCard = activeId ? visualCards.find((card) => card.id === activeId) ?? null : null
 
-  const start = ({ active }: DragStartEvent) => setActiveId(String(active.id))
+  const start = ({ active }: DragStartEvent) => {
+    setActiveId(String(active.id))
+    const rect = active.rect.current.initial
+    if (rect) setOverlayWidth(rect.width)
+  }
   const preview = ({ active, over }: DragOverEvent) => {
     if (!over) return
     setVisualCards((current) => placeCard(current, colunas, String(active.id), String(over.id)))
   }
   const cancel = (_event: DragCancelEvent) => {
     setActiveId(null)
+    setOverlayWidth(null)
     setVisualCards(cards)
   }
   const finish = ({ active, over }: DragEndEvent) => {
     if (!over) {
       setActiveId(null)
+      setOverlayWidth(null)
       setVisualCards(cards)
       return
     }
@@ -69,10 +76,12 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
     const placement = positionOf(next, String(active.id))
     if (!placement) {
       setActiveId(null)
+      setOverlayWidth(null)
       return
     }
     setVisualCards(next)
     setActiveId(null)
+    setOverlayWidth(null)
     setCommitting(true)
     void onMove(String(active.id), placement.status, placement.indice).finally(() => setCommitting(false))
   }
@@ -103,7 +112,7 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
         ))}
       </div>
       <DragOverlay dropAnimation={{ duration: 160, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' }}>
-        {activeCard ? <CardSurface card={activeCard} tags={tags} overlay /> : null}
+        {activeCard ? <CardSurface card={activeCard} tags={tags} overlay width={overlayWidth} /> : null}
       </DragOverlay>
     </DndContext>
   )
@@ -191,9 +200,16 @@ function SortableCard<T extends EntityCard>({
     <motion.article
       ref={setNodeRef}
       className={`board-card ${isDragging ? 'board-card--dragging' : ''}`}
-      style={{ transform: CSS.Transform.toString(transform), transition, '--card-color': card.cor } as CSSProperties}
-      layout
-      transition={{ duration: 0.15, ease: [0.2, 0.7, 0.2, 1] }}
+      style={
+        {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          '--card-color': card.cor,
+        } as CSSProperties
+      }
+      whileHover={isDragging ? undefined : { y: -1 }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ duration: 0.12, ease: [0.2, 0.7, 0.2, 1] }}
       {...attributes}
       {...listeners}
       onClick={() => {
@@ -205,11 +221,26 @@ function SortableCard<T extends EntityCard>({
   )
 }
 
-function CardSurface<T extends EntityCard>({ card, tags, overlay }: { card: T; tags: Tag[]; overlay?: boolean }) {
+function CardSurface<T extends EntityCard>({
+  card,
+  tags,
+  overlay,
+  width,
+}: {
+  card: T
+  tags: Tag[]
+  overlay?: boolean
+  width?: number | null
+}) {
   return (
     <article
       className={`board-card ${overlay ? 'board-card--overlay' : ''}`}
-      style={{ '--card-color': card.cor } as CSSProperties}
+      style={
+        {
+          '--card-color': card.cor,
+          ...(width ? { width: `${width}px` } : null),
+        } as CSSProperties
+      }
     >
       <CardContent card={card} tags={tags} />
     </article>

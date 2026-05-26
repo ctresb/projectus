@@ -16,6 +16,7 @@ export type Config = {
   tags: Tag[]
   cores: ColorChoice[]
   r2: R2Config
+  cor_principal: string
 }
 export type ProjectCard = {
   id: string

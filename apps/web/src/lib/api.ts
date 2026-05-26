@@ -44,8 +44,14 @@ export const api = {
   bootstrap: () => request<Bootstrap>('/bootstrap'),
   updateConfig: (config: Config) => request<Config>('/config', { method: 'PUT', body: JSON.stringify(config) }),
   project: (id: string) => request<DocumentResponse<Project>>(`/projects/${id}`),
-  createProject: (input: { titulo: string; github_url: string; markdown: string; cor: string; tags: string[] }) =>
-    request<DocumentResponse<Project>>('/projects', { method: 'POST', body: JSON.stringify(input) }),
+  createProject: (input: {
+    titulo: string
+    github_url: string
+    markdown: string
+    cor: string
+    tags: string[]
+    novas_tags?: import('./types').Tag[]
+  }) => request<DocumentResponse<Project>>('/projects', { method: 'POST', body: JSON.stringify(input) }),
   updateProject: (
     id: string,
     input: {

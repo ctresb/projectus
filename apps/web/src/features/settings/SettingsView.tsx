@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
 import { ColorPicker } from '../../components/ColorPicker'
@@ -19,6 +19,7 @@ export function SettingsView({
   const [secretKey, setSecretKey] = useState('')
   const [credentialStatus, setCredentialStatus] = useState<BackupCredentialStatus | null>(null)
   const [daemon, setDaemon] = useState<DaemonStatus | null>(null)
+  const [showCloudflareHelp, setShowCloudflareHelp] = useState(false)
   useEffect(() => setDraft(config), [config])
   useEffect(() => {
     void api.daemonStatus().then(setDaemon).catch(() => undefined)
@@ -29,7 +30,19 @@ export function SettingsView({
     try {
       const saved = await api.updateConfig(draft)
       onConfig(saved)
-      onMessage('ok', 'configurações salvas')
+      const hasNewCredentials = Boolean(accessKey.trim() && secretKey.trim())
+      if (hasNewCredentials) {
+        await api.saveCredentials({ access_key_id: accessKey.trim(), secret_access_key: secretKey.trim() })
+        setAccessKey('')
+        setSecretKey('')
+        const [workspace, status] = await Promise.all([api.bootstrap(), api.credentialStatus()])
+        setDraft(workspace.config)
+        setCredentialStatus(status)
+        onConfig(workspace.config)
+        onMessage('ok', 'configurações salvas e credenciais R2 fixadas no Keychain')
+      } else {
+        onMessage('ok', 'configurações salvas')
+      }
     } catch (error) {
       onMessage('erro', error instanceof Error ? error.message : 'não foi possível salvar')
     }
@@ -65,37 +78,6 @@ export function SettingsView({
     setDraft({ ...draft, colunas: columns })
   }
 
-  const fixR2 = async () => {
-    if (!draft.r2.endpoint.trim() || !draft.r2.bucket.trim()) {
-      onMessage('erro', 'informe endpoint e bucket do R2')
-      return
-    }
-    const hasNewCredentials = Boolean(accessKey.trim() || secretKey.trim())
-    if (hasNewCredentials && (!accessKey.trim() || !secretKey.trim())) {
-      onMessage('erro', 'informe o ID e a chave secreta do R2')
-      return
-    }
-    if (!hasNewCredentials && !credentialStatus?.fixadas) {
-      onMessage('erro', 'informe as credenciais para fixar no Keychain')
-      return
-    }
-    try {
-      await api.updateConfig(draft)
-      if (hasNewCredentials) {
-        await api.saveCredentials({ access_key_id: accessKey.trim(), secret_access_key: secretKey.trim() })
-        setAccessKey('')
-        setSecretKey('')
-      }
-      const [workspace, status] = await Promise.all([api.bootstrap(), api.credentialStatus()])
-      setDraft(workspace.config)
-      setCredentialStatus(status)
-      onConfig(workspace.config)
-      onMessage('ok', status.fixadas ? 'R2 fixado; credenciais protegidas no Keychain' : 'configuração R2 salva')
-    } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'falha ao fixar R2')
-    }
-  }
-
   return (
     <section className="settings workspace">
       <header className="section-head">
@@ -104,7 +86,7 @@ export function SettingsView({
           <h1>configurações</h1>
         </div>
         <button className="btn btn--primary" type="button" onClick={() => void save()}>
-          salvar localmente
+          salvar configurações
         </button>
       </header>
       <div className="settings-grid">
@@ -181,14 +163,53 @@ export function SettingsView({
           </div>
         </section>
         <section className="panel">
+          <header>tema</header>
+          <span className="field-label">cor principal</span>
+          <p className="panel-copy">aplicada em links, foco e elementos ativos.</p>
+          <ColorPicker
+            cores={draft.cores}
+            value={draft.cor_principal ?? '#55B9F7'}
+            onChange={(value) => setDraft({ ...draft, cor_principal: value })}
+          />
+        </section>
+        <section className="panel">
           <header>cloudflare r2</header>
+          <button
+            type="button"
+            className="btn btn--mini btn--mini--inline"
+            onClick={() => setShowCloudflareHelp((current) => !current)}
+          >
+            <Info size={12} /> {showCloudflareHelp ? 'esconder ajuda' : 'como obter essas credenciais'}
+          </button>
+          {showCloudflareHelp && (
+            <div className="r2-help">
+              <p><strong>onde encontrar cada campo no painel da Cloudflare:</strong></p>
+              <ul>
+                <li>
+                  <strong>endereço S3</strong> — em R2 → painel da conta, copie o endpoint <code>S3 API</code>
+                  (formato <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>).
+                  <br />
+                  <em>não</em> use o domínio personalizado do bucket — ele serve só ao tráfego público, não à API S3.
+                </li>
+                <li>
+                  <strong>bucket</strong> — o <em>nome</em> do bucket no R2 (não a URL pública).
+                </li>
+                <li>
+                  <strong>access key id</strong> e <strong>secret access key</strong> — em R2 → <em>Manage R2 API tokens</em>,
+                  criar um token. Use os valores listados em <em>Use the following credentials for S3 clients</em>.
+                  O <em>Token Value</em> separado é só para a API HTTP da Cloudflare, ignore aqui.
+                </li>
+              </ul>
+            </div>
+          )}
           <label>
             endereço S3
             <input
-              placeholder="https://<conta>.r2.cloudflarestorage.com"
+              placeholder="https://<account-id>.r2.cloudflarestorage.com"
               value={draft.r2.endpoint}
               onChange={(event) => setDraft({ ...draft, r2: { ...draft.r2, endpoint: event.target.value } })}
             />
+            <small className="hint">use o endpoint S3 API da conta, não um domínio customizado.</small>
           </label>
           <label>
             bucket
@@ -196,40 +217,36 @@ export function SettingsView({
               value={draft.r2.bucket}
               onChange={(event) => setDraft({ ...draft, r2: { ...draft.r2, bucket: event.target.value } })}
             />
+            <small className="hint">apenas o nome do bucket.</small>
           </label>
           <label>
-            ID da chave de acesso
+            access key id
             <input
               autoComplete="off"
               placeholder={credentialStatus?.access_key_id_mascarada ?? ''}
               value={accessKey}
               onChange={(event) => setAccessKey(event.target.value)}
             />
+            <small className="hint">R2 → Manage R2 API tokens → "S3 clients" → Access Key ID.</small>
           </label>
           <label>
-            chave secreta de acesso
+            secret access key
             <input
               autoComplete="new-password"
               type="password"
               value={secretKey}
               onChange={(event) => setSecretKey(event.target.value)}
             />
+            <small className="hint">logo abaixo, "Secret Access Key". Salva no Keychain do macOS.</small>
           </label>
           <div className={credentialStatus?.fixadas ? 'credential-state credential-state--ok' : 'credential-state'}>
             <strong>KEYCHAIN</strong>
             <span>
               {credentialStatus?.fixadas
                 ? `credenciais fixadas (${credentialStatus.access_key_id_mascarada})`
-                : 'nenhuma credencial fixada'}
+                : 'nenhuma credencial fixada — preencha access + secret e clique em salvar.'}
             </span>
           </div>
-          <button
-            className="btn btn--quiet"
-            type="button"
-            onClick={() => void fixR2()}
-          >
-            fixar configuração e credenciais
-          </button>
         </section>
         <section className="panel">
           <header>servidor local</header>

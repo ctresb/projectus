@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Modal } from '../../components/Modal'
-import { ColorPicker } from '../../components/ColorPicker'
+import { ColorSwatchButton } from '../../components/ColorSwatchButton'
 import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import type { ColorChoice, Tag } from '../../lib/types'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
@@ -25,13 +25,15 @@ export function CreateProjectModal({
   tagsDisponiveis: Tag[]
   cores: ColorChoice[]
   onClose: () => void
-  onCreate: (input: { titulo: string; githubUrl: string; markdown: string; cor: string; tags: string[] }) => Promise<void>
+  onCreate: (input: { titulo: string; githubUrl: string; markdown: string; cor: string; tags: string[]; novasTags: Tag[] }) => Promise<void>
 }) {
   const [titulo, setTitulo] = useState('')
   const [github, setGithub] = useState('')
   const [markdown, setMarkdown] = useState('')
   const [cor, setCor] = useState(cores[0]?.valor ?? '#55B9F7')
   const [tags, setTags] = useState<string[]>([])
+  const [novasTags, setNovasTags] = useState<Tag[]>([])
+  const allTags = [...tagsDisponiveis, ...novasTags]
   const input = useRef<HTMLInputElement>(null)
   const editor = useRef<MarkdownEditorHandle>(null)
   useEffect(() => {
@@ -41,6 +43,7 @@ export function CreateProjectModal({
       setMarkdown('')
       setCor(cores[0]?.valor ?? '#55B9F7')
       setTags([])
+      setNovasTags([])
       requestAnimationFrame(() => input.current?.focus())
     }
   }, [aberto, cores, tituloInicial])
@@ -50,7 +53,7 @@ export function CreateProjectModal({
         className="editor-form editor-form--create"
         onSubmit={(event) => {
           event.preventDefault()
-          void onCreate({ titulo, githubUrl: github, markdown, cor, tags })
+          void onCreate({ titulo, githubUrl: github, markdown, cor, tags, novasTags })
         }}
       >
         <label>
@@ -80,11 +83,18 @@ export function CreateProjectModal({
         <div className="inline-options">
           <div>
             <span className="field-label">cor</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} />
+            <ColorSwatchButton cores={cores} value={cor} onChange={setCor} />
           </div>
           <div>
             <span className="field-label">tags</span>
-            <TagPicker disponiveis={tagsDisponiveis} value={tags} onChange={setTags} />
+            <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
+            <NewTagRow
+              cores={cores}
+              onCreate={(tag) => {
+                setNovasTags((current) => [...current, tag])
+                setTags((current) => [...current, tag.id])
+              }}
+            />
           </div>
         </div>
         <footer className="form-actions">
@@ -159,7 +169,7 @@ export function CreateTaskModal({
         <div className="inline-options">
           <div>
             <span className="field-label">cor</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} />
+            <ColorSwatchButton cores={cores} value={cor} onChange={setCor} />
           </div>
           <div>
             <span className="field-label">tags da tarefa</span>

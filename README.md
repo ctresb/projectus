@@ -48,6 +48,25 @@ pnpm desktop:build
 
 Os bundles macOS são gerados em `target/release/bundle/macos` e `target/release/bundle/dmg`.
 
+### Instalador DMG (macOS, arrasta-pra-Applications)
+
+Estilo clássico macOS — gera o `.dmg`, abre o Finder com a janela "arraste para Applications" pronta:
+
+```bash
+pnpm instalar
+# ou diretamente:
+./scripts/instalar.sh
+```
+
+O script compila em release (primeira vez demora alguns minutos), gera `PROJECTUS_<versão>_aarch64.dmg` em `target/release/bundle/dmg/` e abre no Finder. Layout da janela: `PROJECTUS.app` à esquerda, atalho para `Applications` à direita. Arraste o ícone, ejete o DMG, abra pelo Launchpad.
+
+Flags:
+
+- `--apenas-build` só compila, não abre o Finder.
+- `--daemon` instala também o daemon launchd após o build.
+
+Os dados continuam em `~/Documents/PROJECTUS`. Todas as personalizações (cor principal, colunas, tags, paleta de cores) ficam em `config.json` e fazem parte dos snapshots R2 — portanto sincronizam entre máquinas. Apenas as credenciais R2 (access + secret key) ficam no Keychain local e precisam ser refixadas em cada máquina.
+
 ## Acesso via Tailscale
 
 Com o daemon ativo e a SPA compilada em `apps/web/dist`, publique apenas dentro da tailnet:

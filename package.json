@@ -11,6 +11,8 @@
     "desktop:dev": "pnpm --filter @projectus/desktop tauri dev",
     "desktop:build": "pnpm --filter @projectus/desktop tauri build",
     "server:dev": "cargo run -p projectus-server",
-    "server:test": "cargo test --workspace"
+    "server:test": "cargo test --workspace",
+    "instalar": "./scripts/instalar.sh",
+    "instalador": "./scripts/instalar.sh"
   }
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizontal } from 'lucide-react'
 import type { Config } from '../../lib/types'
+import { SaveIndicator } from '../../components/SaveIndicator'
 
 export type Screen = 'projetos' | 'ideias' | 'backup' | 'config'
 
@@ -36,6 +37,7 @@ export function Shell({
           <span>/</span>
           <strong>{projectTitle ?? screen}</strong>
         </div>
+        <SaveIndicator />
         <button className="save-button" type="button" onClick={onSave}>
           <span>$</span> [SAVE] <small>R2</small>
         </button>

@@ -190,6 +190,12 @@ impl Storage {
         let dir = self.root.join("projetos").join(&folder);
         fs::create_dir_all(dir.join("_anexos"))?;
         fs::create_dir_all(dir.join("tarefas"))?;
+        let mut tags_disponiveis = config.tags.clone();
+        for tag in &input.novas_tags {
+            if !tags_disponiveis.iter().any(|existing| existing.id == tag.id) {
+                tags_disponiveis.push(tag.clone());
+            }
+        }
         let project = Project {
             revision: 1,
             id: id.clone(),
@@ -197,7 +203,7 @@ impl Storage {
             titulo: input.titulo.trim().to_owned(),
             github_url: input.github_url.trim().to_owned(),
             colunas: config.colunas,
-            tags_disponiveis: config.tags,
+            tags_disponiveis,
             tarefas: Vec::new(),
             criado_em: now,
             atualizado_em: now,
@@ -667,11 +673,26 @@ impl Storage {
             .ok_or(StoreError::NotFound)?;
         let idea = ideas.notas.remove(pos);
         let source = self.root.join("ideias").join(&idea.pasta);
-        let target =
-            self.root
-                .join("lixeira")
-                .join(format!("{}-{}", idea.pasta, Utc::now().timestamp()));
-        fs::rename(source, target)?;
+        let lixeira = self.root.join("lixeira");
+        fs::create_dir_all(&lixeira)?;
+        let base = format!("{}-{}", idea.pasta, Utc::now().timestamp());
+        let mut target = lixeira.join(&base);
+        let mut suffix = 0u32;
+        while target.exists() {
+            suffix += 1;
+            target = lixeira.join(format!("{base}-{suffix}"));
+        }
+        if !source.exists() {
+            ideas.revision += 1;
+            atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+            self.emit("ideia_arquivada", "ideia", id);
+            return Ok(ideas);
+        }
+        fs::rename(&source, &target).map_err(|err| {
+            StoreError::Validation(format!(
+                "não foi possível mover a ideia para a lixeira: {err}"
+            ))
+        })?;
         ideas.revision += 1;
         atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
         self.history_inner(
@@ -1017,6 +1038,7 @@ mod tests {
                 markdown: "Uma descrição".into(),
                 cor: None,
                 tags: Vec::new(),
+                novas_tags: Vec::new(),
             })
             .unwrap();
         assert!(project.dados.pasta.starts_with("fazer-jogo-legal-"));
@@ -1046,6 +1068,7 @@ mod tests {
                 markdown: String::new(),
                 cor: None,
                 tags: Vec::new(),
+                novas_tags: Vec::new(),
             })
             .unwrap_err();
         assert!(matches!(error, StoreError::Validation(_)));
@@ -1061,6 +1084,7 @@ mod tests {
                 markdown: String::new(),
                 cor: None,
                 tags: Vec::new(),
+                novas_tags: Vec::new(),
             })
             .unwrap();
         let board = store.bootstrap().unwrap().board;
@@ -1093,6 +1117,7 @@ mod tests {
                 markdown: String::new(),
                 cor: None,
                 tags: Vec::new(),
+                novas_tags: Vec::new(),
             })
             .unwrap();
         let board = store.bootstrap().unwrap().board;
@@ -1123,6 +1148,7 @@ mod tests {
                 markdown: String::new(),
                 cor: None,
                 tags: Vec::new(),
+                novas_tags: Vec::new(),
             })
             .unwrap();
         let updated = store

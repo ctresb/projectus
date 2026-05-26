@@ -26,7 +26,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"],
+    "targets": ["app", "dmg", "nsis", "deb", "appimage"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -35,6 +35,17 @@
       "icons/icon.ico"
     ],
     "category": "Productivity",
-    "shortDescription": "Kanban local para projetos e tarefas"
+    "shortDescription": "Kanban local para projetos e tarefas",
+    "longDescription": "PROJECTUS é um kanban local para projetos, tarefas e ideias. Dados ficam em ~/Documents/PROJECTUS em JSON e Markdown. Sincronização opcional via Cloudflare R2.",
+    "copyright": "Copyright © 2026 PROJECTUS",
+    "publisher": "PROJECTUS",
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "dmg": {
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 170 },
+        "applicationFolderPosition": { "x": 480, "y": 170 }
+      }
+    }
   }
 }
