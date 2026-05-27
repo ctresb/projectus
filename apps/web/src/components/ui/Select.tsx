@@ -42,6 +42,10 @@ export function Select({ value, options, onChange, label, className }: SelectPro
     setActiveIndex(Math.max(0, options.findIndex((option) => option.value === value)))
   }, [options, value])
 
+  useEffect(() => {
+    setOpen(false)
+  }, [value])
+
   const commit = (option: SelectOption) => {
     onChange(option.value)
     setOpen(false)
@@ -93,6 +97,10 @@ export function Select({ value, options, onChange, label, className }: SelectPro
                   aria-selected={active}
                   className={cx('select__option', active && 'select__option--selected', index === activeIndex && 'select__option--active')}
                   onMouseEnter={() => setActiveIndex(index)}
+                  onPointerDown={(event) => {
+                    event.preventDefault()
+                    commit(option)
+                  }}
                   onClick={() => commit(option)}
                 >
                   <span>{option.label}</span>

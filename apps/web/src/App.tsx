@@ -45,7 +45,11 @@ export function App() {
       </ErrorState>
     )
   if (workspace.capacidades?.api_version !== REQUIRED_API_VERSION)
-    return <ServerVersionRecovery version={workspace.capacidades?.api_version} onRecovered={refresh} />
+    return (
+      <I18nProvider locale={workspace.config.idioma}>
+        <ServerVersionRecovery version={workspace.capacidades?.api_version} onRecovered={refresh} />
+      </I18nProvider>
+    )
 
   const projectCard = workspace.board.projetos.find((project) => project.id === openProject)
   const setBoard = (board: Board) => setWorkspace({ ...workspace, board })

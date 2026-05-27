@@ -69,6 +69,10 @@
     "close": "Fechar",
     "cancel": "cancelar"
   },
+  "markdown": {
+    "placeholder": "escreva em markdown...",
+    "image_unavailable": "envio de imagem indisponível neste editor"
+  },
   "archive_action": {
     "confirm": "mover {entidade} para Arquivo?",
     "cancel": "cancelar",
@@ -266,6 +270,10 @@
       "hide_help": "esconder ajuda",
       "show_help": "como obter essas credenciais",
       "help_title": "onde encontrar cada campo no painel da Cloudflare:",
+      "help_endpoint": "em R2 → painel da conta, copie o endpoint S3 API (formato https://<account-id>.r2.cloudflarestorage.com).",
+      "help_endpoint_note": "não use o domínio personalizado do bucket. Ele serve só ao tráfego público, não à API S3.",
+      "help_bucket": "o nome do bucket no R2 (não a URL pública).",
+      "help_access": "em R2 → Manage R2 API tokens, criar um token. Use os valores listados em Use the following credentials for S3 clients. O Token Value separado é só para a API HTTP da Cloudflare, ignore aqui.",
       "label_endpoint": "endereço S3",
       "placeholder_endpoint": "https://<account-id>.r2.cloudflarestorage.com",
       "hint_endpoint": "use o endpoint S3 API da conta, não um domínio customizado.",

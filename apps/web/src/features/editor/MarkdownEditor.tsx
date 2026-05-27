@@ -38,6 +38,7 @@ import {
   type MutableRefObject,
   type PointerEvent,
 } from 'react'
+import { useLocale, useT, type Locale } from '../../i18n'
 
 type Props = {
   documentKey: string
@@ -50,7 +51,8 @@ export type MarkdownEditorHandle = {
   focus: () => void
 }
 
-const translations: Record<string, string> = {
+const mdxTranslations: Record<Locale, Record<string, string>> = {
+  'pt-BR': {
   'contentArea.editableMarkdown': 'descrição em markdown',
   'toolbar.undo': 'Desfazer {{shortcut}}',
   'toolbar.redo': 'Refazer {{shortcut}}',
@@ -114,12 +116,81 @@ const translations: Record<string, string> = {
   'table.insertRowAbove': 'Inserir linha acima',
   'table.insertRowBelow': 'Inserir linha abaixo',
   'table.deleteRow': 'Remover linha',
+  },
+  'en-US': {
+    'contentArea.editableMarkdown': 'markdown description',
+    'toolbar.undo': 'Undo {{shortcut}}',
+    'toolbar.redo': 'Redo {{shortcut}}',
+    'toolbar.blockTypeSelect.selectBlockTypeTooltip': 'Block type',
+    'toolbar.blockTypeSelect.placeholder': 'Block',
+    'toolbar.blockTypes.paragraph': 'Paragraph',
+    'toolbar.blockTypes.quote': 'Quote',
+    'toolbar.blockTypes.heading': 'Heading {{level}}',
+    'toolbar.bold': 'Bold',
+    'toolbar.removeBold': 'Remove bold',
+    'toolbar.italic': 'Italic',
+    'toolbar.removeItalic': 'Remove italic',
+    'toolbar.underline': 'Underline',
+    'toolbar.removeUnderline': 'Remove underline',
+    'toolbar.bulletedList': 'List',
+    'toolbar.numberedList': 'Numbered list',
+    'toolbar.checkList': 'Checklist',
+    'toolbar.toggleGroup': 'option group',
+    'toolbar.link': 'Create link',
+    'toolbar.image': 'Insert image',
+    'toolbar.table': 'Insert table',
+    'toolbar.codeBlock': 'Insert code block',
+    'toolbar.thematicBreak': 'Insert separator',
+    'toolbar.richText': 'Rich text',
+    'toolbar.source': 'Markdown',
+    'dialog.close': 'Close',
+    'createLink.url': 'URL',
+    'createLink.urlPlaceholder': 'Paste a URL',
+    'createLink.textTooltip': 'Text displayed by the link',
+    'createLink.text': 'Link text',
+    'createLink.titleTooltip': 'Title displayed on hover',
+    'createLink.title': 'Link title',
+    'createLink.saveTooltip': 'Save link',
+    'createLink.cancelTooltip': 'Cancel change',
+    'dialogControls.save': 'save',
+    'dialogControls.cancel': 'cancel',
+    'linkPreview.open': 'Open {{url}} in a new window',
+    'linkPreview.edit': 'Edit link URL',
+    'linkPreview.copyToClipboard': 'Copy to clipboard',
+    'linkPreview.copied': 'Copied',
+    'linkPreview.remove': 'Remove link',
+    'uploadImage.dialogTitle': 'Insert image',
+    'uploadImage.uploadInstructions': 'Upload image from device:',
+    'uploadImage.addViaUrlInstructions': 'Or add image by URL:',
+    'uploadImage.addViaUrlInstructionsNoUpload': 'Add image by URL:',
+    'uploadImage.autoCompletePlaceholder': 'Paste image URL',
+    'uploadImage.alt': 'Alternative text:',
+    'uploadImage.title': 'Title:',
+    'uploadImage.width': 'Width:',
+    'uploadImage.height': 'Height:',
+    'table.deleteTable': 'Remove table',
+    'table.columnMenu': 'Column options',
+    'table.textAlignment': 'Text alignment',
+    'table.alignLeft': 'Align left',
+    'table.alignCenter': 'Center',
+    'table.alignRight': 'Align right',
+    'table.insertColumnLeft': 'Insert column left',
+    'table.insertColumnRight': 'Insert column right',
+    'table.deleteColumn': 'Remove column',
+    'table.rowMenu': 'Row options',
+    'table.insertRowAbove': 'Insert row above',
+    'table.insertRowBelow': 'Insert row below',
+    'table.deleteRow': 'Remove row',
+  },
 }
-const translate: Translation = (key, fallback, interpolations = {}) =>
-  Object.entries(interpolations).reduce(
-    (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
-    translations[key] ?? fallback,
-  )
+
+function createTranslate(locale: Locale): Translation {
+  return (key, fallback, interpolations = {}) =>
+    Object.entries(interpolations).reduce(
+      (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
+      mdxTranslations[locale][key] ?? fallback,
+    )
+}
 
 const placeCaretAtEndPlugin = realmPlugin<{ placeCaretAtEnd: MutableRefObject<() => void> }>({
   init(realm, params) {
@@ -139,6 +210,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
   { documentKey, markdown, onChange, uploadImage },
   ref,
 ) {
+  const locale = useLocale()
+  const t = useT()
   const editorRef = useRef<MDXEditorMethods>(null)
   const placeCaretAtEnd = useRef<() => void>(() => editorRef.current?.focus(undefined, { defaultSelection: 'rootEnd' }))
   const previousDocument = useRef(documentKey)
@@ -150,6 +223,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
     previousDocument.current = documentKey
     editorRef.current?.setMarkdown(markdown)
   }, [documentKey, markdown])
+  const translate = useMemo(() => createTranslate(locale), [locale])
   const plugins = useMemo(
     () => [
       headingsPlugin(),
@@ -161,11 +235,11 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
       linkDialogPlugin(),
       tablePlugin(),
       codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
-      codeMirrorPlugin({ codeBlockLanguages: { txt: 'Texto', ts: 'TypeScript', rust: 'Rust', json: 'JSON' } }),
+      codeMirrorPlugin({ codeBlockLanguages: { txt: locale === 'en-US' ? 'Text' : 'Texto', ts: 'TypeScript', rust: 'Rust', json: 'JSON' } }),
       diffSourcePlugin({ viewMode: 'rich-text' }),
       imagePlugin({
         imageUploadHandler: async (file) => {
-          if (!uploadImageRef.current) throw new Error('envio de imagem indisponível neste editor')
+          if (!uploadImageRef.current) throw new Error(t('markdown.image_unavailable'))
           return uploadImageRef.current(file)
         },
       }),
@@ -187,7 +261,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
         ),
       }),
     ],
-    [],
+    [locale, t],
   )
   const focusBlankSurface = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
@@ -210,7 +284,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
         className="projectus-mdx"
         markdown={markdown}
         onChange={onChange}
-        placeholder="escreva em markdown..."
+        placeholder={t('markdown.placeholder')}
         translation={translate}
         contentEditableClassName="markdown-editor__content"
         plugins={plugins}

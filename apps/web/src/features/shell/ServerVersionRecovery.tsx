@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, ApiFailure } from '../../lib/api'
 import { Button, ErrorState } from '../../components/ui'
+import { useT } from '../../i18n'
 
 export const REQUIRED_API_VERSION = 5
 
@@ -15,9 +16,14 @@ export function ServerVersionRecovery({
   version: number | undefined
   onRecovered: () => Promise<void>
 }) {
+  const t = useT()
   const [retry, setRetry] = useState(0)
-  const [status, setStatus] = useState('reiniciando o servidor local para aplicar a atualização...')
+  const [status, setStatus] = useState(() => t('boot.restarting'))
   const outdatedBackend = (version ?? 0) < REQUIRED_API_VERSION
+
+  useEffect(() => {
+    setStatus(t('boot.restarting'))
+  }, [t])
 
   useEffect(() => {
     if (!outdatedBackend) return
@@ -30,7 +36,7 @@ export function ServerVersionRecovery({
       } catch (error) {
         if (error instanceof ApiFailure && error.status === 404) {
           legacyRestart = true
-          setStatus('atualizando servidor local legado...')
+          setStatus(t('boot.updating_legacy'))
           try {
             await api.installDaemon()
           } catch {
@@ -39,7 +45,7 @@ export function ServerVersionRecovery({
         }
       }
 
-      setStatus(legacyRestart ? 'finalizando atualização do servidor...' : 'aguardando servidor atualizado...')
+      setStatus(legacyRestart ? t('boot.finishing_update') : t('boot.waiting_updated'))
       for (let attempt = 0; attempt < 30 && !cancelled; attempt += 1) {
         await wait(500)
         try {
@@ -47,7 +53,7 @@ export function ServerVersionRecovery({
           if (next.capacidades?.api_version === REQUIRED_API_VERSION) {
             if (legacyRestart) {
               legacyRestart = false
-              setStatus('reconfigurando serviço para servir a interface web...')
+              setStatus(t('boot.reconfiguring'))
               try {
                 await api.installDaemon()
               } catch {
@@ -62,33 +68,33 @@ export function ServerVersionRecovery({
           // O processo fica indisponível por instantes durante o reinício.
         }
       }
-      if (!cancelled) setStatus('não foi possível reiniciar automaticamente. tente novamente.')
+      if (!cancelled) setStatus(t('boot.restart_failed'))
     }
 
     void recover()
     return () => {
       cancelled = true
     }
-  }, [outdatedBackend, onRecovered, retry])
+  }, [outdatedBackend, onRecovered, retry, t])
 
   if (!outdatedBackend)
     return (
       <ErrorState className="boot boot--error">
-        <p>ERR / interface local desatualizada</p>
-        <p>recarregue a janela para carregar a versão compatível com o servidor.</p>
+        <p>ERR / {t('boot.version_outdated')}</p>
+        <p>{t('boot.reload_hint')}</p>
         <Button type="button" onClick={() => window.location.reload()}>
-          recarregar interface
+          {t('boot.reload_button')}
         </Button>
       </ErrorState>
     )
 
   return (
     <ErrorState className="boot boot--error">
-      <p>UPDATE / versão do servidor incompatível</p>
+      <p>{t('boot.version_incompatible')}</p>
       <p>{status}</p>
-      {status.startsWith('não foi possível') && (
+      {status === t('boot.restart_failed') && (
         <Button type="button" onClick={() => setRetry((value) => value + 1)}>
-          tentar novamente
+          {t('boot.retry')}
         </Button>
       )}
     </ErrorState>

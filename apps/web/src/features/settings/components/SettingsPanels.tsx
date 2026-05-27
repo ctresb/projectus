@@ -287,18 +287,15 @@ function CloudflareHelp({ t }: { t: TFn }) {
       <p><strong>{t('settings.r2.help_title')}</strong></p>
       <ul>
         <li>
-          <strong>{t('settings.r2.label_endpoint')}</strong> — em R2 → painel da conta, copie o endpoint <code>S3 API</code>
-          (formato <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>).
+          <strong>{t('settings.r2.label_endpoint')}</strong> - {t('settings.r2.help_endpoint')}
           <br />
-          <em>não</em> use o domínio personalizado do bucket — ele serve só ao tráfego público, não à API S3.
+          <em>{t('settings.r2.help_endpoint_note')}</em>
         </li>
         <li>
-          <strong>{t('settings.r2.label_bucket')}</strong> — o <em>nome</em> do bucket no R2 (não a URL pública).
+          <strong>{t('settings.r2.label_bucket')}</strong> - {t('settings.r2.help_bucket')}
         </li>
         <li>
-          <strong>{t('settings.r2.label_access')}</strong> e <strong>{t('settings.r2.label_secret')}</strong> — em R2 → <em>Manage R2 API tokens</em>,
-          criar um token. Use os valores listados em <em>Use the following credentials for S3 clients</em>.
-          O <em>Token Value</em> separado é só para a API HTTP da Cloudflare, ignore aqui.
+          <strong>{t('settings.r2.label_access')}</strong> / <strong>{t('settings.r2.label_secret')}</strong> - {t('settings.r2.help_access')}
         </li>
       </ul>
     </div>

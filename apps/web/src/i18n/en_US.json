@@ -1,0 +1,311 @@
+{
+  "boot": {
+    "starting": "starting projectus",
+    "backend_unavailable": "local backend unavailable",
+    "retry": "try again",
+    "version_outdated": "local interface is outdated",
+    "reload_hint": "reload the window to load the interface version compatible with the server.",
+    "reload_button": "reload interface",
+    "version_incompatible": "UPDATE / incompatible server version",
+    "restarting": "restarting the local server to apply the update...",
+    "updating_legacy": "updating legacy local server...",
+    "finishing_update": "finishing server update...",
+    "waiting_updated": "waiting for updated server...",
+    "reconfiguring": "reconfiguring service to serve the web interface...",
+    "restart_failed": "could not restart automatically. try again."
+  },
+  "shell": {
+    "crumbs_root": "projectus",
+    "data_section": "data",
+    "backup_section": "snapshots",
+    "shortcut_hint": "Cmd+N quick create",
+    "local_badge": "local",
+    "aria_rail": "Spaces",
+    "nav": {
+      "projetos": "projects",
+      "ideias": "ideas",
+      "arquivo": "archive",
+      "backup": "snapshots",
+      "config": "settings"
+    }
+  },
+  "notice": {
+    "ok": "OK",
+    "erro": "ERR",
+    "info": "INFO"
+  },
+  "save_indicator": {
+    "idle": "saved locally",
+    "saving": "saving...",
+    "saved": "saved locally",
+    "error": "save error"
+  },
+  "snapshot": {
+    "idle_default": "[SNAPSHOT]",
+    "idle_now": "[SNAPSHOT] now",
+    "done": "uploaded",
+    "fail_short": "failed",
+    "fail_full": "snapshot failed"
+  },
+  "host": {
+    "tooltip_on": "web is exposed on the local network",
+    "tooltip_off": "expose web on the local network",
+    "applying": "applying...",
+    "restarting": "restarting...",
+    "hosting": "hosting",
+    "host": "host",
+    "popup_title": "host web on the local network",
+    "aria_off": "disable LAN exposure",
+    "aria_on": "enable LAN exposure",
+    "popup_hint": "when enabled, any device on the same Wi-Fi can open PROJECTUS in a browser.",
+    "restart_in_progress": "restarting the server to apply changes... keep this open.",
+    "restart_failed": "server did not restart by itself. install autostart in settings / local server or restart PROJECTUS manually.",
+    "lan_toggle_failed": "failed to change LAN setting",
+    "no_local_ip": "no local IP detected. check that you are connected to a network.",
+    "port_label": "port: {porta}",
+    "aria_copy": "copy {url}"
+  },
+  "modal": {
+    "close": "Close",
+    "cancel": "cancel"
+  },
+  "markdown": {
+    "placeholder": "write in markdown...",
+    "image_unavailable": "image upload is unavailable in this editor"
+  },
+  "archive_action": {
+    "confirm": "move {entidade} to Archive?",
+    "cancel": "cancel",
+    "archive": "archive"
+  },
+  "comma_tags": {
+    "placeholder": "type a tag and comma",
+    "aria": "Add tags (separate with commas)",
+    "hint": "comma adds the tag - random color, edit later"
+  },
+  "tag_picker": {
+    "empty": "no tags created",
+    "aria_new_title": "New tag title",
+    "placeholder_new": "new tag",
+    "preview": "preview",
+    "label_new_color": "New tag color",
+    "button_add": "add"
+  },
+  "projects": {
+    "eyebrow": "projects",
+    "title": "your projects",
+    "new_button": "new project",
+    "empty": "no projects",
+    "created": "project created",
+    "fail_create": "failed to create project",
+    "fail_move": "could not move the project"
+  },
+  "project_detail": {
+    "back": "projects",
+    "eyebrow": "project",
+    "edit": "edit",
+    "new_task": "new task",
+    "empty": "no tasks",
+    "loading": "loading project...",
+    "not_found": "project not found",
+    "fail_move_task": "could not move the task",
+    "task_created": "task created",
+    "fail_create_task": "failed to create task",
+    "project_archived": "project moved to Archive",
+    "task_archived": "task moved to Archive",
+    "fail_archive": "could not archive",
+    "entity_project": "this project",
+    "entity_task": "this task"
+  },
+  "ideas": {
+    "eyebrow": "ideas",
+    "aria_new": "New idea",
+    "search_placeholder": "search note",
+    "list_empty": "no notes",
+    "view_empty": "no ideas yet",
+    "new_button": "new idea",
+    "loading_note": "loading note...",
+    "label_color": "Idea color",
+    "default_title": "new idea",
+    "fail_create": "could not create the idea",
+    "archived": "idea moved to Archive",
+    "fail_archive": "could not archive the idea",
+    "entity": "this idea"
+  },
+  "archive_view": {
+    "eyebrow": "archive",
+    "title": "archived items",
+    "legacy_item": "legacy item without restore metadata",
+    "restore": "restore",
+    "empty": "no archived items",
+    "loading": "loading archive...",
+    "restored": "item restored from Archive",
+    "fail_restore": "could not restore",
+    "entity_label": {
+      "projeto": "project",
+      "tarefa": "task",
+      "ideia": "idea",
+      "item": "item"
+    },
+    "project_of": "project / {titulo}"
+  },
+  "backup_view": {
+    "eyebrow": "r2-syncs",
+    "title": "snapshots",
+    "snapshot_now": "[SNAPSHOT] now",
+    "description": "each snapshot uploads the full ~/Documents/PROJECTUS folder: settings, kanban boards, ideas, Archive, history, and attachments.",
+    "not_configured": "R2 is not configured yet.",
+    "not_configured_hint": "set bucket and credentials in settings.",
+    "history": "remote history",
+    "origin_manual": "MANUAL",
+    "origin_auto": "AUTO",
+    "files_size": "{files} files / {mb} MB",
+    "confirm_restore": "Restore this snapshot? The current state will be preserved in a recovery folder.",
+    "restore": "restore",
+    "restored": "snapshot restored",
+    "fail_restore": "restore failed",
+    "fail_query": "could not query R2",
+    "empty": "no snapshots uploaded."
+  },
+  "create_project": {
+    "title": "new project",
+    "label_title": "title",
+    "label_description": "description",
+    "label_github": "GitHub repository",
+    "placeholder_github": "https://github.com/you/project",
+    "label_color": "color",
+    "label_color_aria": "Project color",
+    "label_tags": "tags",
+    "cancel": "cancel",
+    "submit": "create project"
+  },
+  "create_task": {
+    "title": "new task",
+    "label_title": "title",
+    "label_description": "description",
+    "label_color": "color",
+    "label_color_aria": "Task color",
+    "label_tags": "task tags",
+    "cancel": "cancel",
+    "submit": "create task"
+  },
+  "edit_project": {
+    "title": "edit project",
+    "label_title": "title",
+    "label_github": "GitHub repository",
+    "aria_open_repo": "Open repository",
+    "label_color": "color",
+    "label_color_aria": "Project color",
+    "label_tags": "tags",
+    "label_task_tags": "available task tags",
+    "empty_task_tags": "create tags to organize tasks",
+    "label_description": "description",
+    "loading_editor": "loading editor...",
+    "title_required": "title required",
+    "github_required": "GitHub repository required",
+    "aria_remove_tag": "Remove {titulo}",
+    "label_tag_color": "Tag color {titulo}"
+  },
+  "edit_task": {
+    "title": "edit task",
+    "label_title": "title",
+    "label_color": "color",
+    "label_color_aria": "Task color",
+    "label_tags": "tags",
+    "label_description": "description",
+    "loading_editor": "loading editor..."
+  },
+  "kanban": {
+    "aria_board": "Kanban board",
+    "aria_card": "Open or move {titulo}",
+    "instructions": "To move a card, press Space. Use the arrows to choose the position and press Space again to drop. Press Escape to cancel.",
+    "fallback_card": "card",
+    "fallback_board": "board",
+    "announce_start": "{card} selected.",
+    "announce_over": "{card} over column {coluna}.",
+    "announce_invalid": "{card} outside a valid column.",
+    "announce_end": "{card} dropped in column {coluna}.",
+    "announce_cancel": "{card} movement canceled."
+  },
+  "settings": {
+    "eyebrow": "settings",
+    "title": "settings",
+    "autosaving": "saving automatically...",
+    "autosaved": "automatic saving active",
+    "min_one_column": "keep at least one column",
+    "creds_saved": "R2 credentials pinned in Keychain",
+    "creds_fail": "could not save credentials",
+    "autostart_installed": "autostart installed on macOS",
+    "autostart_fail": "could not install",
+    "columns": {
+      "header": "default columns",
+      "add": "column",
+      "default_new_title": "NEW COLUMN",
+      "label_color": "Column color {titulo}",
+      "aria_up": "Move column up",
+      "aria_down": "Move column down",
+      "aria_remove": "Remove column"
+    },
+    "tags": {
+      "header": "tags",
+      "add": "tag",
+      "default_new_title": "new tag",
+      "preview_empty": "tag",
+      "label_color": "Tag color {titulo}",
+      "aria_remove": "Remove tag",
+      "empty": "add tags to assign to projects."
+    },
+    "theme": {
+      "header": "theme",
+      "label_primary": "primary color",
+      "description": "applied to links, focus, and active elements.",
+      "label_primary_aria": "Application primary color"
+    },
+    "language": {
+      "header": "language",
+      "label": "interface language"
+    },
+    "r2": {
+      "header": "cloudflare r2",
+      "hide_help": "hide help",
+      "show_help": "how to get these credentials",
+      "help_title": "where to find each field in the Cloudflare dashboard:",
+      "help_endpoint": "in R2 > account dashboard, copy the S3 API endpoint (format https://<account-id>.r2.cloudflarestorage.com).",
+      "help_endpoint_note": "do not use the bucket custom domain. It only serves public traffic, not the S3 API.",
+      "help_bucket": "the bucket name in R2 (not the public URL).",
+      "help_access": "in R2 > Manage R2 API tokens, create a token. Use the values listed in Use the following credentials for S3 clients. The separate Token Value is only for Cloudflare's HTTP API, ignore it here.",
+      "label_endpoint": "S3 endpoint",
+      "placeholder_endpoint": "https://<account-id>.r2.cloudflarestorage.com",
+      "hint_endpoint": "use the account S3 API endpoint, not a custom domain.",
+      "error_endpoint": "ERR / this domain does not receive snapshots. use https://<account-id>.r2.cloudflarestorage.com",
+      "label_bucket": "bucket",
+      "hint_bucket": "bucket name only.",
+      "label_access": "access key id",
+      "hint_access": "R2 > Manage R2 API tokens > \"S3 clients\" > Access Key ID.",
+      "label_secret": "secret access key",
+      "hint_secret": "just below, \"Secret Access Key\". Saved in macOS Keychain.",
+      "keychain": "KEYCHAIN",
+      "creds_fixed": "credentials pinned ({access_key_id})",
+      "creds_empty": "no credentials pinned - fill access + secret and click save.",
+      "save_button": "pin credentials in Keychain"
+    },
+    "server": {
+      "header": "local server",
+      "label_port": "port",
+      "description": "The desktop window uses 127.0.0.1:4387. When hosting on the local network, the web interface is published on port {porta}.",
+      "autostart_installed": "autostart installed.",
+      "autostart_available": "autostart not installed yet.",
+      "autostart_unavailable": "to keep the backend active with the window closed, run ./scripts/instalar-autostart.sh.",
+      "install_button": "install autostart"
+    }
+  },
+  "columns": {
+    "default": {
+      "PLANEJADO": "PLANNED",
+      "FAZENDO": "DOING",
+      "FINALIZANDO": "FINISHING",
+      "PRONTO": "READY",
+      "CONCLUÍDO": "DONE"
+    }
+  }
+}
