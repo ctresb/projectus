@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArchiveRestore } from 'lucide-react'
 import { api } from '../../lib/api'
+import { SquareScrollArea } from '../../components/SquareScrollArea'
 import type { ArchiveIndex, ArchivedItem, Board, Ideas } from '../../lib/types'
 
 export function ArchiveView({
@@ -48,7 +49,7 @@ export function ArchiveView({
           <h1>itens arquivados</h1>
         </div>
       </header>
-      <div className="archive-list">
+      <SquareScrollArea className="archive-list" viewportClassName="archive-list__viewport">
         {archive?.itens.map((item) => (
           <article className="archive-item" key={item.id}>
             <div>
@@ -68,7 +69,7 @@ export function ArchiveView({
         ))}
         {archive && archive.itens.length === 0 && <p className="empty">nenhum item arquivado</p>}
         {!archive && <p className="loading">carregando arquivo...</p>}
-      </div>
+      </SquareScrollArea>
     </section>
   )
 }

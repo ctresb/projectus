@@ -8,12 +8,10 @@ import { EASE } from '../../lib/motion'
 export function SortableKanbanCard<T extends EntityCard>({
   card,
   tags,
-  dropTarget,
   onOpen,
 }: {
   card: T
   tags: Tag[]
-  dropTarget?: boolean
   onOpen: () => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id })
@@ -41,15 +39,6 @@ export function SortableKanbanCard<T extends EntityCard>({
         if (!isDragging) onOpen()
       }}
     >
-      {dropTarget && (
-        <motion.span
-          aria-hidden
-          className="board-card__drop-target"
-          initial={{ opacity: 0, scaleX: 0.9 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.12, ease: EASE }}
-        />
-      )}
       <CardContent card={card} tags={tags} />
     </motion.article>
   )

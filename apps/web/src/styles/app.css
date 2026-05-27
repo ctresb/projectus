@@ -229,6 +229,7 @@
   border: 1px solid var(--hair);
   background: transparent;
   color: var(--fg2);
+  cursor: pointer;
 }
 .icon-btn:hover {
   border-color: var(--accent);
@@ -284,7 +285,10 @@
   gap: var(--s-3);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--s-3) var(--s-5) var(--s-3) var(--s-3);
+  padding: var(--s-3);
+}
+.column__list[data-overflowing='true'] {
+  padding-right: var(--s-5);
 }
 .square-scroll {
   position: relative;
@@ -292,10 +296,15 @@
   flex: 1;
   min-height: 0;
   width: 100%;
+  overflow: hidden;
 }
 .square-scroll__viewport {
   flex: 1;
+  width: 100%;
   min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -311,7 +320,9 @@
   right: var(--s-2);
   bottom: var(--s-3);
   width: 8px;
+  overflow: hidden;
   background: var(--ink-2);
+  cursor: pointer;
 }
 .square-scroll__thumb {
   position: absolute;
@@ -323,6 +334,7 @@
   border-radius: 0;
   background: var(--fg3);
   touch-action: none;
+  cursor: grab;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .square-scroll__thumb:hover,
@@ -330,23 +342,23 @@
   border-color: var(--accent);
   background: var(--accent);
 }
+.square-scroll__thumb:active {
+  cursor: grabbing;
+}
 .column__empty {
   margin-top: var(--s-3);
   color: var(--fg3);
   font-size: 12px;
 }
-.board-card__drop-target {
-  position: absolute;
-  z-index: 2;
-  top: calc(var(--s-3) / -2 - 1px);
-  left: -1px;
-  right: -1px;
+.column__drop-indicator {
+  position: relative;
+  flex: none;
   height: 2px;
   transform-origin: center;
   background: var(--accent);
 }
-.board-card__drop-target::before,
-.board-card__drop-target::after {
+.column__drop-indicator::before,
+.column__drop-indicator::after {
   position: absolute;
   top: -3px;
   width: 8px;
@@ -355,10 +367,10 @@
   background: var(--ink);
   content: '';
 }
-.board-card__drop-target::before {
+.column__drop-indicator::before {
   left: -1px;
 }
-.board-card__drop-target::after {
+.column__drop-indicator::after {
   right: -1px;
 }
 .board-card {
@@ -614,12 +626,17 @@ input::placeholder {
   gap: var(--s-2);
 }
 .catalog__tags {
-  display: flex;
   min-height: 32px;
   max-height: 86px;
+  flex: none;
+}
+.catalog__tags-grid {
+  display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);
-  overflow-y: auto;
+}
+.catalog__tags-viewport[data-overflowing='true'] {
+  padding-right: var(--s-2);
 }
 .catalog-tag-editor {
   display: inline-flex;
@@ -725,15 +742,7 @@ input::placeholder {
   color: var(--paper);
   flex-wrap: wrap;
   overflow: visible;
-  scrollbar-color: var(--hair) transparent;
-  scrollbar-width: thin;
   cursor: default;
-}
-.markdown-editor [class*='_toolbarRoot']::-webkit-scrollbar {
-  height: 3px;
-}
-.markdown-editor [class*='_toolbarRoot']::-webkit-scrollbar-thumb {
-  background: var(--hair);
 }
 .markdown-editor button {
   color: var(--fg2);
@@ -948,10 +957,11 @@ input::placeholder {
   padding: var(--s-7);
   color: var(--fg2);
 }
-.settings {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
+.settings-scroll[data-overflowing='true'] {
+  padding-right: var(--s-5);
+}
+.panel__scroll-viewport[data-overflowing='true'] {
+  padding-right: var(--s-2);
 }
 .settings-grid {
   display: flex;
@@ -989,16 +999,7 @@ input::placeholder {
   /* listas tomam edge-to-edge dentro do painel; as linhas têm padding próprio */
   margin: 0 calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad));
   max-height: var(--panel-scroll-max);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--hair) transparent;
-}
-.panel__scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.panel__scroll::-webkit-scrollbar-thumb {
-  background: var(--hair);
+  flex: none;
 }
 .panel > .btn,
 .panel > .color-picker {
@@ -1111,7 +1112,6 @@ input::placeholder {
   flex: 1;
   min-height: 0;
   max-width: 860px;
-  overflow-y: auto;
   border: 1px solid var(--hair);
 }
 .archive-item {
@@ -1241,22 +1241,6 @@ input::placeholder {
     grid-template-columns: repeat(5, 78vw);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    scrollbar-color: var(--fg3) transparent;
-  }
-  .kanban::-webkit-scrollbar {
-    height: 8px;
-  }
-  .kanban::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .kanban::-webkit-scrollbar-thumb {
-    border: 2px solid var(--ink);
-    border-radius: 0;
-    background: var(--fg3);
-  }
-  .kanban::-webkit-scrollbar-thumb:hover {
-    background: var(--accent);
   }
   .column {
     height: 100%;

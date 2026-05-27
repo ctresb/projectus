@@ -33,9 +33,11 @@ for tool in pnpm cargo; do
   fi
 done
 
-if [[ ! -d node_modules ]]; then
+if [[ ! -x apps/desktop/node_modules/.bin/tauri ||
+      ! -x apps/web/node_modules/.bin/vite ||
+      ! -x apps/web/node_modules/.bin/tsc ]]; then
   echo ">> instalando dependências do workspace..."
-  pnpm install --silent
+  pnpm install --frozen-lockfile
 fi
 
 echo ">> compilando PROJECTUS em release (primeira vez demora alguns minutos)..."
@@ -57,6 +59,11 @@ echo ""
 
 if (( OPEN_FINDER )); then
   echo ">> abrindo o instalador no Finder (arraste PROJECTUS.app para Applications)..."
+  # bundle_dmg.sh do tauri pode deixar um volume PROJECTUS montado;
+  # desmonta antes pra evitar duas janelas do Finder.
+  for mount in /Volumes/PROJECTUS*; do
+    [[ -d "$mount" ]] && hdiutil detach "$mount" -quiet 2>/dev/null || true
+  done
   open "$DMG_PATH"
 fi
 

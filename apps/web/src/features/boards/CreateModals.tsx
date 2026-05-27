@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Modal } from '../../components/Modal'
 import { ColorPicker } from '../../components/ColorPicker'
 import { CommaTagsInput } from '../../components/CommaTagsInput'
@@ -7,6 +7,7 @@ import type { ColorChoice, Tag } from '../../lib/types'
 import { FALLBACK_COLOR, randomPaletteColor } from '../../lib/colors'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
+import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
 
 function focusDescription(event: KeyboardEvent<HTMLInputElement>, editor: RefObject<MarkdownEditorHandle | null>) {
   if (event.key !== 'Tab' || event.shiftKey) return
@@ -38,6 +39,7 @@ export function CreateProjectModal({
   const allTags = [...tagsDisponiveis, ...novasTags]
   const input = useRef<HTMLInputElement>(null)
   const editor = useRef<MarkdownEditorHandle>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   useEffect(() => {
     if (aberto) {
       setTitulo(tituloInicial)
@@ -49,9 +51,16 @@ export function CreateProjectModal({
       requestAnimationFrame(() => input.current?.focus())
     }
   }, [aberto, cores, tituloInicial])
+  useCmdEnterSubmit(
+    aberto,
+    useCallback(() => {
+      formRef.current?.requestSubmit()
+    }, []),
+  )
   return (
     <Modal aberto={aberto} titulo="novo projeto" onClose={onClose} amplo>
       <form
+        ref={formRef}
         className="editor-form editor-form--create"
         onSubmit={(event) => {
           event.preventDefault()
@@ -134,6 +143,7 @@ export function CreateTaskModal({
   const [novasTags, setNovasTags] = useState<Tag[]>([])
   const input = useRef<HTMLInputElement>(null)
   const editor = useRef<MarkdownEditorHandle>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   const allTags = [...tagsDisponiveis, ...novasTags]
   useEffect(() => {
     if (aberto) {
@@ -145,9 +155,16 @@ export function CreateTaskModal({
       requestAnimationFrame(() => input.current?.focus())
     }
   }, [aberto, cores, tituloInicial])
+  useCmdEnterSubmit(
+    aberto,
+    useCallback(() => {
+      formRef.current?.requestSubmit()
+    }, []),
+  )
   return (
     <Modal aberto={aberto} titulo="nova tarefa" onClose={onClose} amplo>
       <form
+        ref={formRef}
         className="editor-form editor-form--create"
         onSubmit={(event) => {
           event.preventDefault()

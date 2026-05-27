@@ -6,13 +6,19 @@ type Metrics = {
   scrollTop: number
 }
 
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value))
+}
+
 export function SquareScrollArea({
   children,
   className,
+  viewportClassName,
   columnId,
 }: {
   children: ReactNode
   className?: string
+  viewportClassName?: string
   columnId?: string
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -43,11 +49,13 @@ export function SquareScrollArea({
   const overflowing = metrics.scrollHeight > metrics.clientHeight + 1
   const railHeight = railRef.current?.clientHeight ?? Math.max(0, metrics.clientHeight - 24)
   const thumbHeight = overflowing
-    ? Math.max(30, Math.round((metrics.clientHeight / metrics.scrollHeight) * railHeight))
+    ? Math.min(railHeight, Math.max(30, Math.round((metrics.clientHeight / metrics.scrollHeight) * railHeight)))
     : 0
   const travel = Math.max(0, railHeight - thumbHeight)
-  const maxScroll = Math.max(1, metrics.scrollHeight - metrics.clientHeight)
-  const thumbTop = Math.round((metrics.scrollTop / maxScroll) * travel)
+  const scrollRange = Math.max(0, metrics.scrollHeight - metrics.clientHeight)
+  const maxScroll = Math.max(1, scrollRange)
+  const boundedScrollTop = clamp(metrics.scrollTop, 0, scrollRange)
+  const thumbTop = Math.round((boundedScrollTop / maxScroll) * travel)
 
   const onThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -61,7 +69,7 @@ export function SquareScrollArea({
     const viewport = viewportRef.current
     if (!drag || !viewport || travel <= 0) return
     event.preventDefault()
-    viewport.scrollTop = drag.startScrollTop + ((event.clientY - drag.startY) / travel) * maxScroll
+    viewport.scrollTop = clamp(drag.startScrollTop + ((event.clientY - drag.startY) / travel) * scrollRange, 0, scrollRange)
     measure()
   }
 
@@ -75,15 +83,16 @@ export function SquareScrollArea({
     const rail = railRef.current
     if (!viewport || !rail || event.target !== rail) return
     const offset = event.clientY - rail.getBoundingClientRect().top - thumbHeight / 2
-    viewport.scrollTop = (Math.max(0, Math.min(travel, offset)) / Math.max(1, travel)) * maxScroll
+    viewport.scrollTop = (clamp(offset, 0, travel) / Math.max(1, travel)) * scrollRange
     measure()
   }
 
   return (
-    <div className="square-scroll">
+    <div className={`square-scroll ${className ?? ''}`} data-overflowing={overflowing ? 'true' : 'false'}>
       <div
-        className={`square-scroll__viewport ${className ?? ''}`}
+        className={`square-scroll__viewport ${viewportClassName ?? ''}`}
         data-column-scroll={columnId}
+        data-overflowing={overflowing ? 'true' : 'false'}
         ref={viewportRef}
         onScroll={measure}
       >

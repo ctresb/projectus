@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { markError, markSaved, markSaving } from './useSaveStatus'
 
 export function useDocumentAutosave<T>({
@@ -39,4 +39,21 @@ export function useDocumentAutosave<T>({
     }, 1000)
     return () => window.clearTimeout(timer)
   }, [ativo, dirty, documentKey])
+
+  const flush = useCallback(async () => {
+    markSaving()
+    actions.current.onStart()
+    try {
+      const saved = await actions.current.save()
+      markSaved()
+      await actions.current.onSaved(saved)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      markError(message)
+      actions.current.onError(message)
+      throw error
+    }
+  }, [])
+
+  return { flush }
 }

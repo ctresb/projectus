@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
 import { ColorPicker } from '../../components/ColorPicker'
+import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { itemId } from '../../lib/ids'
 import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
 
@@ -137,6 +138,7 @@ export function SettingsView({
         </div>
         <span className="settings-autosave">{dirty || saving ? 'salvando automaticamente...' : 'salvamento automático ativo'}</span>
       </header>
+      <SquareScrollArea viewportClassName="settings-scroll">
       <div className="settings-grid">
         <section className="panel">
           <header>
@@ -145,7 +147,7 @@ export function SettingsView({
               <Plus size={13} /> coluna
             </button>
           </header>
-          <div className="panel__scroll">
+          <SquareScrollArea className="panel__scroll" viewportClassName="panel__scroll-viewport">
             {draft.colunas.map((column, index) => (
               <div className="setting-row setting-row--column" key={column.id}>
                 <span className="setting-row__index">{String(index + 1).padStart(2, '0')}</span>
@@ -184,7 +186,7 @@ export function SettingsView({
                 </div>
               </div>
             ))}
-          </div>
+          </SquareScrollArea>
         </section>
         <section className="panel">
           <header>
@@ -193,7 +195,7 @@ export function SettingsView({
               <Plus size={13} /> tag
             </button>
           </header>
-          <div className="panel__scroll">
+          <SquareScrollArea className="panel__scroll" viewportClassName="panel__scroll-viewport">
             {draft.tags.map((tag) => (
               <div className="setting-row setting-row--tag" key={tag.id}>
                 <input value={tag.titulo} onChange={(event) => updateTag(tag.id, { titulo: event.target.value })} />
@@ -217,7 +219,7 @@ export function SettingsView({
               </div>
             ))}
             {draft.tags.length === 0 && <p className="panel-empty">adicione tags para atribuir aos projetos.</p>}
-          </div>
+          </SquareScrollArea>
         </section>
         <section className="panel">
           <header>tema</header>
@@ -357,6 +359,7 @@ export function SettingsView({
           )}
         </section>
       </div>
+      </SquareScrollArea>
     </section>
   )
 }

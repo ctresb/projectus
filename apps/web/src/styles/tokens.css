@@ -170,3 +170,29 @@ kbd {
     visibility: hidden;
   }
 }
+
+/* scrollbar global — espelha o padrão do scroll das colunas (SquareScrollArea):
+   trilho ink-2, polegar fg3 quadrado, hover/active accent. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fg3) var(--ink-2);
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: var(--ink-2);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--fg3);
+  border: 1px solid var(--fg3);
+  border-radius: 0;
+  min-height: 30px;
+}
+*::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:active {
+  background: var(--accent);
+  border-color: var(--accent);
+}

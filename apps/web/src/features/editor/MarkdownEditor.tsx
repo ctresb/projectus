@@ -20,13 +20,16 @@ import {
   listsPlugin,
   markdownShortcutPlugin,
   quotePlugin,
+  realmPlugin,
+  rootEditor$,
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
   type MDXEditorMethods,
   type Translation,
 } from '@mdxeditor/editor'
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, type MouseEvent } from 'react'
+import { $getRoot } from 'lexical'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, type MouseEvent, type MutableRefObject } from 'react'
 
 type Props = {
   documentKey: string
@@ -110,11 +113,26 @@ const translate: Translation = (key, fallback, interpolations = {}) =>
     translations[key] ?? fallback,
   )
 
+const placeCaretAtEndPlugin = realmPlugin<{ placeCaretAtEnd: MutableRefObject<() => void> }>({
+  init(realm, params) {
+    if (!params) return
+    params.placeCaretAtEnd.current = () => {
+      const editor = realm.getValue(rootEditor$)
+      if (!editor) return
+      editor.update(() => {
+        $getRoot().selectEnd()
+      }, { discrete: true })
+      editor.focus()
+    }
+  },
+})
+
 export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function MarkdownEditor(
   { documentKey, markdown, onChange, uploadImage },
   ref,
 ) {
   const editorRef = useRef<MDXEditorMethods>(null)
+  const placeCaretAtEnd = useRef<() => void>(() => editorRef.current?.focus(undefined, { defaultSelection: 'rootEnd' }))
   const previousDocument = useRef(documentKey)
   const uploadImageRef = useRef(uploadImage)
   uploadImageRef.current = uploadImage
@@ -143,6 +161,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
           return uploadImageRef.current(file)
         },
       }),
+      placeCaretAtEndPlugin({ placeCaretAtEnd }),
       toolbarPlugin({
         toolbarContents: () => (
           <DiffSourceToggleWrapper options={['rich-text', 'source']}>
@@ -166,12 +185,15 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
     const target = event.target as HTMLElement
     if (
       target.closest(
-        'button, input, textarea, select, a, [contenteditable="true"], .cm-editor, [role="combobox"], [role="dialog"]',
+        'button, input, textarea, select, a, .cm-editor, [role="combobox"], [role="dialog"]',
       )
     ) {
       return
     }
-    editorRef.current?.focus()
+    const contentEl = target.closest<HTMLElement>('[contenteditable="true"]')
+    if (contentEl && target !== contentEl) return
+    event.preventDefault()
+    placeCaretAtEnd.current()
   }
   return (
     <div className="markdown-editor" onMouseDown={focusBlankSurface}>

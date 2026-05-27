@@ -1,15 +1,17 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { ExternalLink, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Modal } from '../../components/Modal'
 import { ArchiveAction } from '../../components/ArchiveAction'
 import { ColorPicker } from '../../components/ColorPicker'
+import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import { api } from '../../lib/api'
 import type { ColorChoice, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { markdownBody } from '../../lib/markdown'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
+import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
 
 export function EditProjectModal({
   aberto,
@@ -61,7 +63,7 @@ export function EditProjectModal({
     }
   }, [aberto, project.id])
 
-  useDocumentAutosave({
+  const { flush } = useDocumentAutosave({
     ativo: aberto && markdownLoaded,
     dirty,
     documentKey: project.id,
@@ -87,6 +89,25 @@ export function EditProjectModal({
     setDirty(true)
   }
 
+  useCmdEnterSubmit(
+    aberto && markdownLoaded,
+    useCallback(() => {
+      if (!titulo.trim()) {
+        onError('título obrigatório')
+        return
+      }
+      if (!github.trim()) {
+        onError('repositório GitHub obrigatório')
+        return
+      }
+      if (!dirty) {
+        onClose()
+        return
+      }
+      void flush().then(onClose).catch(() => {})
+    }, [titulo, github, dirty, flush, onClose, onError]),
+  )
+
   return (
     <Modal aberto={aberto} titulo="editar projeto" onClose={onClose} amplo>
       <div className="editor-form">
@@ -109,7 +130,8 @@ export function EditProjectModal({
         <TagPicker disponiveis={tagsDisponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="catalog">
           <span className="field-label">tags disponíveis nas tarefas</span>
-          <div className="catalog__tags">
+          <SquareScrollArea className="catalog__tags" viewportClassName="catalog__tags-viewport">
+            <div className="catalog__tags-grid">
             {taskTags.map((tag) => (
               <motion.div className="catalog-tag-editor" layout key={tag.id}>
                 <span className="tag-choice tag-choice--active" style={{ '--tag-color': tag.cor } as CSSProperties}>
@@ -136,7 +158,8 @@ export function EditProjectModal({
               </motion.div>
             ))}
             {taskTags.length === 0 && <small>crie tags para organizar tarefas</small>}
-          </div>
+            </div>
+          </SquareScrollArea>
           <NewTagRow cores={cores} onCreate={(tag) => change(() => setTaskTags([...taskTags, tag]))} />
         </div>
         <div className="editor-form__markdown">
@@ -206,7 +229,7 @@ export function EditTaskModal({
     }
   }, [aberto, project.id, task.id])
 
-  useDocumentAutosave({
+  const { flush } = useDocumentAutosave({
     ativo: aberto && markdownLoaded,
     dirty,
     documentKey: task.id,
@@ -222,6 +245,22 @@ export function EditTaskModal({
     action()
     setDirty(true)
   }
+
+  useCmdEnterSubmit(
+    aberto && markdownLoaded,
+    useCallback(() => {
+      if (!titulo.trim()) {
+        onError('título obrigatório')
+        return
+      }
+      if (!dirty) {
+        onClose()
+        return
+      }
+      void flush().then(onClose).catch(() => {})
+    }, [titulo, dirty, flush, onClose, onError]),
+  )
+
   return (
     <Modal aberto={aberto} titulo="editar tarefa" onClose={onClose} amplo>
       <div className="editor-form">
