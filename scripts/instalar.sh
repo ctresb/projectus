@@ -5,7 +5,6 @@
 # Uso:
 #   ./scripts/instalar.sh                 # compila o DMG e abre o Finder
 #   ./scripts/instalar.sh --apenas-build  # só compila, não abre
-#   ./scripts/instalar.sh --daemon        # após copiar, instala o daemon launchd
 
 set -euo pipefail
 
@@ -17,9 +16,8 @@ INSTALL_DAEMON=0
 for arg in "$@"; do
   case "$arg" in
     --apenas-build) OPEN_FINDER=0 ;;
-    --daemon) INSTALL_DAEMON=1 ;;
     -h|--help)
-      echo "Uso: $0 [--apenas-build] [--daemon]"
+      echo "Uso: $0 [--apenas-build]"
       exit 0
       ;;
   esac
@@ -67,11 +65,6 @@ if (( OPEN_FINDER )); then
   open "$DMG_PATH"
 fi
 
-if (( INSTALL_DAEMON )); then
-  echo ">> instalando daemon launchd..."
-  "$ROOT/scripts/instalar-autostart.sh"
-fi
-
 cat <<MSG
 
 Próximos passos:
@@ -80,7 +73,7 @@ Próximos passos:
   3. Abra o app pelo Launchpad ou com: open -a PROJECTUS
 
   Dados:     ~/Documents/PROJECTUS
-  Daemon:    ./scripts/instalar-autostart.sh   (mantém backend ativo no login)
+  Servidor:  ./scripts/instalar-server.sh      (instalador separado do PROJECTUS-SERVER)
   Recompilar: ./scripts/instalar.sh
 
 MSG

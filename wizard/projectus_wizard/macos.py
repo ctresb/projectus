@@ -7,11 +7,12 @@ from pathlib import Path
 
 from .commands import LogFn, run_command
 
-LABEL = "com.projectus.server"
+HEADLESS_LABEL = "com.projectus.server"
+SERVER_APP_LABEL = "com.projectus.server-app"
 LOCAL_PORT = 4387
 
 
-def latest_dmg(root: Path) -> Path | None:
+def latest_desktop_dmg(root: Path) -> Path | None:
     dmg_dir = root / "target" / "release" / "bundle" / "dmg"
     candidates = list(dmg_dir.glob("PROJECTUS_*.dmg"))
     if not candidates:
@@ -19,20 +20,44 @@ def latest_dmg(root: Path) -> Path | None:
     return max(candidates, key=lambda path: path.stat().st_mtime)
 
 
+def latest_server_dmg(root: Path) -> Path | None:
+    dmg_dir = root / "target" / "release" / "bundle" / "dmg"
+    candidates = list(dmg_dir.glob("PROJECTUS-SERVER_*.dmg"))
+    if not candidates:
+        return None
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def preserve_installer(dmg: Path, root: Path) -> Path:
+    target_dir = root / "target" / "release" / "bundle" / "installers"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / dmg.name
+    target.write_bytes(dmg.read_bytes())
+    return target
+
+
 def release_server_binary(root: Path) -> Path:
     return root / "target" / "release" / "projectus-server"
 
 
-def launch_agent_path() -> Path:
-    return Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
+def server_app_launch_agent_path() -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / f"{SERVER_APP_LABEL}.plist"
 
 
-def installed_app_path() -> Path:
+def headless_launch_agent_path() -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / f"{HEADLESS_LABEL}.plist"
+
+
+def installed_desktop_app_path() -> Path:
     return Path("/Applications/PROJECTUS.app")
 
 
-def installed_app_version() -> str | None:
-    info = installed_app_path() / "Contents" / "Info.plist"
+def installed_server_app_path() -> Path:
+    return Path("/Applications/PROJECTUS-SERVER.app")
+
+
+def installed_app_version(app: Path) -> str | None:
+    info = app / "Contents" / "Info.plist"
     if not info.exists():
         return None
     try:
@@ -65,11 +90,14 @@ async def detach_projectus_volumes(root: Path, log: LogFn) -> None:
 
 
 async def install_or_restart_daemon(root: Path, log: LogFn) -> None:
+    token = os.environ.get("PROJECTUS_SERVER_TOKEN")
+    if not token:
+        raise RuntimeError("defina PROJECTUS_SERVER_TOKEN para iniciar o servidor headless via LaunchAgent")
     binary = release_server_binary(root)
     if not binary.exists():
         raise FileNotFoundError(f"binario nao encontrado: {binary}")
 
-    plist = launch_agent_path()
+    plist = headless_launch_agent_path()
     logs = Path.home() / "Library" / "Logs" / "PROJECTUS"
     plist.parent.mkdir(parents=True, exist_ok=True)
     logs.mkdir(parents=True, exist_ok=True)
@@ -83,14 +111,16 @@ async def install_or_restart_daemon(root: Path, log: LogFn) -> None:
 
 def _plist_body(root: Path, binary: Path, logs: Path) -> str:
     web_dist = root / "apps" / "web" / "dist"
+    token = os.environ["PROJECTUS_SERVER_TOKEN"]
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>Label</key><string>{LABEL}</string>
+<key>Label</key><string>{HEADLESS_LABEL}</string>
 <key>ProgramArguments</key><array><string>{html.escape(str(binary))}</string></array>
 <key>WorkingDirectory</key><string>{html.escape(str(root))}</string>
 <key>EnvironmentVariables</key><dict>
 <key>PROJECTUS_WEB_DIST</key><string>{html.escape(str(web_dist))}</string>
+<key>PROJECTUS_SERVER_TOKEN</key><string>{html.escape(token)}</string>
 </dict>
 <key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>

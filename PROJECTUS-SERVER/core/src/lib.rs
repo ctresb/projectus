@@ -1,16 +1,19 @@
 pub mod backup_r2;
 pub mod daemon;
+pub mod discovery;
 pub mod domain;
 pub mod http;
 pub mod lan;
 pub mod scheduler;
 pub mod secrets;
+pub mod server_auth;
 pub mod storage;
 
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use backup_r2::BackupService;
+use discovery::DiscoveryInfo;
 use http::AppState;
 use lan::LanService;
 use storage::Storage;
@@ -19,7 +22,29 @@ use tracing::{info, warn};
 
 pub const LOCAL_CONTROL_PORT: u16 = 4387;
 
-pub async fn run() -> Result<()> {
+#[derive(Debug, Clone)]
+pub struct RunOptions {
+    pub api_token: String,
+    pub managed_app: bool,
+}
+
+impl RunOptions {
+    pub fn managed(api_token: String) -> Self {
+        Self {
+            api_token,
+            managed_app: true,
+        }
+    }
+
+    pub fn headless(api_token: String) -> Self {
+        Self {
+            api_token,
+            managed_app: false,
+        }
+    }
+}
+
+pub async fn run(options: RunOptions) -> Result<()> {
     let storage = Arc::new(Storage::open_default()?);
     let config = storage.config()?;
     let local_address = format!("127.0.0.1:{LOCAL_CONTROL_PORT}");
@@ -58,6 +83,7 @@ pub async fn run() -> Result<()> {
         storage: storage.clone(),
         backup,
         lan: lan_service.clone(),
+        api_token: Arc::new(options.api_token),
     };
     let application = http::router(state);
     if let Some(listener) = lan_listener {
@@ -68,10 +94,12 @@ pub async fn run() -> Result<()> {
             }
         });
     }
+    discovery::spawn(DiscoveryInfo::new(config.porta, bound_lan));
     info!(
         local = %local_address,
         lan = bound_lan.then_some(published_address.as_str()).unwrap_or("desligada"),
         root = %storage.root().display(),
+        managed = options.managed_app,
         "PROJECTUS pronto"
     );
     axum::serve(local_listener, application).await?;

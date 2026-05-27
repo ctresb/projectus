@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PROJECTUS-SERVER",
+  "version": "0.1.0",
+  "identifier": "com.projectus.server",
+  "build": {
+    "beforeDevCommand": "pnpm --filter @projectus/server-app dev",
+    "devUrl": "http://localhost:5187",
+    "beforeBuildCommand": "pnpm --filter @projectus/server-app build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "PROJECTUS-SERVER",
+        "width": 390,
+        "height": 540,
+        "minWidth": 360,
+        "minHeight": 480,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "shortDescription": "Controle local do servidor PROJECTUS",
+    "longDescription": "PROJECTUS-SERVER mantém o backend, dados, snapshots e API do PROJECTUS rodando no macOS ou em modo headless.",
+    "copyright": "Copyright © 2026 PROJECTUS",
+    "publisher": "PROJECTUS",
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "dmg": {
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 170 },
+        "applicationFolderPosition": { "x": 480, "y": 170 }
+      }
+    }
+  }
+}

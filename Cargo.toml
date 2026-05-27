@@ -1,4 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["crates/server", "apps/desktop/src-tauri"]
-
+members = ["PROJECTUS-SERVER/core", "PROJECTUS-SERVER/src-tauri", "apps/desktop/src-tauri"]

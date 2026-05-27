@@ -83,6 +83,87 @@
   height: 8px;
   background: var(--ok);
 }
+.connection-gate {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--s-5);
+  background: var(--ink);
+}
+.connection-panel {
+  display: flex;
+  width: min(520px, 100%);
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--hair);
+  background: var(--ink);
+}
+.connection-panel header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--hair);
+  color: var(--accent);
+}
+.connection-panel h1 {
+  margin-top: var(--s-1);
+  color: var(--paper);
+  font-size: 34px;
+}
+.connection-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.connection-field span {
+  color: var(--fg3);
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+}
+.connection-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.connection-results {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hair);
+}
+.connection-results button {
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  background: transparent;
+  color: var(--paper);
+}
+.connection-results button:last-child {
+  border-bottom: 0;
+}
+.connection-results button:hover {
+  color: var(--accent);
+}
+.connection-results span {
+  color: var(--fg2);
+  font-size: var(--text-base);
+}
+.connection-results--settings {
+  width: 100%;
+}
+.settings-server-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
 .body {
   display: grid;
   grid-template-columns: 222px minmax(0, 1fr);

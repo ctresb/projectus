@@ -1,4 +1,4 @@
-// Mirrors crates/server/src/domain.rs:default_columns() titulo values.
+// Mirrors PROJECTUS-SERVER/core/src/domain.rs:default_columns() titulo values.
 // Keep in sync manually — list is short and stable.
 export const DEFAULT_COLUMN_TITLES = Object.freeze([
   'PLANEJADO',

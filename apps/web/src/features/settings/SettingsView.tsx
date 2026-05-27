@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api } from '../../lib/api'
-import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
+import { api, discoverServers, getApiConnection, saveConnection, type ConnectionConfig, type DiscoveredServer } from '../../lib/api'
+import type { BackupCredentialStatus, Column, Config, Tag } from '../../lib/types'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { itemId } from '../../lib/ids'
 import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
@@ -42,7 +42,8 @@ export function SettingsView({
   const [accessKey, setAccessKey] = useState('')
   const [secretKey, setSecretKey] = useState('')
   const [credentialStatus, setCredentialStatus] = useState<BackupCredentialStatus | null>(null)
-  const [daemon, setDaemon] = useState<DaemonStatus | null>(null)
+  const [connection, setConnection] = useState<ConnectionConfig>(getApiConnection())
+  const [discoveredServers, setDiscoveredServers] = useState<DiscoveredServer[]>([])
   const [showCloudflareHelp, setShowCloudflareHelp] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -70,7 +71,6 @@ export function SettingsView({
     setDraft(config)
   }, [config, dirty, saving])
   useEffect(() => {
-    void api.daemonStatus().then(setDaemon).catch(() => undefined)
     void api.credentialStatus().then(setCredentialStatus).catch(() => undefined)
   }, [])
 
@@ -153,6 +153,23 @@ export function SettingsView({
     } catch (error) {
       onMessage('erro', error instanceof Error ? error.message : t('settings.creds_fail'))
     }
+  }
+
+  const saveServerConnection = async () => {
+    try {
+      await api.validateConnection(connection)
+      setConnection(await saveConnection(connection))
+      onMessage('ok', 'conexão do servidor salva')
+    } catch (error) {
+      onMessage('erro', error instanceof Error ? error.message : 'não foi possível validar o servidor')
+    }
+  }
+
+  const detectServer = async () => {
+    const found = await discoverServers()
+    setDiscoveredServers(found)
+    if (found[0]) setConnection((current) => ({ ...current, server_url: found[0].server_url }))
+    onMessage(found.length ? 'ok' : 'erro', found.length ? 'servidor encontrado' : 'nenhum servidor encontrado na rede')
   }
 
   const addTag = () => {
@@ -239,10 +256,11 @@ export function SettingsView({
             t={t}
           />
           <ServerPanel
-            porta={draft.porta}
-            daemon={daemon}
-            onPortChange={(porta) => change({ ...draft, porta })}
-            onDaemonChange={setDaemon}
+            connection={connection}
+            discovered={discoveredServers}
+            onConnectionChange={setConnection}
+            onSaveConnection={() => void saveServerConnection()}
+            onDetect={() => void detectServer()}
             onMessage={onMessage}
             t={t}
           />

@@ -9,5 +9,6 @@ async fn main() -> Result<()> {
                 .unwrap_or_else(|_| EnvFilter::new("projectus_server=info,tower_http=info")),
         )
         .init();
-    projectus_server::run().await
+    let token = projectus_server::server_auth::token_from_headless_args()?;
+    projectus_server::run(projectus_server::RunOptions::headless(token)).await
 }

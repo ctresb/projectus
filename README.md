@@ -1,50 +1,50 @@
 ![Projectus logo](logo.png)
 # PROJECTUS
 
-Kanban local para projetos, tarefas e ideias. A fonte de verdade fica em `~/Documents/PROJECTUS`, em JSON para estrutura e Markdown/anexos para conteúdo. A interface funciona no desktop Tauri para macOS e no navegador privado pela sua tailnet.
+Kanban local para projetos, tarefas e ideias. A fonte de verdade fica em `~/Documents/PROJECTUS`, em JSON para estrutura e Markdown/anexos para conteúdo. O `PROJECTUS-SERVER` mantém API/dados/snapshots e o `PROJECTUS` é o cliente desktop.
 
 ## Stack
 
 - React, Vite, TypeScript, Motion, Lucide, dnd-kit e MDXEditor.
 - Rust, Axum, arquivos atômicos, SSE e Cloudflare R2 via API S3.
-- Tauri v2 para a janela macOS.
-- `launchd` para manter o backend ativo no login.
+- Tauri v2 para o cliente macOS e para o app de servidor na barra de menus.
+- `launchd`/Keychain para autostart e segredos do `PROJECTUS-SERVER`.
 
 ## Desenvolvimento
 
 ```bash
 pnpm install
-cargo run -p projectus-server
+PROJECTUS_SERVER_TOKEN=projectus_dev_token_com_mais_de_24_chars cargo run -p projectus-server -- --headless
 pnpm dev
 ```
 
-Abra `http://localhost:5173`. O Vite encaminha `/api` e `/conteudo` ao backend em `127.0.0.1:4387`.
+Abra `http://localhost:5173`, informe `http://127.0.0.1:4387` e o token.
 
 Para testar o build servido diretamente pelo backend:
 
 ```bash
 pnpm build
-cargo run -p projectus-server
+PROJECTUS_SERVER_TOKEN=projectus_dev_token_com_mais_de_24_chars cargo run -p projectus-server -- --headless
 ```
 
 Abra `http://127.0.0.1:4387`.
 
-## Desktop e servidor permanente
+## Desktop e PROJECTUS-SERVER
 
-O app Tauri inicia a API local enquanto sua janela estiver aberta. Para acesso pelo celular, snapshots automáticos e uso mesmo com a janela fechada, instale o servidor permanente no Mac:
+O app `PROJECTUS` não inicia mais backend. Instale e abra o `PROJECTUS-SERVER`; ele fica na barra de menus, gera um token no Keychain e expõe controles simples de status/autostart/token.
 
 ```bash
-chmod +x scripts/instalar-autostart.sh scripts/remover-autostart.sh
-./scripts/instalar-autostart.sh
+pnpm server-app:dev
 pnpm desktop:dev
 ```
 
-O script compila `projectus-server` em release e registra `~/Library/LaunchAgents/com.projectus.server.plist` com `RunAtLoad` e `KeepAlive`. Quando o daemon já estiver ativo, o app desktop apenas consome essa mesma API, sem iniciar outro scheduler.
+Para modo headless/cloud sem Docker neste ciclo, use o binário `projectus-server` com `PROJECTUS_SERVER_TOKEN` ou `--token`.
 
 Para criar o aplicativo e o instalador:
 
 ```bash
 pnpm desktop:build
+pnpm server-app:build
 ```
 
 Os bundles macOS são gerados em `target/release/bundle/macos` e `target/release/bundle/dmg`.
@@ -55,18 +55,17 @@ Estilo clássico macOS — gera o `.dmg`, abre o Finder com a janela "arraste pa
 
 ```bash
 pnpm instalar
-# ou diretamente:
 ./scripts/instalar.sh
+./scripts/instalar-server.sh
 ```
 
-O script compila em release (primeira vez demora alguns minutos), gera `PROJECTUS_<versão>_aarch64.dmg` em `target/release/bundle/dmg/` e abre no Finder. Layout da janela: `PROJECTUS.app` à esquerda, atalho para `Applications` à direita. Arraste o ícone, ejete o DMG, abra pelo Launchpad.
+Os scripts geram dois instaladores separados: `PROJECTUS_<versão>_aarch64.dmg` e `PROJECTUS-SERVER_<versão>_aarch64.dmg`. Instale os dois em Applications, abra primeiro o `PROJECTUS-SERVER`, copie o token e cole no `PROJECTUS`.
 
 Flags:
 
 - `--apenas-build` só compila, não abre o Finder.
-- `--daemon` instala também o daemon launchd após o build.
 
-Os dados continuam em `~/Documents/PROJECTUS`. Todas as personalizações (cor principal, colunas, tags, paleta de cores) ficam em `config.json` e fazem parte dos snapshots R2 — portanto sincronizam entre máquinas. Apenas as credenciais R2 (access + secret key) ficam no Keychain local e precisam ser refixadas em cada máquina.
+Os dados continuam em `~/Documents/PROJECTUS`. Todas as personalizações (cor principal, colunas, tags, paleta de cores) ficam em `config.json` e fazem parte dos snapshots R2. Credenciais R2 e token do servidor ficam no Keychain do `PROJECTUS-SERVER`.
 
 ## Acesso via Tailscale
 
@@ -76,7 +75,7 @@ Com o daemon ativo e a SPA compilada em `apps/web/dist`, publique apenas dentro 
 tailscale serve --bg http://127.0.0.1:4387
 ```
 
-Não há autenticação adicional no v1. Controle o acesso pelas ACLs e dispositivos autorizados no Tailscale.
+Todas as rotas reais de API exigem `Authorization: Bearer <token>`. Controle também o acesso pelas ACLs e dispositivos autorizados no Tailscale.
 
 ## Dados locais
 

@@ -3,10 +3,11 @@ use std::{convert::Infallible, path::PathBuf, sync::Arc};
 use async_stream::stream;
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, Path, Query, State},
-    http::StatusCode,
+    extract::{DefaultBodyLimit, Multipart, Path, Query, Request, State},
+    http::{StatusCode, header},
+    middleware::{self, Next},
     response::{
-        IntoResponse, Sse,
+        IntoResponse, Response, Sse,
         sse::{Event, KeepAlive},
     },
     routing::{delete, get, post},
@@ -21,8 +22,10 @@ use tower_http::{
 use crate::{
     backup_r2::BackupService,
     daemon,
+    discovery::DiscoveryInfo,
     domain::*,
     lan::LanService,
+    server_auth,
     storage::{Storage, StoreError},
 };
 
@@ -31,6 +34,7 @@ pub struct AppState {
     pub storage: Arc<Storage>,
     pub backup: Arc<BackupService>,
     pub lan: Arc<LanService>,
+    pub api_token: Arc<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -82,7 +86,7 @@ impl From<anyhow::Error> for ApiError {
 
 pub fn router(state: AppState) -> Router {
     let root = state.storage.root().to_path_buf();
-    let api = Router::new()
+    let protected_api = Router::new()
         .route("/health", get(health))
         .route("/bootstrap", get(bootstrap))
         .route("/config", get(config).put(update_config))
@@ -131,6 +135,14 @@ pub fn router(state: AppState) -> Router {
         .route("/daemon/instalar", post(daemon_install))
         .route("/daemon/reiniciar", post(daemon_restart))
         .route("/lan", get(lan_status).post(lan_toggle))
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            require_auth,
+        ));
+
+    let api = Router::new()
+        .route("/discovery", get(discovery))
+        .merge(protected_api)
         .layer(DefaultBodyLimit::max(32 * 1024 * 1024))
         .with_state(state.clone());
 
@@ -155,8 +167,46 @@ pub fn router(state: AppState) -> Router {
     application
 }
 
+async fn require_auth(
+    State(state): State<AppState>,
+    request: Request,
+    next: Next,
+) -> Result<Response, ApiError> {
+    let expected = state.api_token.as_str();
+    let header_token = request
+        .headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .map(str::trim);
+    let event_token = (request.uri().path() == "/api/events")
+        .then(|| {
+            request.uri().query().and_then(|query| {
+                query
+                    .split('&')
+                    .filter_map(|pair| pair.split_once('='))
+                    .find_map(|(key, value)| (key == "token").then_some(value))
+            })
+        })
+        .flatten();
+    let supplied = header_token.or(event_token);
+    if supplied != Some(expected) {
+        return Err(ApiError {
+            status: StatusCode::UNAUTHORIZED,
+            message: "token PROJECTUS inválido ou ausente".into(),
+        });
+    }
+    Ok(next.run(request).await)
+}
+
+async fn discovery(State(state): State<AppState>) -> Json<DiscoveryInfo> {
+    let config = state.storage.config().unwrap_or_default();
+    Json(DiscoveryInfo::new(config.porta, config.lan_exposto))
+}
+
 async fn health(State(state): State<AppState>) -> Result<Json<serde_json::Value>, ApiError> {
     let config = state.storage.config()?;
+    let lan = state.lan.status(config.porta, config.lan_exposto);
     Ok(Json(
         serde_json::json!({
             "ok": true,
@@ -164,7 +214,10 @@ async fn health(State(state): State<AppState>) -> Result<Json<serde_json::Value>
             "porta_local": crate::LOCAL_CONTROL_PORT,
             "raiz": state.storage.root(),
             "server_version": env!("CARGO_PKG_VERSION"),
-            "api_version": API_VERSION
+            "api_version": API_VERSION,
+            "lan": lan,
+            "r2_configurado": config.r2.configurado,
+            "token": server_auth::mask_token(&state.api_token)
         }),
     ))
 }

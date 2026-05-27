@@ -10,9 +10,12 @@
     "typecheck": "pnpm --filter @projectus/web typecheck",
     "desktop:dev": "pnpm --filter @projectus/desktop tauri dev",
     "desktop:build": "pnpm --filter @projectus/desktop tauri build",
-    "server:dev": "cargo run -p projectus-server",
+    "server:dev": "cargo run -p projectus-server -- --headless",
+    "server-app:dev": "pnpm --filter @projectus/server-app tauri dev",
+    "server-app:build": "pnpm --filter @projectus/server-app tauri build",
     "server:test": "cargo test --workspace",
     "instalar": "./scripts/instalar.sh",
+    "instalar:server": "./scripts/instalar-server.sh",
     "instalador": "./scripts/instalar.sh"
   }
 }

@@ -3518,7 +3518,9 @@ dependencies = [
 name = "projectus-desktop"
 version = "0.1.0"
 dependencies = [
- "projectus-server",
+ "keyring",
+ "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
 ]
@@ -3556,6 +3558,21 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "walkdir",
+]
+
+[[package]]
+name = "projectus-server-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "libc",
+ "projectus-server",
+ "serde",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -4615,6 +4632,7 @@ dependencies = [
  "gtk",
  "heck 0.5.0",
  "http 1.4.1",
+ "image",
  "jni",
  "libc",
  "log",

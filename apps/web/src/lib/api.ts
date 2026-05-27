@@ -24,15 +24,105 @@ export class ApiFailure extends Error {
 }
 
 const isHttpPage = window.location.protocol === 'http:' || window.location.protocol === 'https:'
-const base = import.meta.env.VITE_API_BASE ?? (isHttpPage ? '' : 'http://127.0.0.1:4387')
+const defaultBase = import.meta.env.VITE_API_BASE ?? (isHttpPage ? window.location.origin : 'http://127.0.0.1:4387')
+
+export type ConnectionConfig = {
+  server_url: string
+  api_token: string
+}
+
+export type DiscoveredServer = {
+  produto: string
+  versao: string
+  server_url: string
+  lan_exposto: boolean
+}
+
+declare global {
+  interface Window {
+    __TAURI__?: {
+      core: {
+        invoke<T>(command: string, args?: Record<string, unknown>): Promise<T>
+      }
+    }
+  }
+}
+
+let connection: ConnectionConfig = {
+  server_url: normalizeServerUrl(defaultBase),
+  api_token: '',
+}
+
+function invoke<T>(command: string, args?: Record<string, unknown>) {
+  if (!window.__TAURI__) return null
+  return window.__TAURI__.core.invoke<T>(command, args)
+}
+
+export function normalizeServerUrl(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, '')
+  if (!trimmed) return ''
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `http://${trimmed}`
+}
+
+export function setApiConnection(next: ConnectionConfig) {
+  connection = {
+    server_url: normalizeServerUrl(next.server_url),
+    api_token: next.api_token.trim(),
+  }
+}
+
+export function getApiConnection() {
+  return connection
+}
+
+export async function loadSavedConnection() {
+  const saved = await invoke<ConnectionConfig | null>('load_connection')
+  if (saved) {
+    setApiConnection(saved)
+    return getApiConnection()
+  }
+  const local = window.localStorage.getItem('projectus.connection')
+  if (!local) return null
+  const parsed = JSON.parse(local) as ConnectionConfig
+  setApiConnection(parsed)
+  return getApiConnection()
+}
+
+export async function saveConnection(next: ConnectionConfig) {
+  const normalized = {
+    server_url: normalizeServerUrl(next.server_url),
+    api_token: next.api_token.trim(),
+  }
+  const saved = await invoke<ConnectionConfig>('save_connection', { input: normalized })
+  if (saved) {
+    setApiConnection(saved)
+    return getApiConnection()
+  }
+  window.localStorage.setItem('projectus.connection', JSON.stringify(normalized))
+  setApiConnection(normalized)
+  return getApiConnection()
+}
+
+export async function clearConnection() {
+  await invoke('clear_connection')
+  window.localStorage.removeItem('projectus.connection')
+  setApiConnection({ server_url: normalizeServerUrl(defaultBase), api_token: '' })
+}
+
+export async function discoverServers() {
+  const discovered = await invoke<DiscoveredServer[]>('discover_servers')
+  return discovered ?? []
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${base}/api${path}`, {
+  const headers: Record<string, string> = {
+    ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(connection.api_token ? { Authorization: `Bearer ${connection.api_token}` } : {}),
+    ...(init?.headers as Record<string, string> | undefined),
+  }
+  const response = await fetch(`${connection.server_url}/api${path}`, {
     ...init,
-    headers: {
-      ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-      ...init?.headers,
-    },
+    headers,
   })
   if (!response.ok) {
     const body = (await response.json().catch(() => ({ mensagem: 'erro inesperado' }))) as {
@@ -118,7 +208,7 @@ export const api = {
     const data = new FormData()
     data.append('imagem', image)
     const result = await request<{ url: string }>(path, { method: 'POST', body: data })
-    return `${base}${result.url}`
+    return `${connection.server_url}${result.url}`
   },
   saveCredentials: (input: { access_key_id: string; secret_access_key: string }) =>
     request<{ mensagem: string }>('/backups/credenciais', { method: 'POST', body: JSON.stringify(input) }),
@@ -132,7 +222,8 @@ export const api = {
   installDaemon: () => request<DaemonStatus>('/daemon/instalar', { method: 'POST' }),
   restartDaemon: () => request<DaemonStatus>('/daemon/reiniciar', { method: 'POST' }),
   events: (onEvent: (event: LiveEvent) => void) => {
-    const source = new EventSource(`${base}/api/events`)
+    if (!connection.api_token) return () => undefined
+    const source = new EventSource(`${connection.server_url}/api/events?token=${encodeURIComponent(connection.api_token)}`)
     source.addEventListener('mudanca', (raw) => {
       try {
         onEvent(JSON.parse((raw as MessageEvent).data) as LiveEvent)
@@ -141,5 +232,14 @@ export const api = {
       }
     })
     return () => source.close()
+  },
+  validateConnection: async (next: ConnectionConfig) => {
+    const previous = getApiConnection()
+    setApiConnection(next)
+    try {
+      return await request<{ ok: boolean; server_version: string; api_version: number }>('/health')
+    } finally {
+      setApiConnection(previous)
+    }
   },
 }

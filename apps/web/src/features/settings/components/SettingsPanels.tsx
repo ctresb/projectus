@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
-import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
-import { api } from '../../../lib/api'
-import type { BackupCredentialStatus, ColorChoice, Column, DaemonStatus, R2Config, Tag } from '../../../lib/types'
+import { ArrowDown, ArrowUp, Info, Plus, Search, ShieldCheck, Trash2 } from 'lucide-react'
+import type { BackupCredentialStatus, ColorChoice, Column, R2Config, Tag } from '../../../lib/types'
+import type { ConnectionConfig, DiscoveredServer } from '../../../lib/api'
 import { ColorPicker } from '../../../components/ColorPicker'
 import { SquareScrollArea } from '../../../components/SquareScrollArea'
 import { Button, Card, Field, IconButton, Input, Select, Text } from '../../../components/ui'
@@ -235,47 +235,64 @@ export function R2Panel({
 }
 
 export function ServerPanel({
-  porta,
-  daemon,
-  onPortChange,
-  onDaemonChange,
+  connection,
+  discovered,
+  onConnectionChange,
+  onSaveConnection,
+  onDetect,
   onMessage,
   t,
 }: {
-  porta: number
-  daemon: DaemonStatus | null
-  onPortChange: (porta: number) => void
-  onDaemonChange: (daemon: DaemonStatus) => void
+  connection: ConnectionConfig
+  discovered: DiscoveredServer[]
+  onConnectionChange: (connection: ConnectionConfig) => void
+  onSaveConnection: () => void
+  onDetect: () => void
   onMessage: (type: 'ok' | 'erro', text: string) => void
   t: TFn
 }) {
   return (
     <Card title={t('settings.server.header')}>
-      <Field label={t('settings.server.label_port')}>
-        <Input type="number" value={porta} onChange={(event) => onPortChange(Number(event.target.value))} />
+      <Field label="endereço do servidor">
+        <Input
+          value={connection.server_url}
+          placeholder="http://127.0.0.1:4387"
+          onChange={(event) => onConnectionChange({ ...connection, server_url: event.target.value })}
+        />
       </Field>
-      <Text className="panel-copy">{t('settings.server.description', { porta })}</Text>
-      <Text className="panel-copy">
-        {daemon?.instalado
-          ? t('settings.server.autostart_installed')
-          : daemon?.instalacao_disponivel
-            ? t('settings.server.autostart_available')
-            : t('settings.server.autostart_unavailable')}
-      </Text>
-      {!daemon?.instalado && daemon?.instalacao_disponivel && (
-        <Button
-          type="button"
-          onClick={async () => {
-            try {
-              onDaemonChange(await api.installDaemon())
-              onMessage('ok', t('settings.autostart_installed'))
-            } catch (error) {
-              onMessage('erro', error instanceof Error ? error.message : t('settings.autostart_fail'))
-            }
-          }}
-        >
-          {t('settings.server.install_button')}
+      <Field label="token">
+        <Input
+          type="password"
+          value={connection.api_token}
+          placeholder="token copiado no PROJECTUS-SERVER"
+          onChange={(event) => onConnectionChange({ ...connection, api_token: event.target.value })}
+        />
+      </Field>
+      <Text className="panel-copy">o PROJECTUS agora é cliente. o PROJECTUS-SERVER guarda dados, API, snapshots e credenciais R2.</Text>
+      <div className="settings-server-actions">
+        <Button type="button" onClick={onDetect}>
+          <Search size={14} /> detectar server
         </Button>
+        <Button type="button" variant="primary" disabled={!connection.server_url.trim() || !connection.api_token.trim()} onClick={onSaveConnection}>
+          <ShieldCheck size={14} /> validar e salvar
+        </Button>
+      </div>
+      {discovered.length > 0 && (
+        <div className="connection-results connection-results--settings">
+          {discovered.map((server) => (
+            <button
+              type="button"
+              key={server.server_url}
+              onClick={() => {
+                onConnectionChange({ ...connection, server_url: server.server_url })
+                onMessage('ok', 'endereço selecionado')
+              }}
+            >
+              <strong>{server.server_url}</strong>
+              <span>{server.produto} {server.versao}</span>
+            </button>
+          ))}
+        </div>
       )}
     </Card>
   )

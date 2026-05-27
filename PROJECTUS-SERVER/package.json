@@ -1,0 +1,27 @@
+{
+  "name": "@projectus/server-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "tray:icons": "node scripts/generate-tray-icons.mjs",
+    "build": "pnpm run tray:icons && tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@projectus/ui": "workspace:*",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "~5.8.3",
+    "vite": "^6.1.0"
+  }
+}

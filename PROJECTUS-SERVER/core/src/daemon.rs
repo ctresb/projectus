@@ -48,14 +48,26 @@ pub fn install() -> Result<DaemonStatus> {
         }
         let executable = std::env::current_exe()?.to_string_lossy().to_string();
         let working_directory = std::env::current_dir()?.to_string_lossy().to_string();
-        let web_dist = installed_web_dist()
-            .map(|path| {
-                format!(
-                    "<key>EnvironmentVariables</key><dict>\n<key>PROJECTUS_WEB_DIST</key><string>{}</string>\n</dict>\n",
-                    path.display()
-                )
-            })
-            .unwrap_or_default();
+        let mut environment = Vec::new();
+        if let Some(path) = installed_web_dist() {
+            environment.push(format!(
+                "<key>PROJECTUS_WEB_DIST</key><string>{}</string>",
+                path.display()
+            ));
+        }
+        if let Ok(token) = std::env::var("PROJECTUS_SERVER_TOKEN") {
+            environment.push(format!(
+                "<key>PROJECTUS_SERVER_TOKEN</key><string>{token}</string>"
+            ));
+        }
+        let environment = if environment.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "<key>EnvironmentVariables</key><dict>\n{}\n</dict>\n",
+                environment.join("\n")
+            )
+        };
         let plist = plist_path()?;
         if let Some(parent) = plist.parent() {
             fs::create_dir_all(parent)?;
@@ -71,7 +83,7 @@ pub fn install() -> Result<DaemonStatus> {
 <key>Label</key><string>{LABEL}</string>
 <key>ProgramArguments</key><array><string>{executable}</string></array>
 <key>WorkingDirectory</key><string>{working_directory}</string>
-{web_dist}<key>RunAtLoad</key><true/>
+{environment}<key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>
 <key>StandardOutPath</key><string>{}/server.log</string>
 <key>StandardErrorPath</key><string>{}/server.err.log</string>

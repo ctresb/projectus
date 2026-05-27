@@ -6,6 +6,12 @@ BIN="$ROOT/target/release/projectus-server"
 PLIST="$HOME/Library/LaunchAgents/com.projectus.server.plist"
 LOG_DIR="$HOME/Library/Logs/PROJECTUS"
 
+if [[ -z "${PROJECTUS_SERVER_TOKEN:-}" ]]; then
+  echo "ERR / defina PROJECTUS_SERVER_TOKEN para instalar o servidor headless." >&2
+  echo "Exemplo: PROJECTUS_SERVER_TOKEN=projectus_... ./scripts/instalar-autostart.sh" >&2
+  exit 1
+fi
+
 pnpm --dir "$ROOT" build
 cargo build --release -p projectus-server --manifest-path "$ROOT/Cargo.toml"
 mkdir -p "${PLIST:h}" "$LOG_DIR"
@@ -19,6 +25,7 @@ cat > "$PLIST" <<EOF
 <key>WorkingDirectory</key><string>$ROOT</string>
 <key>EnvironmentVariables</key><dict>
 <key>PROJECTUS_WEB_DIST</key><string>$ROOT/apps/web/dist</string>
+<key>PROJECTUS_SERVER_TOKEN</key><string>$PROJECTUS_SERVER_TOKEN</string>
 </dict>
 <key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>

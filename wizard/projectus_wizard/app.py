@@ -61,8 +61,6 @@ class ProjectusWizard(App[None]):
             await self._handle_main(option_id)
         elif self.mode == "platform":
             await self._handle_platform(option_id)
-        elif self.mode == "server-confirm":
-            await self._handle_server_confirm(option_id)
 
     def action_back(self) -> None:
         if self.running:
@@ -118,20 +116,7 @@ class ProjectusWizard(App[None]):
             self._start_run(
                 self.i18n.t("action.server"),
                 lambda: actions.build_server_macos(self.root, self._log, self.i18n),
-                after=self._show_server_confirm,
             )
-
-    async def _handle_server_confirm(self, option_id: str) -> None:
-        if option_id == "server-run":
-            self._start_run(
-                self.i18n.t("server.confirm.title"),
-                lambda: actions.restart_server_macos(self.root, self._log, self.i18n),
-            )
-        elif option_id == "server-skip":
-            await self._log(self.i18n.t("server.skip"))
-            self._show_main()
-        elif option_id == "back":
-            self._show_main()
 
     def _start_run(self, title: str, work, after=None) -> None:
         self.running = True
@@ -175,17 +160,6 @@ class ProjectusWizard(App[None]):
         options = [Option(platform.label, id=platform.id, disabled=not platform.enabled) for platform in PLATFORMS]
         options.append(Option(self.i18n.t("nav.back"), id="back"))
         self._set_options(self.i18n.t("platform.title", title=title), options)
-
-    def _show_server_confirm(self) -> None:
-        self.mode = "server-confirm"
-        self._set_options(
-            self.i18n.t("server.confirm.title"),
-            [
-                Option(self.i18n.t("server.confirm.run"), id="server-run"),
-                Option(self.i18n.t("server.confirm.skip"), id="server-skip"),
-                Option(self.i18n.t("server.confirm.back"), id="back"),
-            ],
-        )
 
     def _set_options(self, title: str, options: list[Option]) -> None:
         self.query_one("#screen-title", Static).update(title)
