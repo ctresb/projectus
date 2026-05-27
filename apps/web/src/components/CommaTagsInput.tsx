@@ -3,6 +3,7 @@ import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
 import { randomPaletteColor } from '../lib/colors'
 import { useT } from '../i18n'
+import { Input } from './ui'
 
 type Props = {
   cores: ColorChoice[]
@@ -40,7 +41,7 @@ export function CommaTagsInput({ cores, onCreate, placeholder }: Props) {
 
   return (
     <div className="comma-tags">
-      <input
+      <Input
         className="comma-tags__input"
         type="text"
         value={draft}

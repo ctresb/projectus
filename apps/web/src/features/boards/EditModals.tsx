@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { ExternalLink, X } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Modal } from '../../components/Modal'
+import { Modal } from '../../components/ui'
 import { ArchiveAction } from '../../components/ArchiveAction'
 import { ColorPicker } from '../../components/ColorPicker'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
@@ -9,10 +9,10 @@ import { NewTagRow, TagPicker } from '../../components/TagPicker'
 import { api } from '../../lib/api'
 import type { ColorChoice, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { markdownBody } from '../../lib/markdown'
-import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
 import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
 import { useT } from '../../i18n'
+import { MarkdownField } from './components/BoardEditorFields'
 
 export function EditProjectModal({
   aberto,
@@ -164,21 +164,17 @@ export function EditProjectModal({
           </SquareScrollArea>
           <NewTagRow cores={cores} onCreate={(tag) => change(() => setTaskTags([...taskTags, tag]))} />
         </div>
-        <div className="editor-form__markdown">
-          <span>{t('edit_project.label_description')}</span>
-          {markdownLoaded ? (
-            <DeferredMarkdownEditor
-              documentKey={`projeto-${project.id}`}
-              markdown={markdown}
-              onChange={(value) => {
-                if (value !== markdown) change(() => setMarkdown(value))
-              }}
-              uploadImage={(file) => api.uploadImage(`/projects/${project.id}/anexos`, file)}
-            />
-          ) : (
-            <div className="editor-loading">{t('edit_project.loading_editor')}</div>
-          )}
-        </div>
+        <MarkdownField
+          label={t('edit_project.label_description')}
+          documentKey={`projeto-${project.id}`}
+          markdown={markdown}
+          loading={!markdownLoaded}
+          loadingLabel={t('edit_project.loading_editor')}
+          onChange={(value) => {
+            if (value !== markdown) change(() => setMarkdown(value))
+          }}
+          uploadImage={(file) => api.uploadImage(`/projects/${project.id}/anexos`, file)}
+        />
         <footer className="form-actions form-actions--spread">
           <ArchiveAction entidade={t('project_detail.entity_project')} onArchive={onArchive} />
         </footer>
@@ -275,21 +271,17 @@ export function EditTaskModal({
         <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label={t('edit_task.label_color_aria')} />
         <span className="field-label">{t('edit_task.label_tags')}</span>
         <TagPicker disponiveis={project.tags_disponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
-        <div className="editor-form__markdown">
-          <span>{t('edit_task.label_description')}</span>
-          {markdownLoaded ? (
-            <DeferredMarkdownEditor
-              documentKey={`tarefa-${task.id}`}
-              markdown={markdown}
-              onChange={(value) => {
-                if (value !== markdown) change(() => setMarkdown(value))
-              }}
-              uploadImage={(file) => api.uploadImage(`/projects/${project.id}/tasks/${task.id}/anexos`, file)}
-            />
-          ) : (
-            <div className="editor-loading">{t('edit_task.loading_editor')}</div>
-          )}
-        </div>
+        <MarkdownField
+          label={t('edit_task.label_description')}
+          documentKey={`tarefa-${task.id}`}
+          markdown={markdown}
+          loading={!markdownLoaded}
+          loadingLabel={t('edit_task.loading_editor')}
+          onChange={(value) => {
+            if (value !== markdown) change(() => setMarkdown(value))
+          }}
+          uploadImage={(file) => api.uploadImage(`/projects/${project.id}/tasks/${task.id}/anexos`, file)}
+        />
         <footer className="form-actions form-actions--spread">
           <ArchiveAction entidade={t('project_detail.entity_task')} onArchive={onArchive} />
         </footer>

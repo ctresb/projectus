@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, ApiFailure } from '../../lib/api'
+import { Button, ErrorState } from '../../components/ui'
 
 export const REQUIRED_API_VERSION = 5
 
@@ -72,24 +73,24 @@ export function ServerVersionRecovery({
 
   if (!outdatedBackend)
     return (
-      <div className="boot boot--error">
+      <ErrorState className="boot boot--error">
         <p>ERR / interface local desatualizada</p>
         <p>recarregue a janela para carregar a versão compatível com o servidor.</p>
-        <button className="btn btn--quiet" type="button" onClick={() => window.location.reload()}>
+        <Button type="button" onClick={() => window.location.reload()}>
           recarregar interface
-        </button>
-      </div>
+        </Button>
+      </ErrorState>
     )
 
   return (
-    <div className="boot boot--error">
+    <ErrorState className="boot boot--error">
       <p>UPDATE / versão do servidor incompatível</p>
       <p>{status}</p>
       {status.startsWith('não foi possível') && (
-        <button className="btn btn--quiet" type="button" onClick={() => setRetry((value) => value + 1)}>
+        <Button type="button" onClick={() => setRetry((value) => value + 1)}>
           tentar novamente
-        </button>
+        </Button>
       )}
-    </div>
+    </ErrorState>
   )
 }

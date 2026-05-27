@@ -6,6 +6,7 @@ import { itemId } from '../lib/ids'
 import { EASE } from '../lib/motion'
 import { ColorPicker } from './ColorPicker'
 import { useT } from '../i18n'
+import { Button, Input } from './ui'
 
 export function TagPicker({
   disponiveis,
@@ -58,7 +59,7 @@ export function NewTagRow({
   }
   return (
     <div className="new-tag-row">
-      <input
+      <Input
         aria-label={t('tag_picker.aria_new_title')}
         placeholder={t('tag_picker.placeholder_new')}
         value={title}
@@ -79,9 +80,9 @@ export function NewTagRow({
         {title.trim() || t('tag_picker.preview')}
       </motion.span>
       <ColorPicker cores={cores} value={color} onChange={setColor} label={t('tag_picker.label_new_color')} />
-      <button className="btn btn--quiet" type="button" onClick={submit} disabled={!title.trim()}>
+      <Button type="button" onClick={submit} disabled={!title.trim()}>
         <Plus size={13} /> {t('tag_picker.button_add')}
-      </button>
+      </Button>
     </div>
   )
 }

@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
-import { Modal } from '../../components/Modal'
-import { ColorPicker } from '../../components/ColorPicker'
-import { CommaTagsInput } from '../../components/CommaTagsInput'
-import { TagPicker } from '../../components/TagPicker'
+import { Modal } from '../../components/ui'
 import type { ColorChoice, Tag } from '../../lib/types'
 import { FALLBACK_COLOR, randomPaletteColor } from '../../lib/colors'
-import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
 import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
 import { useT } from '../../i18n'
+import { BoardEditorForm, ColorAndTagsFields, EditorActions, MarkdownField } from './components/BoardEditorFields'
 
 function focusDescription(event: KeyboardEvent<HTMLInputElement>, editor: RefObject<MarkdownEditorHandle | null>) {
   if (event.key !== 'Tab' || event.shiftKey) return
@@ -61,9 +58,9 @@ export function CreateProjectModal({
   )
   return (
     <Modal aberto={aberto} titulo={t('create_project.title')} onClose={onClose} amplo>
-      <form
+      <BoardEditorForm
         ref={formRef}
-        className="editor-form editor-form--create"
+        className="editor-form--create"
         onSubmit={(event) => {
           event.preventDefault()
           void onCreate({ titulo, githubUrl: github, markdown, cor, tags, novasTags })
@@ -79,10 +76,13 @@ export function CreateProjectModal({
             required
           />
         </label>
-        <div className="editor-form__markdown">
-          <span>{t('create_project.label_description')}</span>
-          <DeferredMarkdownEditor ref={editor} documentKey="novo-projeto" markdown={markdown} onChange={setMarkdown} />
-        </div>
+        <MarkdownField
+          editorRef={editor}
+          label={t('create_project.label_description')}
+          documentKey="novo-projeto"
+          markdown={markdown}
+          onChange={setMarkdown}
+        />
         <label>
           {t('create_project.label_github')}
           <input
@@ -93,32 +93,23 @@ export function CreateProjectModal({
             required
           />
         </label>
-        <div className="inline-options">
-          <div>
-            <span className="field-label">{t('create_project.label_color')}</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} label={t('create_project.label_color_aria')} />
-          </div>
-          <div>
-            <span className="field-label">{t('create_project.label_tags')}</span>
-            <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
-            <CommaTagsInput
-              cores={cores}
-              onCreate={(tag) => {
-                setNovasTags((current) => [...current, tag])
-                setTags((current) => [...current, tag.id])
-              }}
-            />
-          </div>
-        </div>
-        <footer className="form-actions">
-          <button className="btn btn--quiet" type="button" onClick={onClose}>
-            {t('create_project.cancel')}
-          </button>
-          <button className="btn btn--primary" type="submit">
-            {t('create_project.submit')}
-          </button>
-        </footer>
-      </form>
+        <ColorAndTagsFields
+          colorLabel={t('create_project.label_color')}
+          colorAriaLabel={t('create_project.label_color_aria')}
+          tagsLabel={t('create_project.label_tags')}
+          cores={cores}
+          cor={cor}
+          tagsDisponiveis={allTags}
+          tags={tags}
+          onColorChange={setCor}
+          onTagsChange={setTags}
+          onCreateTag={(tag) => {
+            setNovasTags((current) => [...current, tag])
+            setTags((current) => [...current, tag.id])
+          }}
+        />
+        <EditorActions cancelLabel={t('create_project.cancel')} submitLabel={t('create_project.submit')} onCancel={onClose} />
+      </BoardEditorForm>
     </Modal>
   )
 }
@@ -166,9 +157,9 @@ export function CreateTaskModal({
   )
   return (
     <Modal aberto={aberto} titulo={t('create_task.title')} onClose={onClose} amplo>
-      <form
+      <BoardEditorForm
         ref={formRef}
-        className="editor-form editor-form--create"
+        className="editor-form--create"
         onSubmit={(event) => {
           event.preventDefault()
           void onCreate({ titulo, markdown, cor, tags, novasTags })
@@ -184,36 +175,30 @@ export function CreateTaskModal({
             required
           />
         </label>
-        <div className="editor-form__markdown">
-          <span>{t('create_task.label_description')}</span>
-          <DeferredMarkdownEditor ref={editor} documentKey="nova-tarefa" markdown={markdown} onChange={setMarkdown} />
-        </div>
-        <div className="inline-options">
-          <div>
-            <span className="field-label">{t('create_task.label_color')}</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} label={t('create_task.label_color_aria')} />
-          </div>
-          <div>
-            <span className="field-label">{t('create_task.label_tags')}</span>
-            <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
-            <CommaTagsInput
-              cores={cores}
-              onCreate={(tag) => {
-                setNovasTags((current) => [...current, tag])
-                setTags((current) => [...current, tag.id])
-              }}
-            />
-          </div>
-        </div>
-        <footer className="form-actions">
-          <button className="btn btn--quiet" type="button" onClick={onClose}>
-            {t('create_task.cancel')}
-          </button>
-          <button className="btn btn--primary" type="submit">
-            {t('create_task.submit')}
-          </button>
-        </footer>
-      </form>
+        <MarkdownField
+          editorRef={editor}
+          label={t('create_task.label_description')}
+          documentKey="nova-tarefa"
+          markdown={markdown}
+          onChange={setMarkdown}
+        />
+        <ColorAndTagsFields
+          colorLabel={t('create_task.label_color')}
+          colorAriaLabel={t('create_task.label_color_aria')}
+          tagsLabel={t('create_task.label_tags')}
+          cores={cores}
+          cor={cor}
+          tagsDisponiveis={allTags}
+          tags={tags}
+          onColorChange={setCor}
+          onTagsChange={setTags}
+          onCreateTag={(tag) => {
+            setNovasTags((current) => [...current, tag])
+            setTags((current) => [...current, tag.id])
+          }}
+        />
+        <EditorActions cancelLabel={t('create_task.cancel')} submitLabel={t('create_task.submit')} onCancel={onClose} />
+      </BoardEditorForm>
     </Modal>
   )
 }
