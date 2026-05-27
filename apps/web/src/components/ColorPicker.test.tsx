@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from './ColorPicker'
 import { NewTagRow } from './TagPicker'
+import { I18nProvider } from '../i18n'
 
 const cores = [
   { id: 'azul', titulo: 'Azul', valor: '#55B9F7' },
@@ -23,7 +24,11 @@ describe('ColorPicker', () => {
 
   it('mostra a cor da tag antes de adicionar', async () => {
     const onCreate = vi.fn()
-    render(<NewTagRow cores={cores} onCreate={onCreate} />)
+    render(
+      <I18nProvider locale="pt-BR">
+        <NewTagRow cores={cores} onCreate={onCreate} />
+      </I18nProvider>,
+    )
 
     fireEvent.change(screen.getByLabelText('Título da nova tag'), { target: { value: 'bug' } })
     fireEvent.click(screen.getByRole('button', { name: 'Cor da nova tag' }))

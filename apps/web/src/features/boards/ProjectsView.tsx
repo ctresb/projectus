@@ -5,6 +5,8 @@ import type { Board, Config, ProjectCard } from '../../lib/types'
 import { useQuickCreate } from '../../hooks/useQuickCreate'
 import { CreateProjectModal } from './CreateModals'
 import { KanbanBoard } from './KanbanBoard'
+import { useT } from '../../i18n'
+import { Button, Container, PageHeader } from '../../components/ui'
 
 export function ProjectsView({
   config,
@@ -21,6 +23,7 @@ export function ProjectsView({
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [creating, setCreating] = useState(false)
   const [initialTitle, setInitialTitle] = useState('')
   const openCreator = useCallback((title: string) => {
@@ -48,34 +51,34 @@ export function ProjectsView({
       })
       setCreating(false)
       await onRefresh()
-      onMessage('ok', 'projeto criado')
+      onMessage('ok', t('projects.created'))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'falha ao criar projeto')
+      onMessage('erro', error instanceof Error ? error.message : t('projects.fail_create'))
     }
   }
 
   return (
-    <section className="workspace">
-      <header className="section-head">
-        <div>
-          <span className="eyebrow">projetos</span>
-          <h1>seus projetos</h1>
-        </div>
-        <button className="btn btn--primary" onClick={() => openCreator('')} type="button">
-          <Plus size={15} /> novo projeto <kbd>⌘N</kbd>
-        </button>
-      </header>
+    <Container>
+      <PageHeader
+        eyebrow={t('projects.eyebrow')}
+        title={t('projects.title')}
+        actions={
+        <Button variant="primary" onClick={() => openCreator('')} type="button">
+          <Plus size={15} /> {t('projects.new_button')} <kbd>⌘N</kbd>
+        </Button>
+        }
+      />
       <KanbanBoard<ProjectCard>
         colunas={config.colunas}
         cards={board.projetos}
         tags={config.tags}
-        vazio="nenhum projeto"
+        vazio={t('projects.empty')}
         onOpen={(card) => onOpen(card.id)}
         onMove={async (id, status, indice) => {
           try {
             onBoard(await api.moveProject({ revision: board.revision, id, status, indice }))
           } catch (error) {
-            onMessage('erro', error instanceof Error ? error.message : 'não foi possível mover o projeto')
+            onMessage('erro', error instanceof Error ? error.message : t('projects.fail_move'))
             await onRefresh()
           }
         }}
@@ -88,6 +91,6 @@ export function ProjectsView({
         onClose={() => setCreating(false)}
         onCreate={create}
       />
-    </section>
+    </Container>
   )
 }

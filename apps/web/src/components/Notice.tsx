@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { useT } from '../i18n'
 
 export type NoticeValue = { tipo: 'ok' | 'erro' | 'info'; texto: string } | null
 
 export function Notice({ notice }: { notice: NoticeValue }) {
+  const t = useT()
   return (
     <AnimatePresence>
       {notice && (
@@ -13,10 +15,9 @@ export function Notice({ notice }: { notice: NoticeValue }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
         >
-          <strong>{notice.tipo === 'erro' ? 'ERR' : notice.tipo === 'ok' ? 'OK' : 'INFO'}</strong> {notice.texto}
+          <strong>{t(`notice.${notice.tipo}`)}</strong> {notice.texto}
         </motion.div>
       )}
     </AnimatePresence>
   )
 }
-

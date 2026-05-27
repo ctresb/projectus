@@ -5,6 +5,7 @@ import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
 import { EASE } from '../lib/motion'
 import { ColorPicker } from './ColorPicker'
+import { useT } from '../i18n'
 
 export function TagPicker({
   disponiveis,
@@ -15,6 +16,7 @@ export function TagPicker({
   value: string[]
   onChange: (tags: string[]) => void
 }) {
+  const t = useT()
   return (
     <div className="tag-picker">
       {disponiveis.map((tag) => (
@@ -33,7 +35,7 @@ export function TagPicker({
           {tag.titulo}
         </motion.button>
       ))}
-      {disponiveis.length === 0 && <small>nenhuma tag criada</small>}
+      {disponiveis.length === 0 && <small>{t('tag_picker.empty')}</small>}
     </div>
   )
 }
@@ -45,6 +47,7 @@ export function NewTagRow({
   cores: ColorChoice[]
   onCreate: (tag: Tag) => void
 }) {
+  const t = useT()
   const [title, setTitle] = useState('')
   const [color, setColor] = useState(cores[0]?.valor ?? '#55B9F7')
   const submit = () => {
@@ -56,8 +59,8 @@ export function NewTagRow({
   return (
     <div className="new-tag-row">
       <input
-        aria-label="Título da nova tag"
-        placeholder="nova tag"
+        aria-label={t('tag_picker.aria_new_title')}
+        placeholder={t('tag_picker.placeholder_new')}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         onKeyDown={(event) => {
@@ -73,11 +76,11 @@ export function NewTagRow({
         animate={{ borderColor: color, backgroundColor: color }}
         transition={{ duration: 0.14, ease: EASE }}
       >
-        {title.trim() || 'prévia'}
+        {title.trim() || t('tag_picker.preview')}
       </motion.span>
-      <ColorPicker cores={cores} value={color} onChange={setColor} label="Cor da nova tag" />
+      <ColorPicker cores={cores} value={color} onChange={setColor} label={t('tag_picker.label_new_color')} />
       <button className="btn btn--quiet" type="button" onClick={submit} disabled={!title.trim()}>
-        <Plus size={13} /> adicionar
+        <Plus size={13} /> {t('tag_picker.button_add')}
       </button>
     </div>
   )

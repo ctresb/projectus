@@ -7,6 +7,7 @@ import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { EASE } from '../../lib/motion'
 import { columnDropId } from './kanbanPlacement'
 import { SortableKanbanCard } from './KanbanCard'
+import { localizeColumnTitle, useT } from '../../i18n'
 
 export function KanbanColumn<T extends EntityCard>({
   column,
@@ -26,6 +27,7 @@ export function KanbanColumn<T extends EntityCard>({
   onOpen: (card: T) => void
 }) {
   const { setNodeRef } = useDroppable({ id: columnDropId(column.id), data: { tipo: 'coluna', status: column.id } })
+  const t = useT()
 
   return (
     <section
@@ -35,7 +37,7 @@ export function KanbanColumn<T extends EntityCard>({
     >
       <header className="column__head">
         <span className="column__dot" style={{ backgroundColor: column.cor }} />
-        <span>{column.titulo}</span>
+        <span>{localizeColumnTitle(column.titulo, t)}</span>
         <span className="column__count">{String(cards.length).padStart(2, '0')}</span>
       </header>
       <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>

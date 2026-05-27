@@ -22,6 +22,7 @@ import type { Column, EntityCard, Tag } from '../../lib/types'
 import { EASE_CSS } from '../../lib/motion'
 import { KanbanCardOverlay } from './KanbanCard'
 import { KanbanColumn } from './KanbanColumn'
+import { localizeColumnTitle, useT, type TFn } from '../../i18n'
 import {
   COLUMN_DROP_PREFIX,
   columnFromDropId,
@@ -61,12 +62,9 @@ type DragSession = {
   pointerDriven: boolean
 }
 
-const screenReaderInstructions = {
-  draggable:
-    'Para mover um card, pressione espaço. Use as setas para escolher a posição e pressione espaço novamente para soltar. Pressione Escape para cancelar.',
-}
-
 export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio, onOpen, onMove }: Props<T>) {
+  const t = useT()
+  const screenReaderInstructions = useMemo(() => ({ draggable: t('kanban.instructions') }), [t])
   const [visualCards, setVisualCards] = useState(cards)
   const [session, setSession] = useState<DragSession | null>(null)
   const [committing, setCommitting] = useState(false)
@@ -99,7 +97,7 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
   }
   const byColumn = useMemo(() => groupCards(visualCards, colunas), [colunas, visualCards])
   const activeCard = session ? visualCards.find((card) => card.id === session.activeId) ?? null : null
-  const announcements = useMemo<Announcements>(() => createAnnouncements(cards, colunas), [cards, colunas])
+  const announcements = useMemo<Announcements>(() => createAnnouncements(cards, colunas, t), [cards, colunas, t])
   const collisionDetection = useMemo<CollisionDetection>(
     () => (args) => {
       if (!args.pointerCoordinates) return closestCenter(args)
@@ -214,7 +212,7 @@ export function KanbanBoard<T extends EntityCard>({ colunas, cards, tags, vazio,
       <div
         ref={boardRef}
         className={`kanban ${session?.pointerDriven ? 'kanban--dragging' : ''}`}
-        aria-label="Quadro kanban"
+        aria-label={t('kanban.aria_board')}
         style={{ '--column-count': colunas.length } as CSSProperties}
       >
         {colunas.map((column) => (
@@ -332,28 +330,29 @@ function pointFromEvent(event: Event): Point | null {
   return null
 }
 
-function createAnnouncements<T extends EntityCard>(cards: T[], columns: Column[]): Announcements {
-  const cardTitle = (id: string) => cards.find((card) => card.id === id)?.titulo ?? 'card'
+function createAnnouncements<T extends EntityCard>(cards: T[], columns: Column[], t: TFn): Announcements {
+  const cardTitle = (id: string) => cards.find((card) => card.id === id)?.titulo ?? t('kanban.fallback_card')
   const destination = (id: string) => {
     const status = columnFromDropId(id) ?? cards.find((card) => card.id === id)?.status
-    return columns.find((column) => column.id === status)?.titulo ?? 'quadro'
+    const titulo = columns.find((column) => column.id === status)?.titulo
+    return titulo ? localizeColumnTitle(titulo, t) : t('kanban.fallback_board')
   }
   return {
     onDragStart({ active }) {
-      return `${cardTitle(String(active.id))} selecionado.`
+      return t('kanban.announce_start', { card: cardTitle(String(active.id)) })
     },
     onDragOver({ active, over }) {
       return over
-        ? `${cardTitle(String(active.id))} sobre a coluna ${destination(String(over.id))}.`
-        : `${cardTitle(String(active.id))} fora de uma coluna válida.`
+        ? t('kanban.announce_over', { card: cardTitle(String(active.id)), coluna: destination(String(over.id)) })
+        : t('kanban.announce_invalid', { card: cardTitle(String(active.id)) })
     },
     onDragEnd({ active, over }) {
       return over
-        ? `${cardTitle(String(active.id))} solto na coluna ${destination(String(over.id))}.`
-        : `Movimento de ${cardTitle(String(active.id))} cancelado.`
+        ? t('kanban.announce_end', { card: cardTitle(String(active.id)), coluna: destination(String(over.id)) })
+        : t('kanban.announce_cancel', { card: cardTitle(String(active.id)) })
     },
     onDragCancel({ active }) {
-      return `Movimento de ${cardTitle(String(active.id))} cancelado.`
+      return t('kanban.announce_cancel', { card: cardTitle(String(active.id)) })
     },
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, ApiFailure } from '../../lib/api'
 
-export const REQUIRED_API_VERSION = 4
+export const REQUIRED_API_VERSION = 5
 
 function wait(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))

@@ -7,6 +7,7 @@ import { SnapshotButton } from '../../components/SnapshotButton'
 import { Logo } from '../../components/Logo'
 import { HostButton } from '../../components/HostButton'
 import { EASE } from '../../lib/motion'
+import { useT } from '../../i18n'
 
 export type Screen = 'projetos' | 'ideias' | 'arquivo' | 'backup' | 'config'
 
@@ -25,12 +26,13 @@ export function Shell({
   onSnapshotError: (message: string) => void
   children: ReactNode
 }) {
+  const t = useT()
   const nav = [
-    { id: 'projetos' as const, label: 'projetos', icon: FolderKanban },
-    { id: 'ideias' as const, label: 'ideias', icon: Lightbulb },
-    { id: 'arquivo' as const, label: 'arquivo', icon: Archive },
-    { id: 'backup' as const, label: 'backups', icon: CloudUpload },
-    { id: 'config' as const, label: 'config', icon: Settings },
+    { id: 'projetos' as const, label: t('shell.nav.projetos'), icon: FolderKanban },
+    { id: 'ideias' as const, label: t('shell.nav.ideias'), icon: Lightbulb },
+    { id: 'arquivo' as const, label: t('shell.nav.arquivo'), icon: Archive },
+    { id: 'backup' as const, label: t('shell.nav.backup'), icon: CloudUpload },
+    { id: 'config' as const, label: t('shell.nav.config'), icon: Settings },
   ]
   return (
     <div className="shell">
@@ -38,7 +40,7 @@ export function Shell({
         <Logo height={14} />
         <div className="crumbs">
           <button type="button" onClick={() => onNavigate('projetos')}>
-            projectus
+            {t('shell.crumbs_root')}
           </button>
           <span>/</span>
           <strong>{projectTitle ?? screen}</strong>
@@ -48,11 +50,11 @@ export function Shell({
         <SnapshotButton onError={onSnapshotError} />
         <div className="local">
           <span className="local__dot" />
-          local
+          {t('shell.local_badge')}
         </div>
       </header>
       <div className="body">
-        <nav className="rail" aria-label="Espaços">
+        <nav className="rail" aria-label={t('shell.aria_rail')}>
           <ul>
             {nav.map(({ id, label, icon: Icon }) => (
               <li key={id}>
@@ -70,15 +72,15 @@ export function Shell({
             ))}
           </ul>
           <footer>
-            <span className="eyebrow">dados</span>
+            <span className="eyebrow">{t('shell.data_section')}</span>
             <div>~/Documents/</div>
             <strong>PROJECTUS</strong>
-            <span className="eyebrow rail__section">backup</span>
+            <span className="eyebrow rail__section">{t('shell.backup_section')}</span>
             <div className={config.r2.configurado ? 'status status--ok' : 'status'}>
               {config.r2.configurado ? 'OK' : 'OFF'} / R2
             </div>
             <p>
-              <SlidersHorizontal size={12} /> ⌘N cria rápido
+              <SlidersHorizontal size={12} /> {t('shell.shortcut_hint')}
             </p>
           </footer>
         </nav>

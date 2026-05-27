@@ -29,7 +29,15 @@ import {
   type Translation,
 } from '@mdxeditor/editor'
 import { $getRoot } from 'lexical'
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, type MouseEvent, type MutableRefObject } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  type MutableRefObject,
+  type PointerEvent,
+} from 'react'
 
 type Props = {
   documentKey: string
@@ -181,7 +189,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
     ],
     [],
   )
-  const focusBlankSurface = (event: MouseEvent<HTMLDivElement>) => {
+  const focusBlankSurface = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return
     const target = event.target as HTMLElement
     if (
       target.closest(
@@ -190,13 +199,12 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function M
     ) {
       return
     }
-    const contentEl = target.closest<HTMLElement>('[contenteditable="true"]')
-    if (contentEl && target !== contentEl) return
     event.preventDefault()
+    event.stopPropagation()
     placeCaretAtEnd.current()
   }
   return (
-    <div className="markdown-editor" onMouseDown={focusBlankSurface}>
+    <div className="markdown-editor" onPointerDownCapture={focusBlankSurface}>
       <MDXEditor
         ref={editorRef}
         className="projectus-mdx"

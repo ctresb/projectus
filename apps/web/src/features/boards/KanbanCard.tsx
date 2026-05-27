@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 import type { EntityCard, Tag } from '../../lib/types'
 import { EASE } from '../../lib/motion'
+import { useT } from '../../i18n'
 
 export function SortableKanbanCard<T extends EntityCard>({
   card,
@@ -15,6 +16,7 @@ export function SortableKanbanCard<T extends EntityCard>({
   onOpen: () => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id })
+  const t = useT()
 
   return (
     <motion.article
@@ -34,7 +36,7 @@ export function SortableKanbanCard<T extends EntityCard>({
       transition={{ duration: 0.12, ease: EASE }}
       {...attributes}
       {...listeners}
-      aria-label={`Abrir ou mover ${card.titulo}`}
+      aria-label={t('kanban.aria_card', { titulo: card.titulo })}
       onClick={() => {
         if (!isDragging) onOpen()
       }}

@@ -3,6 +3,8 @@ import { ArchiveRestore } from 'lucide-react'
 import { api } from '../../lib/api'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
 import type { ArchiveIndex, ArchivedItem, Board, Ideas } from '../../lib/types'
+import { useT, type TFn } from '../../i18n'
+import { Button, Container, EmptyState, LoadingState, PageHeader } from '../../components/ui'
 
 export function ArchiveView({
   board,
@@ -15,6 +17,7 @@ export function ArchiveView({
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [archive, setArchive] = useState<ArchiveIndex | null>(null)
 
   useEffect(() => {
@@ -35,48 +38,43 @@ export function ArchiveView({
               : 0
       setArchive(await api.restoreArchived(item.id, archive.revision, destinoRevision))
       await onRefresh()
-      onMessage('ok', 'item restaurado do Arquivo')
+      onMessage('ok', t('archive_view.restored'))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível restaurar')
+      onMessage('erro', error instanceof Error ? error.message : t('archive_view.fail_restore'))
     }
   }
 
   return (
-    <section className="archive workspace">
-      <header className="section-head">
-        <div>
-          <span className="eyebrow">arquivo</span>
-          <h1>itens arquivados</h1>
-        </div>
-      </header>
+    <Container className="archive">
+      <PageHeader eyebrow={t('archive_view.eyebrow')} title={t('archive_view.title')} />
       <SquareScrollArea className="archive-list" viewportClassName="archive-list__viewport">
         {archive?.itens.map((item) => (
           <article className="archive-item" key={item.id}>
             <div>
-              <span className="eyebrow">{label(item.entidade)}</span>
+              <span className="eyebrow">{label(item.entidade, t)}</span>
               <h2>{item.titulo}</h2>
-              {item.projeto_titulo && <p>projeto / {item.projeto_titulo}</p>}
+              {item.projeto_titulo && <p>{t('archive_view.project_of', { titulo: item.projeto_titulo })}</p>}
               <time>{new Date(item.arquivado_em).toLocaleString('pt-BR')}</time>
             </div>
             {item.entidade === 'desconhecido' ? (
-              <small>item legado sem metadados de restauração</small>
+              <small>{t('archive_view.legacy_item')}</small>
             ) : (
-              <button className="btn btn--quiet" type="button" onClick={() => void restore(item)}>
-                <ArchiveRestore size={14} /> restaurar
-              </button>
+              <Button type="button" onClick={() => void restore(item)}>
+                <ArchiveRestore size={14} /> {t('archive_view.restore')}
+              </Button>
             )}
           </article>
         ))}
-        {archive && archive.itens.length === 0 && <p className="empty">nenhum item arquivado</p>}
-        {!archive && <p className="loading">carregando arquivo...</p>}
+        {archive && archive.itens.length === 0 && <EmptyState>{t('archive_view.empty')}</EmptyState>}
+        {!archive && <LoadingState>{t('archive_view.loading')}</LoadingState>}
       </SquareScrollArea>
-    </section>
+    </Container>
   )
 }
 
-function label(entity: ArchivedItem['entidade']) {
-  if (entity === 'projeto') return 'projeto'
-  if (entity === 'tarefa') return 'tarefa'
-  if (entity === 'ideia') return 'ideia'
-  return 'item'
+function label(entity: ArchivedItem['entidade'], t: TFn) {
+  if (entity === 'projeto') return t('archive_view.entity_label.projeto')
+  if (entity === 'tarefa') return t('archive_view.entity_label.tarefa')
+  if (entity === 'ideia') return t('archive_view.entity_label.ideia')
+  return t('archive_view.entity_label.item')
 }

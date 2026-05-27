@@ -5,8 +5,8 @@ use rand::{Rng, distr::Alphanumeric};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const SCHEMA_VERSION: u32 = 4;
-pub const API_VERSION: u32 = 4;
+pub const SCHEMA_VERSION: u32 = 5;
+pub const API_VERSION: u32 = 5;
 
 const TOKENS_JSON: &str = include_str!("../../../apps/web/src/styles/tokens.json");
 
@@ -82,6 +82,8 @@ pub struct Config {
     pub cor_principal: String,
     #[serde(default)]
     pub lan_exposto: bool,
+    #[serde(default = "default_idioma")]
+    pub idioma: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -393,6 +395,10 @@ pub fn default_region() -> String {
     "auto".to_owned()
 }
 
+pub fn default_idioma() -> String {
+    "pt-BR".to_owned()
+}
+
 pub fn default_columns() -> Vec<Column> {
     let neutral = default_neutral_column_color();
     [
@@ -427,6 +433,7 @@ impl Default for Config {
             r2: R2Config::default(),
             cor_principal: default_cor_principal(),
             lan_exposto: false,
+            idioma: default_idioma(),
         }
     }
 }

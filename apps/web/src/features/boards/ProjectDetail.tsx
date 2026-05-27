@@ -6,6 +6,8 @@ import { useQuickCreate } from '../../hooks/useQuickCreate'
 import { CreateTaskModal } from './CreateModals'
 import { EditProjectModal, EditTaskModal } from './EditModals'
 import { KanbanBoard } from './KanbanBoard'
+import { useT } from '../../i18n'
+import { Button, Container, LoadingState } from '../../components/ui'
 
 export function ProjectDetail({
   id,
@@ -22,6 +24,7 @@ export function ProjectDetail({
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [document, setDocument] = useState<DocumentResponse<Project> | null>(null)
   const [creating, setCreating] = useState(false)
   const [initialTitle, setInitialTitle] = useState('')
@@ -32,9 +35,9 @@ export function ProjectDetail({
     try {
       setDocument(await api.project(id))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'projeto não encontrado')
+      onMessage('erro', error instanceof Error ? error.message : t('project_detail.not_found'))
     }
-  }, [id, onMessage])
+  }, [id, onMessage, t])
 
   useEffect(() => {
     void load()
@@ -46,42 +49,42 @@ export function ProjectDetail({
   }, [])
   useQuickCreate({ ativo: Boolean(document) && !creating && !editProject && !taskOpen, onNovo: openCreator })
 
-  if (!document) return <p className="loading">carregando projeto...</p>
+  if (!document) return <LoadingState>{t('project_detail.loading')}</LoadingState>
   const project = document.dados
 
   return (
-    <section className="workspace">
+    <Container>
       <header className="detail-head">
         <button type="button" className="back" onClick={onBack}>
-          <ArrowLeft size={14} /> projetos
+          <ArrowLeft size={14} /> {t('project_detail.back')}
         </button>
         <div className="detail-head__title">
-          <span className="eyebrow">projeto</span>
+          <span className="eyebrow">{t('project_detail.eyebrow')}</span>
           <h1>{project.titulo}</h1>
           <a href={project.github_url} target="_blank" rel="noreferrer">
             {project.github_url.replace('https://github.com/', 'github / ')} <ExternalLink size={13} />
           </a>
         </div>
         <div className="detail-head__actions">
-          <button className="btn btn--quiet" type="button" onClick={() => setEditProject(true)}>
-            <Pencil size={14} /> editar
-          </button>
-          <button className="btn btn--primary" type="button" onClick={() => openCreator('')}>
-            <Plus size={15} /> nova tarefa <kbd>⌘N</kbd>
-          </button>
+          <Button type="button" onClick={() => setEditProject(true)}>
+            <Pencil size={14} /> {t('project_detail.edit')}
+          </Button>
+          <Button variant="primary" type="button" onClick={() => openCreator('')}>
+            <Plus size={15} /> {t('project_detail.new_task')} <kbd>⌘N</kbd>
+          </Button>
         </div>
       </header>
       <KanbanBoard<TaskCard>
         colunas={project.colunas}
         cards={project.tarefas}
         tags={project.tags_disponiveis}
-        vazio="nenhuma tarefa"
+        vazio={t('project_detail.empty')}
         onOpen={setTaskOpen}
         onMove={async (taskId, status, indice) => {
           try {
             setDocument({ ...document, dados: await api.moveTask(id, { revision: project.revision, id: taskId, status, indice }) })
           } catch (error) {
-            onMessage('erro', error instanceof Error ? error.message : 'não foi possível mover a tarefa')
+            onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_move_task'))
             await load()
           }
         }}
@@ -104,9 +107,9 @@ export function ProjectDetail({
             })
             setDocument({ ...document, dados: updated.dados })
             setCreating(false)
-            onMessage('ok', 'tarefa criada')
+            onMessage('ok', t('project_detail.task_created'))
           } catch (error) {
-            onMessage('erro', error instanceof Error ? error.message : 'falha ao criar tarefa')
+            onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_create_task'))
           }
         }}
       />
@@ -128,9 +131,9 @@ export function ProjectDetail({
             setEditProject(false)
             await onRefresh()
             onBack()
-            onMessage('ok', 'projeto movido para Arquivo')
+            onMessage('ok', t('project_detail.project_archived'))
           } catch (error) {
-            onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar')
+            onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_archive'))
           }
         }}
         onError={(text) => onMessage('erro', text)}
@@ -151,14 +154,14 @@ export function ProjectDetail({
               await api.archiveTask(project.id, taskOpen.id, project.revision)
               await load()
               setTaskOpen(null)
-              onMessage('ok', 'tarefa movida para Arquivo')
+              onMessage('ok', t('project_detail.task_archived'))
             } catch (error) {
-              onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar')
+              onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_archive'))
             }
           }}
           onError={(text) => onMessage('erro', text)}
         />
       )}
-    </section>
+    </Container>
   )
 }

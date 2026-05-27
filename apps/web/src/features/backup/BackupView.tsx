@@ -4,6 +4,8 @@ import { api } from '../../lib/api'
 import { SnapshotButton } from '../../components/SnapshotButton'
 import { useSnapshotState } from '../../hooks/useSnapshot'
 import type { Config, Snapshot } from '../../lib/types'
+import { useT } from '../../i18n'
+import { Button, Card, Container, EmptyState, PageHeader, Text } from '../../components/ui'
 
 export function BackupView({
   config,
@@ -12,6 +14,7 @@ export function BackupView({
   config: Config
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
   const snapshotState = useSnapshotState()
 
@@ -20,7 +23,7 @@ export function BackupView({
     try {
       setSnapshots((await api.snapshots()).snapshots)
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível consultar o R2')
+      onMessage('erro', error instanceof Error ? error.message : t('backup_view.fail_query'))
     }
   }
   useEffect(() => {
@@ -32,60 +35,52 @@ export function BackupView({
   }, [snapshotState.phase])
 
   return (
-    <section className="workspace backups">
-      <header className="section-head">
-        <div>
-          <span className="eyebrow">r2-syncs</span>
-          <h1>backups</h1>
-        </div>
-        <SnapshotButton
+    <Container className="backups">
+      <PageHeader
+        eyebrow={t('backup_view.eyebrow')}
+        title={t('backup_view.title')}
+        actions={<SnapshotButton
           className="snapshot-button--primary"
-          idleLabel="[SNAPSHOT] agora"
+          idleLabel={t('backup_view.snapshot_now')}
           onError={(text) => onMessage('erro', text)}
-        />
-      </header>
-      <p className="panel-copy">
-        cada snapshot envia a pasta integral <code>~/Documents/PROJECTUS</code>: configurações, kanbans, ideias,
-        Arquivo, históricos e anexos.
-      </p>
+        />}
+      />
+      <Text className="panel-copy">{t('backup_view.description')}</Text>
       {!config.r2.configurado ? (
-        <div className="empty">
-          <p>R2 ainda não configurado.</p>
-          <small>informe bucket e credenciais em configurações.</small>
-        </div>
+        <EmptyState>
+          <p>{t('backup_view.not_configured')}</p>
+          <small>{t('backup_view.not_configured_hint')}</small>
+        </EmptyState>
       ) : (
-        <div className="snapshots panel">
-          <header>histórico remoto</header>
+        <Card className="snapshots" title={t('backup_view.history')}>
           {snapshots.map((snapshot) => (
             <article className="snapshot" key={snapshot.id}>
               <div>
                 <strong>{snapshot.id}</strong>
                 <span>
-                  {snapshot.origem === 'manual' ? 'MANUAL' : 'AUTO'} / {snapshot.arquivos} arquivos /{' '}
-                  {(snapshot.bytes / 1024 / 1024).toFixed(2)} MB
+                  {snapshot.origem === 'manual' ? t('backup_view.origin_manual') : t('backup_view.origin_auto')} /{' '}
+                  {t('backup_view.files_size', { files: snapshot.arquivos, mb: (snapshot.bytes / 1024 / 1024).toFixed(2) })}
                 </span>
               </div>
-              <button
-                className="btn btn--quiet"
+              <Button
                 type="button"
                 onClick={async () => {
-                  if (!window.confirm('Restaurar este snapshot? O estado atual será preservado em uma pasta de recuperação.'))
-                    return
+                  if (!window.confirm(t('backup_view.confirm_restore'))) return
                   try {
                     await api.restoreSnapshot(snapshot.id)
-                    onMessage('ok', 'snapshot restaurado')
+                    onMessage('ok', t('backup_view.restored'))
                   } catch (error) {
-                    onMessage('erro', error instanceof Error ? error.message : 'falha ao restaurar')
+                    onMessage('erro', error instanceof Error ? error.message : t('backup_view.fail_restore'))
                   }
                 }}
               >
-                <Download size={14} /> restaurar
-              </button>
+                <Download size={14} /> {t('backup_view.restore')}
+              </Button>
             </article>
           ))}
-          {snapshots.length === 0 && <p className="panel-empty">nenhum snapshot enviado.</p>}
-        </div>
+          {snapshots.length === 0 && <p className="panel-empty">{t('backup_view.empty')}</p>}
+        </Card>
       )}
-    </section>
+    </Container>
   )
 }

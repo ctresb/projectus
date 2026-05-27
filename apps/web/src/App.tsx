@@ -10,6 +10,8 @@ import { IdeasView } from './features/ideas/IdeasView'
 import { SettingsView } from './features/settings/SettingsView'
 import { Shell, type Screen } from './features/shell/Shell'
 import { REQUIRED_API_VERSION, ServerVersionRecovery } from './features/shell/ServerVersionRecovery'
+import { I18nProvider } from './i18n'
+import { Button, ErrorState, LoadingState } from './components/ui'
 
 export function App() {
   const { workspace, setWorkspace, erro, carregando, refresh } = useWorkspace()
@@ -32,15 +34,15 @@ export function App() {
     if (color) document.documentElement.style.setProperty('--accent', color)
   }, [workspace?.config.cor_principal])
 
-  if (carregando) return <div className="boot">iniciando projectus<span className="cursor" /></div>
+  if (carregando) return <LoadingState className="boot">iniciando projectus<span className="cursor" /></LoadingState>
   if (!workspace)
     return (
-      <div className="boot boot--error">
+      <ErrorState className="boot boot--error">
         <p>ERR / {erro ?? 'backend local indisponível'}</p>
-        <button className="btn btn--quiet" type="button" onClick={() => void refresh()}>
+        <Button type="button" onClick={() => void refresh()}>
           tentar novamente
-        </button>
-      </div>
+        </Button>
+      </ErrorState>
     )
   if (workspace.capacidades?.api_version !== REQUIRED_API_VERSION)
     return <ServerVersionRecovery version={workspace.capacidades?.api_version} onRecovered={refresh} />
@@ -56,6 +58,7 @@ export function App() {
   }
 
   return (
+    <I18nProvider locale={workspace.config.idioma}>
     <Shell
       screen={screen}
       projectTitle={projectCard?.titulo}
@@ -93,5 +96,6 @@ export function App() {
       {screen === 'config' && <SettingsView config={workspace.config} onConfig={setConfig} onMessage={message} />}
       <Notice notice={notice} />
     </Shell>
+    </I18nProvider>
   )
 }

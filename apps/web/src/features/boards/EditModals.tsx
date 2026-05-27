@@ -12,6 +12,7 @@ import { markdownBody } from '../../lib/markdown'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
 import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
+import { useT } from '../../i18n'
 
 export function EditProjectModal({
   aberto,
@@ -34,6 +35,7 @@ export function EditProjectModal({
   onArchive: () => Promise<void>
   onError: (message: string) => void
 }) {
+  const t = useT()
   const [titulo, setTitulo] = useState(project.titulo)
   const [github, setGithub] = useState(project.github_url)
   const [markdown, setMarkdown] = useState('')
@@ -93,11 +95,11 @@ export function EditProjectModal({
     aberto && markdownLoaded,
     useCallback(() => {
       if (!titulo.trim()) {
-        onError('título obrigatório')
+        onError(t('edit_project.title_required'))
         return
       }
       if (!github.trim()) {
-        onError('repositório GitHub obrigatório')
+        onError(t('edit_project.github_required'))
         return
       }
       if (!dirty) {
@@ -105,31 +107,31 @@ export function EditProjectModal({
         return
       }
       void flush().then(onClose).catch(() => {})
-    }, [titulo, github, dirty, flush, onClose, onError]),
+    }, [titulo, github, dirty, flush, onClose, onError, t]),
   )
 
   return (
-    <Modal aberto={aberto} titulo="editar projeto" onClose={onClose} amplo>
+    <Modal aberto={aberto} titulo={t('edit_project.title')} onClose={onClose} amplo>
       <div className="editor-form">
         <label>
-          título
+          {t('edit_project.label_title')}
           <input value={titulo} onChange={(event) => change(() => setTitulo(event.target.value))} />
         </label>
         <label>
-          repositório GitHub
+          {t('edit_project.label_github')}
           <span className="input-action">
             <input value={github} onChange={(event) => change(() => setGithub(event.target.value))} />
-            <a className="icon-btn" href={github} rel="noreferrer" target="_blank" aria-label="Abrir repositório">
+            <a className="icon-btn" href={github} rel="noreferrer" target="_blank" aria-label={t('edit_project.aria_open_repo')}>
               <ExternalLink size={16} />
             </a>
           </span>
         </label>
-        <span className="field-label">cor</span>
-        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label="Cor do projeto" />
-        <span className="field-label">tags</span>
+        <span className="field-label">{t('edit_project.label_color')}</span>
+        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label={t('edit_project.label_color_aria')} />
+        <span className="field-label">{t('edit_project.label_tags')}</span>
         <TagPicker disponiveis={tagsDisponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="catalog">
-          <span className="field-label">tags disponíveis nas tarefas</span>
+          <span className="field-label">{t('edit_project.label_task_tags')}</span>
           <SquareScrollArea className="catalog__tags" viewportClassName="catalog__tags-viewport">
             <div className="catalog__tags-grid">
             {taskTags.map((tag) => (
@@ -140,7 +142,7 @@ export function EditProjectModal({
                 <ColorPicker
                   cores={cores}
                   value={tag.cor}
-                  label={`Cor da tag ${tag.titulo}`}
+                  label={t('edit_project.label_tag_color', { titulo: tag.titulo })}
                   onChange={(cor) =>
                     change(() =>
                       setTaskTags(taskTags.map((current) => (current.id === tag.id ? { ...current, cor } : current))),
@@ -150,20 +152,20 @@ export function EditProjectModal({
                 <button
                   className="catalog-tag-editor__remove"
                   type="button"
-                  aria-label={`Remover ${tag.titulo}`}
+                  aria-label={t('edit_project.aria_remove_tag', { titulo: tag.titulo })}
                   onClick={() => change(() => setTaskTags(taskTags.filter((current) => current.id !== tag.id)))}
                 >
                   <X size={12} />
                 </button>
               </motion.div>
             ))}
-            {taskTags.length === 0 && <small>crie tags para organizar tarefas</small>}
+            {taskTags.length === 0 && <small>{t('edit_project.empty_task_tags')}</small>}
             </div>
           </SquareScrollArea>
           <NewTagRow cores={cores} onCreate={(tag) => change(() => setTaskTags([...taskTags, tag]))} />
         </div>
         <div className="editor-form__markdown">
-          <span>descrição</span>
+          <span>{t('edit_project.label_description')}</span>
           {markdownLoaded ? (
             <DeferredMarkdownEditor
               documentKey={`projeto-${project.id}`}
@@ -174,11 +176,11 @@ export function EditProjectModal({
               uploadImage={(file) => api.uploadImage(`/projects/${project.id}/anexos`, file)}
             />
           ) : (
-            <div className="editor-loading">carregando editor...</div>
+            <div className="editor-loading">{t('edit_project.loading_editor')}</div>
           )}
         </div>
         <footer className="form-actions form-actions--spread">
-          <ArchiveAction entidade="este projeto" onArchive={onArchive} />
+          <ArchiveAction entidade={t('project_detail.entity_project')} onArchive={onArchive} />
         </footer>
       </div>
     </Modal>
@@ -204,6 +206,7 @@ export function EditTaskModal({
   onArchive: () => Promise<void>
   onError: (message: string) => void
 }) {
+  const t = useT()
   const [titulo, setTitulo] = useState(task.titulo)
   const [markdown, setMarkdown] = useState('')
   const [markdownLoaded, setMarkdownLoaded] = useState(false)
@@ -250,7 +253,7 @@ export function EditTaskModal({
     aberto && markdownLoaded,
     useCallback(() => {
       if (!titulo.trim()) {
-        onError('título obrigatório')
+        onError(t('edit_project.title_required'))
         return
       }
       if (!dirty) {
@@ -258,22 +261,22 @@ export function EditTaskModal({
         return
       }
       void flush().then(onClose).catch(() => {})
-    }, [titulo, dirty, flush, onClose, onError]),
+    }, [titulo, dirty, flush, onClose, onError, t]),
   )
 
   return (
-    <Modal aberto={aberto} titulo="editar tarefa" onClose={onClose} amplo>
+    <Modal aberto={aberto} titulo={t('edit_task.title')} onClose={onClose} amplo>
       <div className="editor-form">
         <label>
-          título
+          {t('edit_task.label_title')}
           <input value={titulo} onChange={(event) => change(() => setTitulo(event.target.value))} />
         </label>
-        <span className="field-label">cor</span>
-        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label="Cor da tarefa" />
-        <span className="field-label">tags</span>
+        <span className="field-label">{t('edit_task.label_color')}</span>
+        <ColorPicker cores={cores} value={cor} onChange={(value) => change(() => setCor(value))} label={t('edit_task.label_color_aria')} />
+        <span className="field-label">{t('edit_task.label_tags')}</span>
         <TagPicker disponiveis={project.tags_disponiveis} value={tags} onChange={(value) => change(() => setTags(value))} />
         <div className="editor-form__markdown">
-          <span>descrição</span>
+          <span>{t('edit_task.label_description')}</span>
           {markdownLoaded ? (
             <DeferredMarkdownEditor
               documentKey={`tarefa-${task.id}`}
@@ -284,11 +287,11 @@ export function EditTaskModal({
               uploadImage={(file) => api.uploadImage(`/projects/${project.id}/tasks/${task.id}/anexos`, file)}
             />
           ) : (
-            <div className="editor-loading">carregando editor...</div>
+            <div className="editor-loading">{t('edit_task.loading_editor')}</div>
           )}
         </div>
         <footer className="form-actions form-actions--spread">
-          <ArchiveAction entidade="esta tarefa" onArchive={onArchive} />
+          <ArchiveAction entidade={t('project_detail.entity_task')} onArchive={onArchive} />
         </footer>
       </div>
     </Modal>

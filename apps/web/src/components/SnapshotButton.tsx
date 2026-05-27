@@ -2,15 +2,17 @@ import { Check, CloudOff, CloudUpload, Loader2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { triggerSnapshot, useSnapshotState } from '../hooks/useSnapshot'
 import { EASE } from '../lib/motion'
+import { useT } from '../i18n'
 
 type Props = {
   onError?: (message: string) => void
   className?: string
-  /** Exibido quando o botão está parado (idle). Default: "[SNAPSHOT]". */
+  /** Exibido quando o botão está parado (idle). Default: snapshot.idle_default. */
   idleLabel?: string
 }
 
-export function SnapshotButton({ onError, className, idleLabel = '[SNAPSHOT]' }: Props) {
+export function SnapshotButton({ onError, className, idleLabel }: Props) {
+  const t = useT()
   const state = useSnapshotState()
   const running = state.phase === 'running'
   const done = state.phase === 'done'
@@ -28,9 +30,9 @@ export function SnapshotButton({ onError, className, idleLabel = '[SNAPSHOT]' }:
         : '…'
       return `${percent}% (${counter})`
     }
-    if (done) return 'enviado'
-    if (error) return state.erro ?? 'falha'
-    return idleLabel
+    if (done) return t('snapshot.done')
+    if (error) return state.erro ?? t('snapshot.fail_short')
+    return idleLabel ?? t('snapshot.idle_default')
   })()
 
   const icon = running ? (
@@ -61,7 +63,7 @@ export function SnapshotButton({ onError, className, idleLabel = '[SNAPSHOT]' }:
       transition={{ duration: 0.12, ease: EASE }}
       onClick={() => {
         triggerSnapshot().catch((err) => {
-          if (onError) onError(err instanceof Error ? err.message : 'falha no snapshot')
+          if (onError) onError(err instanceof Error ? err.message : t('snapshot.fail_full'))
         })
       }}
       title={error && state.erro ? state.erro : undefined}

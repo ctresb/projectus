@@ -4,8 +4,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { api } from '../lib/api'
 import type { LanStatus } from '../lib/types'
 import { EASE } from '../lib/motion'
+import { useT } from '../i18n'
 
 export function HostButton({ porta }: { porta: number }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<LanStatus | null>(null)
   const [pending, setPending] = useState(false)
@@ -65,8 +67,6 @@ export function HostButton({ porta }: { porta: number }) {
     try {
       const result = await api.toggleLan(next)
       setStatus(result)
-      // Se nada precisa reiniciar, deu certo. Se precisa, esperamos o restart automático;
-      // a próxima atualização vem do polling. Se em 5s nada mudou, marca falha manual.
       if (result.precisa_reiniciar) {
         window.setTimeout(() => {
           setStatus((current) => {
@@ -76,7 +76,7 @@ export function HostButton({ porta }: { porta: number }) {
         }, 5000)
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'falha ao alterar LAN'
+      const message = err instanceof Error ? err.message : t('host.lan_toggle_failed')
       setStatus({
         ativo: status?.ativo ?? false,
         porta,
@@ -108,7 +108,7 @@ export function HostButton({ porta }: { porta: number }) {
   ) : (
     <WifiOff size={14} />
   )
-  const label = pending ? 'aplicando…' : restarting ? 'reiniciando…' : ativo ? 'hospedando' : 'hospedar'
+  const label = pending ? t('host.applying') : restarting ? t('host.restarting') : ativo ? t('host.hosting') : t('host.host')
 
   return (
     <div className="host-button" ref={root}>
@@ -119,7 +119,7 @@ export function HostButton({ porta }: { porta: number }) {
         whileHover={{ y: -1 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.12, ease: EASE }}
-        title={ativo ? 'web exposta na rede local' : 'expor web na rede local'}
+        title={ativo ? t('host.tooltip_on') : t('host.tooltip_off')}
       >
         {icon}
         <span>{label}</span>
@@ -134,31 +134,30 @@ export function HostButton({ porta }: { porta: number }) {
             transition={{ duration: 0.14, ease: EASE }}
           >
             <div className="host-pop__head">
-              <strong>hospedar web na rede local</strong>
+              <strong>{t('host.popup_title')}</strong>
               <button
                 type="button"
                 className={`host-pop__switch ${ativo ? 'host-pop__switch--on' : ''}`}
                 onClick={() => !pending && !restarting && toggle(!ativo)}
                 aria-pressed={ativo}
-                aria-label={ativo ? 'desligar exposição LAN' : 'ligar exposição LAN'}
+                aria-label={ativo ? t('host.aria_off') : t('host.aria_on')}
                 disabled={pending || restarting}
               >
                 <span className="host-pop__switch-knob" />
               </button>
             </div>
             <p className="host-pop__hint">
-              quando ligado, qualquer dispositivo na mesma Wi-Fi pode abrir o PROJECTUS no navegador.
+              {t('host.popup_hint')}
             </p>
             {status?.erro && <div className="host-pop__error">{status.erro}</div>}
             {restarting && !restartFailed && (
               <p className="host-pop__hint host-pop__hint--warn">
-                <RefreshCw size={11} /> reiniciando o servidor pra aplicar… mantenha aberto.
+                <RefreshCw size={11} /> {t('host.restart_in_progress')}
               </p>
             )}
             {restartFailed && (
               <div className="host-pop__error">
-                servidor não reiniciou sozinho. instale o autostart em config / servidor local ou
-                reinicie o PROJECTUS manualmente.
+                {t('host.restart_failed')}
               </div>
             )}
             {ativo && !restarting && status && status.urls.length > 0 && (
@@ -166,7 +165,7 @@ export function HostButton({ porta }: { porta: number }) {
                 {status.urls.map((url) => (
                   <li key={url}>
                     <code>{url}</code>
-                    <button type="button" className="icon-btn" onClick={() => void copy(url)} aria-label={`copiar ${url}`}>
+                    <button type="button" className="icon-btn" onClick={() => void copy(url)} aria-label={t('host.aria_copy', { url })}>
                       {copied === url ? <Check size={14} /> : <Copy size={14} />}
                     </button>
                   </li>
@@ -175,11 +174,11 @@ export function HostButton({ porta }: { porta: number }) {
             )}
             {ativo && !restarting && status?.urls.length === 0 && (
               <p className="host-pop__hint host-pop__hint--warn">
-                nenhum IP local detectado. verifique se você está conectado a uma rede.
+                {t('host.no_local_ip')}
               </p>
             )}
             {!ativo && !restarting && (
-              <p className="host-pop__hint">porta: {status?.porta ?? porta}</p>
+              <p className="host-pop__hint">{t('host.port_label', { porta: status?.porta ?? porta })}</p>
             )}
           </motion.div>
         )}

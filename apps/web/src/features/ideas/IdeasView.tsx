@@ -7,6 +7,7 @@ import { ArchiveAction } from '../../components/ArchiveAction'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { markdownBody } from '../../lib/markdown'
 import { useDocumentAutosave } from '../../hooks/useDocumentAutosave'
+import { useT } from '../../i18n'
 
 export function IdeasView({
   config,
@@ -19,6 +20,7 @@ export function IdeasView({
   onIdeas: (ideas: Ideas) => void
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(ideas.notas[0]?.id ?? null)
   const filtered = useMemo(
@@ -28,12 +30,12 @@ export function IdeasView({
 
   const create = async () => {
     try {
-      const created = await api.createIdea({ titulo: 'nova ideia', markdown: '' })
+      const created = await api.createIdea({ titulo: t('ideas.default_title'), markdown: '' })
       const next = await api.ideas()
       onIdeas(next)
       setSelected(created.dados.id)
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível criar a ideia')
+      onMessage('erro', error instanceof Error ? error.message : t('ideas.fail_create'))
     }
   }
 
@@ -43,9 +45,9 @@ export function IdeasView({
       const next = await api.ideas()
       onIdeas(next)
       setSelected(next.notas[0]?.id ?? null)
-      onMessage('ok', 'ideia movida para Arquivo')
+      onMessage('ok', t('ideas.archived'))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível arquivar a ideia')
+      onMessage('erro', error instanceof Error ? error.message : t('ideas.fail_archive'))
     }
   }
 
@@ -53,14 +55,14 @@ export function IdeasView({
     <section className="ideas">
       <aside className="ideas-list">
         <header>
-          <span className="eyebrow">ideias</span>
-          <button className="icon-btn" type="button" aria-label="Nova ideia" onClick={() => void create()}>
+          <span className="eyebrow">{t('ideas.eyebrow')}</span>
+          <button className="icon-btn" type="button" aria-label={t('ideas.aria_new')} onClick={() => void create()}>
             <Plus size={16} />
           </button>
         </header>
         <label className="search">
           <Search size={14} />
-          <input placeholder="buscar nota" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <input placeholder={t('ideas.search_placeholder')} value={search} onChange={(event) => setSearch(event.target.value)} />
         </label>
         <nav>
           {filtered.map((idea) => (
@@ -74,7 +76,7 @@ export function IdeasView({
               <span className="idea-link__title">{idea.titulo}</span>
             </button>
           ))}
-          {filtered.length === 0 && <small>nenhuma nota</small>}
+          {filtered.length === 0 && <small>{t('ideas.list_empty')}</small>}
         </nav>
       </aside>
       <main className="idea-editor">
@@ -95,9 +97,9 @@ export function IdeasView({
           />
         ) : (
           <div className="empty">
-            <p>nenhuma ideia ainda</p>
+            <p>{t('ideas.view_empty')}</p>
             <button className="btn btn--primary" type="button" onClick={() => void create()}>
-              <Plus size={15} /> nova ideia
+              <Plus size={15} /> {t('ideas.new_button')}
             </button>
           </div>
         )}
@@ -123,6 +125,7 @@ function IdeaEditor({
   onArchive: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [note, setNote] = useState<DocumentResponse<IdeaCard> | null>(null)
   const [title, setTitle] = useState('')
   const [markdown, setMarkdown] = useState('')
@@ -158,7 +161,7 @@ function IdeaEditor({
     onError: (message) => onMessage('erro', message),
   })
 
-  if (!note) return <p className="loading">carregando nota...</p>
+  if (!note) return <p className="loading">{t('ideas.loading_note')}</p>
   const edit = (action: () => void) => {
     action()
     setDirty(true)
@@ -180,7 +183,7 @@ function IdeaEditor({
           <ColorPicker
             cores={cores}
             value={color}
-            label="Cor da ideia"
+            label={t('ideas.label_color')}
             onChange={(value) =>
               edit(() => {
                 setColor(value)
@@ -188,7 +191,7 @@ function IdeaEditor({
               })
             }
           />
-          <ArchiveAction entidade="esta ideia" onArchive={onArchive} />
+          <ArchiveAction entidade={t('ideas.entity')} onArchive={onArchive} />
         </div>
       </header>
       <DeferredMarkdownEditor

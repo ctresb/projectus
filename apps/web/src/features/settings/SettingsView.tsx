@@ -6,6 +6,7 @@ import { ColorPicker } from '../../components/ColorPicker'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { itemId } from '../../lib/ids'
 import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
+import { LOCALES, useT } from '../../i18n'
 
 function isR2S3Endpoint(endpoint: string) {
   try {
@@ -29,6 +30,7 @@ export function SettingsView({
   onConfig: (config: Config) => void
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
+  const t = useT()
   const [draft, setDraft] = useState(config)
   const [accessKey, setAccessKey] = useState('')
   const [secretKey, setSecretKey] = useState('')
@@ -93,29 +95,31 @@ export function SettingsView({
       setAccessKey('')
       setSecretKey('')
       setCredentialStatus(await api.credentialStatus())
-      onMessage('ok', 'credenciais R2 fixadas no Keychain')
+      onMessage('ok', t('settings.creds_saved'))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : 'não foi possível salvar credenciais')
+      onMessage('erro', error instanceof Error ? error.message : t('settings.creds_fail'))
     }
   }
 
   const addTag = () => {
-    const id = itemId('tag', 'nova tag')
-    change({ ...draft, tags: [...draft.tags, { id, titulo: 'nova tag', cor: draft.cores[0].valor }] })
+    const titulo = t('settings.tags.default_new_title')
+    const id = itemId('tag', titulo)
+    change({ ...draft, tags: [...draft.tags, { id, titulo, cor: draft.cores[0].valor }] })
   }
   const updateTag = (id: string, update: Partial<Tag>) =>
     change({ ...draft, tags: draft.tags.map((tag) => (tag.id === id ? { ...tag, ...update } : tag)) })
   const addColumn = () => {
+    const titulo = t('settings.columns.default_new_title')
     const column: Column = {
       id: itemId('coluna', 'nova coluna'),
-      titulo: 'NOVA COLUNA',
+      titulo,
       cor: draft.cores[0].valor,
     }
     change({ ...draft, colunas: [...draft.colunas, column] })
   }
   const removeColumn = (id: string) => {
     if (draft.colunas.length === 1) {
-      onMessage('erro', 'mantenha pelo menos uma coluna')
+      onMessage('erro', t('settings.min_one_column'))
       return
     }
     change({ ...draft, colunas: draft.colunas.filter((column) => column.id !== id) })
@@ -133,18 +137,18 @@ export function SettingsView({
     <section className="settings workspace">
       <header className="section-head">
         <div>
-          <span className="eyebrow">config</span>
-          <h1>configurações</h1>
+          <span className="eyebrow">{t('settings.eyebrow')}</span>
+          <h1>{t('settings.title')}</h1>
         </div>
-        <span className="settings-autosave">{dirty || saving ? 'salvando automaticamente...' : 'salvamento automático ativo'}</span>
+        <span className="settings-autosave">{dirty || saving ? t('settings.autosaving') : t('settings.autosaved')}</span>
       </header>
       <SquareScrollArea viewportClassName="settings-scroll">
       <div className="settings-grid">
         <section className="panel">
           <header>
-            colunas padrão
+            {t('settings.columns.header')}
             <button className="btn btn--mini" onClick={addColumn} type="button">
-              <Plus size={13} /> coluna
+              <Plus size={13} /> {t('settings.columns.add')}
             </button>
           </header>
           <SquareScrollArea className="panel__scroll" viewportClassName="panel__scroll-viewport">
@@ -165,7 +169,7 @@ export function SettingsView({
                 <ColorPicker
                   cores={draft.cores}
                   value={column.cor}
-                  label={`Cor da coluna ${column.titulo}`}
+                  label={t('settings.columns.label_color', { titulo: column.titulo })}
                   onChange={(value) =>
                     change({
                       ...draft,
@@ -174,13 +178,13 @@ export function SettingsView({
                   }
                 />
                 <div className="setting-row__actions">
-                  <button className="icon-btn" type="button" aria-label="Mover coluna para cima" onClick={() => moveColumn(index, -1)}>
+                  <button className="icon-btn" type="button" aria-label={t('settings.columns.aria_up')} onClick={() => moveColumn(index, -1)}>
                     <ArrowUp size={13} />
                   </button>
-                  <button className="icon-btn" type="button" aria-label="Mover coluna para baixo" onClick={() => moveColumn(index, 1)}>
+                  <button className="icon-btn" type="button" aria-label={t('settings.columns.aria_down')} onClick={() => moveColumn(index, 1)}>
                     <ArrowDown size={13} />
                   </button>
-                  <button className="icon-btn icon-btn--danger" type="button" aria-label="Remover coluna" onClick={() => removeColumn(column.id)}>
+                  <button className="icon-btn icon-btn--danger" type="button" aria-label={t('settings.columns.aria_remove')} onClick={() => removeColumn(column.id)}>
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -190,9 +194,9 @@ export function SettingsView({
         </section>
         <section className="panel">
           <header>
-            tags
+            {t('settings.tags.header')}
             <button className="btn btn--mini" onClick={addTag} type="button">
-              <Plus size={13} /> tag
+              <Plus size={13} /> {t('settings.tags.add')}
             </button>
           </header>
           <SquareScrollArea className="panel__scroll" viewportClassName="panel__scroll-viewport">
@@ -200,62 +204,78 @@ export function SettingsView({
               <div className="setting-row setting-row--tag" key={tag.id}>
                 <input value={tag.titulo} onChange={(event) => updateTag(tag.id, { titulo: event.target.value })} />
                 <span className="tag-choice tag-choice--active setting-row__tag-preview" style={{ '--tag-color': tag.cor } as CSSProperties}>
-                  {tag.titulo.trim() || 'tag'}
+                  {tag.titulo.trim() || t('settings.tags.preview_empty')}
                 </span>
                 <ColorPicker
                   cores={draft.cores}
                   value={tag.cor}
-                  label={`Cor da tag ${tag.titulo}`}
+                  label={t('settings.tags.label_color', { titulo: tag.titulo })}
                   onChange={(cor) => updateTag(tag.id, { cor })}
                 />
                 <button
                   className="icon-btn icon-btn--danger"
                   type="button"
-                  aria-label="Remover tag"
+                  aria-label={t('settings.tags.aria_remove')}
                   onClick={() => change({ ...draft, tags: draft.tags.filter((item) => item.id !== tag.id) })}
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
             ))}
-            {draft.tags.length === 0 && <p className="panel-empty">adicione tags para atribuir aos projetos.</p>}
+            {draft.tags.length === 0 && <p className="panel-empty">{t('settings.tags.empty')}</p>}
           </SquareScrollArea>
         </section>
         <section className="panel">
-          <header>tema</header>
-          <span className="field-label">cor principal</span>
-          <p className="panel-copy">aplicada em links, foco e elementos ativos.</p>
+          <header>{t('settings.theme.header')}</header>
+          <span className="field-label">{t('settings.theme.label_primary')}</span>
+          <p className="panel-copy">{t('settings.theme.description')}</p>
           <ColorPicker
             cores={draft.cores}
             value={draft.cor_principal ?? '#55B9F7'}
-            label="Cor principal do aplicativo"
+            label={t('settings.theme.label_primary_aria')}
             onChange={(value) => change({ ...draft, cor_principal: value })}
           />
         </section>
         <section className="panel">
-          <header>cloudflare r2</header>
+          <header>{t('settings.language.header')}</header>
+          <label>
+            {t('settings.language.label')}
+            <select
+              value={draft.idioma}
+              onChange={(event) => change({ ...draft, idioma: event.target.value })}
+            >
+              {Object.entries(LOCALES).map(([id, { label }]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+        <section className="panel">
+          <header>{t('settings.r2.header')}</header>
           <button
             type="button"
             className="btn btn--mini btn--mini--inline"
             onClick={() => setShowCloudflareHelp((current) => !current)}
           >
-            <Info size={12} /> {showCloudflareHelp ? 'esconder ajuda' : 'como obter essas credenciais'}
+            <Info size={12} /> {showCloudflareHelp ? t('settings.r2.hide_help') : t('settings.r2.show_help')}
           </button>
           {showCloudflareHelp && (
             <div className="r2-help">
-              <p><strong>onde encontrar cada campo no painel da Cloudflare:</strong></p>
+              <p><strong>{t('settings.r2.help_title')}</strong></p>
               <ul>
                 <li>
-                  <strong>endereço S3</strong> — em R2 → painel da conta, copie o endpoint <code>S3 API</code>
+                  <strong>{t('settings.r2.label_endpoint')}</strong> — em R2 → painel da conta, copie o endpoint <code>S3 API</code>
                   (formato <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>).
                   <br />
                   <em>não</em> use o domínio personalizado do bucket — ele serve só ao tráfego público, não à API S3.
                 </li>
                 <li>
-                  <strong>bucket</strong> — o <em>nome</em> do bucket no R2 (não a URL pública).
+                  <strong>{t('settings.r2.label_bucket')}</strong> — o <em>nome</em> do bucket no R2 (não a URL pública).
                 </li>
                 <li>
-                  <strong>access key id</strong> e <strong>secret access key</strong> — em R2 → <em>Manage R2 API tokens</em>,
+                  <strong>{t('settings.r2.label_access')}</strong> e <strong>{t('settings.r2.label_secret')}</strong> — em R2 → <em>Manage R2 API tokens</em>,
                   criar um token. Use os valores listados em <em>Use the following credentials for S3 clients</em>.
                   O <em>Token Value</em> separado é só para a API HTTP da Cloudflare, ignore aqui.
                 </li>
@@ -263,53 +283,53 @@ export function SettingsView({
             </div>
           )}
           <label>
-            endereço S3
+            {t('settings.r2.label_endpoint')}
             <input
-              placeholder="https://<account-id>.r2.cloudflarestorage.com"
+              placeholder={t('settings.r2.placeholder_endpoint')}
               value={draft.r2.endpoint}
               onChange={(event) => change({ ...draft, r2: { ...draft.r2, endpoint: event.target.value } })}
             />
-            <small className="hint">use o endpoint S3 API da conta, não um domínio customizado.</small>
+            <small className="hint">{t('settings.r2.hint_endpoint')}</small>
             {draft.r2.endpoint.trim() && !validR2Endpoint && (
               <small className="field-error">
-                ERR / este domínio não recebe snapshots. use https://&lt;account-id&gt;.r2.cloudflarestorage.com
+                {t('settings.r2.error_endpoint')}
               </small>
             )}
           </label>
           <label>
-            bucket
+            {t('settings.r2.label_bucket')}
             <input
               value={draft.r2.bucket}
               onChange={(event) => change({ ...draft, r2: { ...draft.r2, bucket: event.target.value } })}
             />
-            <small className="hint">apenas o nome do bucket.</small>
+            <small className="hint">{t('settings.r2.hint_bucket')}</small>
           </label>
           <label>
-            access key id
+            {t('settings.r2.label_access')}
             <input
               autoComplete="off"
               placeholder={credentialStatus?.access_key_id_mascarada ?? ''}
               value={accessKey}
               onChange={(event) => setAccessKey(event.target.value)}
             />
-            <small className="hint">R2 → Manage R2 API tokens → "S3 clients" → Access Key ID.</small>
+            <small className="hint">{t('settings.r2.hint_access')}</small>
           </label>
           <label>
-            secret access key
+            {t('settings.r2.label_secret')}
             <input
               autoComplete="new-password"
               type="password"
               value={secretKey}
               onChange={(event) => setSecretKey(event.target.value)}
             />
-            <small className="hint">logo abaixo, "Secret Access Key". Salva no Keychain do macOS.</small>
+            <small className="hint">{t('settings.r2.hint_secret')}</small>
           </label>
           <div className={credentialStatus?.fixadas ? 'credential-state credential-state--ok' : 'credential-state'}>
-            <strong>KEYCHAIN</strong>
+            <strong>{t('settings.r2.keychain')}</strong>
             <span>
               {credentialStatus?.fixadas
-                ? `credenciais fixadas (${credentialStatus.access_key_id_mascarada})`
-                : 'nenhuma credencial fixada — preencha access + secret e clique em salvar.'}
+                ? t('settings.r2.creds_fixed', { access_key_id: credentialStatus.access_key_id_mascarada ?? '' })
+                : t('settings.r2.creds_empty')}
             </span>
           </div>
           <button
@@ -318,13 +338,13 @@ export function SettingsView({
             disabled={!accessKey.trim() || !secretKey.trim() || dirty || saving || !validR2Endpoint}
             onClick={() => void saveCredentials()}
           >
-            fixar credenciais no Keychain
+            {t('settings.r2.save_button')}
           </button>
         </section>
         <section className="panel">
-          <header>servidor local</header>
+          <header>{t('settings.server.header')}</header>
           <label>
-            porta
+            {t('settings.server.label_port')}
             <input
               type="number"
               value={draft.porta}
@@ -332,14 +352,14 @@ export function SettingsView({
             />
           </label>
           <p className="panel-copy">
-            A janela desktop usa <code>127.0.0.1:4387</code>. Ao hospedar na rede local, a interface web é publicada na porta <code>{draft.porta}</code>.
+            {t('settings.server.description', { porta: draft.porta })}
           </p>
           <p className="panel-copy">
             {daemon?.instalado
-              ? 'autostart instalado.'
+              ? t('settings.server.autostart_installed')
               : daemon?.instalacao_disponivel
-                ? 'autostart ainda não instalado.'
-                : 'para manter o backend ativo com a janela fechada, execute ./scripts/instalar-autostart.sh.'}
+                ? t('settings.server.autostart_available')
+                : t('settings.server.autostart_unavailable')}
           </p>
           {!daemon?.instalado && daemon?.instalacao_disponivel && (
             <button
@@ -348,13 +368,13 @@ export function SettingsView({
               onClick={async () => {
                 try {
                   setDaemon(await api.installDaemon())
-                  onMessage('ok', 'autostart instalado no macOS')
+                  onMessage('ok', t('settings.autostart_installed'))
                 } catch (error) {
-                  onMessage('erro', error instanceof Error ? error.message : 'não foi possível instalar')
+                  onMessage('erro', error instanceof Error ? error.message : t('settings.autostart_fail'))
                 }
               }}
             >
-              instalar autostart
+              {t('settings.server.install_button')}
             </button>
           )}
         </section>

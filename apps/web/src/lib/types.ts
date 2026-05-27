@@ -18,6 +18,7 @@ export type Config = {
   r2: R2Config
   cor_principal: string
   lan_exposto: boolean
+  idioma: string
 }
 export type LanStatus = {
   ativo: boolean

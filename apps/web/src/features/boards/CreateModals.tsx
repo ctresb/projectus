@@ -8,6 +8,7 @@ import { FALLBACK_COLOR, randomPaletteColor } from '../../lib/colors'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
 import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
+import { useT } from '../../i18n'
 
 function focusDescription(event: KeyboardEvent<HTMLInputElement>, editor: RefObject<MarkdownEditorHandle | null>) {
   if (event.key !== 'Tab' || event.shiftKey) return
@@ -30,6 +31,7 @@ export function CreateProjectModal({
   onClose: () => void
   onCreate: (input: { titulo: string; githubUrl: string; markdown: string; cor: string; tags: string[]; novasTags: Tag[] }) => Promise<void>
 }) {
+  const t = useT()
   const [titulo, setTitulo] = useState('')
   const [github, setGithub] = useState('')
   const [markdown, setMarkdown] = useState('')
@@ -58,7 +60,7 @@ export function CreateProjectModal({
     }, []),
   )
   return (
-    <Modal aberto={aberto} titulo="novo projeto" onClose={onClose} amplo>
+    <Modal aberto={aberto} titulo={t('create_project.title')} onClose={onClose} amplo>
       <form
         ref={formRef}
         className="editor-form editor-form--create"
@@ -68,7 +70,7 @@ export function CreateProjectModal({
         }}
       >
         <label>
-          título
+          {t('create_project.label_title')}
           <input
             ref={input}
             value={titulo}
@@ -78,14 +80,14 @@ export function CreateProjectModal({
           />
         </label>
         <div className="editor-form__markdown">
-          <span>descrição</span>
+          <span>{t('create_project.label_description')}</span>
           <DeferredMarkdownEditor ref={editor} documentKey="novo-projeto" markdown={markdown} onChange={setMarkdown} />
         </div>
         <label>
-          repositório GitHub
+          {t('create_project.label_github')}
           <input
             type="url"
-            placeholder="https://github.com/voce/projeto"
+            placeholder={t('create_project.placeholder_github')}
             value={github}
             onChange={(event) => setGithub(event.target.value)}
             required
@@ -93,11 +95,11 @@ export function CreateProjectModal({
         </label>
         <div className="inline-options">
           <div>
-            <span className="field-label">cor</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} label="Cor do projeto" />
+            <span className="field-label">{t('create_project.label_color')}</span>
+            <ColorPicker cores={cores} value={cor} onChange={setCor} label={t('create_project.label_color_aria')} />
           </div>
           <div>
-            <span className="field-label">tags</span>
+            <span className="field-label">{t('create_project.label_tags')}</span>
             <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
             <CommaTagsInput
               cores={cores}
@@ -110,10 +112,10 @@ export function CreateProjectModal({
         </div>
         <footer className="form-actions">
           <button className="btn btn--quiet" type="button" onClick={onClose}>
-            cancelar
+            {t('create_project.cancel')}
           </button>
           <button className="btn btn--primary" type="submit">
-            criar projeto
+            {t('create_project.submit')}
           </button>
         </footer>
       </form>
@@ -136,6 +138,7 @@ export function CreateTaskModal({
   onClose: () => void
   onCreate: (input: { titulo: string; markdown: string; cor: string; tags: string[]; novasTags: Tag[] }) => Promise<void>
 }) {
+  const t = useT()
   const [titulo, setTitulo] = useState('')
   const [markdown, setMarkdown] = useState('')
   const [cor, setCor] = useState(FALLBACK_COLOR)
@@ -162,7 +165,7 @@ export function CreateTaskModal({
     }, []),
   )
   return (
-    <Modal aberto={aberto} titulo="nova tarefa" onClose={onClose} amplo>
+    <Modal aberto={aberto} titulo={t('create_task.title')} onClose={onClose} amplo>
       <form
         ref={formRef}
         className="editor-form editor-form--create"
@@ -172,7 +175,7 @@ export function CreateTaskModal({
         }}
       >
         <label>
-          título
+          {t('create_task.label_title')}
           <input
             ref={input}
             value={titulo}
@@ -182,16 +185,16 @@ export function CreateTaskModal({
           />
         </label>
         <div className="editor-form__markdown">
-          <span>descrição</span>
+          <span>{t('create_task.label_description')}</span>
           <DeferredMarkdownEditor ref={editor} documentKey="nova-tarefa" markdown={markdown} onChange={setMarkdown} />
         </div>
         <div className="inline-options">
           <div>
-            <span className="field-label">cor</span>
-            <ColorPicker cores={cores} value={cor} onChange={setCor} label="Cor da tarefa" />
+            <span className="field-label">{t('create_task.label_color')}</span>
+            <ColorPicker cores={cores} value={cor} onChange={setCor} label={t('create_task.label_color_aria')} />
           </div>
           <div>
-            <span className="field-label">tags da tarefa</span>
+            <span className="field-label">{t('create_task.label_tags')}</span>
             <TagPicker disponiveis={allTags} value={tags} onChange={setTags} />
             <CommaTagsInput
               cores={cores}
@@ -204,10 +207,10 @@ export function CreateTaskModal({
         </div>
         <footer className="form-actions">
           <button className="btn btn--quiet" type="button" onClick={onClose}>
-            cancelar
+            {t('create_task.cancel')}
           </button>
           <button className="btn btn--primary" type="submit">
-            criar tarefa
+            {t('create_task.submit')}
           </button>
         </footer>
       </form>

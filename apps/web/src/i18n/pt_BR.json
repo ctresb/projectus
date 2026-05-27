@@ -1,0 +1,303 @@
+{
+  "boot": {
+    "starting": "iniciando projectus",
+    "backend_unavailable": "backend local indisponível",
+    "retry": "tentar novamente",
+    "version_outdated": "interface local desatualizada",
+    "reload_hint": "recarregue a janela para carregar a versão compatível com o servidor.",
+    "reload_button": "recarregar interface",
+    "version_incompatible": "UPDATE / versão do servidor incompatível",
+    "restarting": "reiniciando o servidor local para aplicar a atualização...",
+    "updating_legacy": "atualizando servidor local legado...",
+    "finishing_update": "finalizando atualização do servidor...",
+    "waiting_updated": "aguardando servidor atualizado...",
+    "reconfiguring": "reconfigurando serviço para servir a interface web...",
+    "restart_failed": "não foi possível reiniciar automaticamente. tente novamente."
+  },
+  "shell": {
+    "crumbs_root": "projectus",
+    "data_section": "dados",
+    "backup_section": "snapshots",
+    "shortcut_hint": "⌘N cria rápido",
+    "local_badge": "local",
+    "aria_rail": "Espaços",
+    "nav": {
+      "projetos": "projetos",
+      "ideias": "ideias",
+      "arquivo": "arquivo",
+      "backup": "snapshots",
+      "config": "ajustes"
+    }
+  },
+  "notice": {
+    "ok": "OK",
+    "erro": "ERR",
+    "info": "INFO"
+  },
+  "save_indicator": {
+    "idle": "salvo localmente",
+    "saving": "salvando...",
+    "saved": "salvo localmente",
+    "error": "erro ao salvar"
+  },
+  "snapshot": {
+    "idle_default": "[SNAPSHOT]",
+    "idle_now": "[SNAPSHOT] agora",
+    "done": "enviado",
+    "fail_short": "falha",
+    "fail_full": "falha no snapshot"
+  },
+  "host": {
+    "tooltip_on": "web exposta na rede local",
+    "tooltip_off": "expor web na rede local",
+    "applying": "aplicando…",
+    "restarting": "reiniciando…",
+    "hosting": "hospedando",
+    "host": "hospedar",
+    "popup_title": "hospedar web na rede local",
+    "aria_off": "desligar exposição LAN",
+    "aria_on": "ligar exposição LAN",
+    "popup_hint": "quando ligado, qualquer dispositivo na mesma Wi-Fi pode abrir o PROJECTUS no navegador.",
+    "restart_in_progress": "reiniciando o servidor pra aplicar… mantenha aberto.",
+    "restart_failed": "servidor não reiniciou sozinho. instale o autostart em ajustes / servidor local ou reinicie o PROJECTUS manualmente.",
+    "lan_toggle_failed": "falha ao alterar LAN",
+    "no_local_ip": "nenhum IP local detectado. verifique se você está conectado a uma rede.",
+    "port_label": "porta: {porta}",
+    "aria_copy": "copiar {url}"
+  },
+  "modal": {
+    "close": "Fechar",
+    "cancel": "cancelar"
+  },
+  "archive_action": {
+    "confirm": "mover {entidade} para Arquivo?",
+    "cancel": "cancelar",
+    "archive": "arquivar"
+  },
+  "comma_tags": {
+    "placeholder": "digite uma tag e vírgula",
+    "aria": "Adicionar tags (separe com vírgula)",
+    "hint": "vírgula adiciona a tag · cor aleatória, edite depois"
+  },
+  "tag_picker": {
+    "empty": "nenhuma tag criada",
+    "aria_new_title": "Título da nova tag",
+    "placeholder_new": "nova tag",
+    "preview": "prévia",
+    "label_new_color": "Cor da nova tag",
+    "button_add": "adicionar"
+  },
+  "projects": {
+    "eyebrow": "projetos",
+    "title": "seus projetos",
+    "new_button": "novo projeto",
+    "empty": "nenhum projeto",
+    "created": "projeto criado",
+    "fail_create": "falha ao criar projeto",
+    "fail_move": "não foi possível mover o projeto"
+  },
+  "project_detail": {
+    "back": "projetos",
+    "eyebrow": "projeto",
+    "edit": "editar",
+    "new_task": "nova tarefa",
+    "empty": "nenhuma tarefa",
+    "loading": "carregando projeto...",
+    "not_found": "projeto não encontrado",
+    "fail_move_task": "não foi possível mover a tarefa",
+    "task_created": "tarefa criada",
+    "fail_create_task": "falha ao criar tarefa",
+    "project_archived": "projeto movido para Arquivo",
+    "task_archived": "tarefa movida para Arquivo",
+    "fail_archive": "não foi possível arquivar",
+    "entity_project": "este projeto",
+    "entity_task": "esta tarefa"
+  },
+  "ideas": {
+    "eyebrow": "ideias",
+    "aria_new": "Nova ideia",
+    "search_placeholder": "buscar nota",
+    "list_empty": "nenhuma nota",
+    "view_empty": "nenhuma ideia ainda",
+    "new_button": "nova ideia",
+    "loading_note": "carregando nota...",
+    "label_color": "Cor da ideia",
+    "default_title": "nova ideia",
+    "fail_create": "não foi possível criar a ideia",
+    "archived": "ideia movida para Arquivo",
+    "fail_archive": "não foi possível arquivar a ideia",
+    "entity": "esta ideia"
+  },
+  "archive_view": {
+    "eyebrow": "arquivo",
+    "title": "itens arquivados",
+    "legacy_item": "item legado sem metadados de restauração",
+    "restore": "restaurar",
+    "empty": "nenhum item arquivado",
+    "loading": "carregando arquivo...",
+    "restored": "item restaurado do Arquivo",
+    "fail_restore": "não foi possível restaurar",
+    "entity_label": {
+      "projeto": "projeto",
+      "tarefa": "tarefa",
+      "ideia": "ideia",
+      "item": "item"
+    },
+    "project_of": "projeto / {titulo}"
+  },
+  "backup_view": {
+    "eyebrow": "r2-syncs",
+    "title": "snapshots",
+    "snapshot_now": "[SNAPSHOT] agora",
+    "description": "cada snapshot envia a pasta integral ~/Documents/PROJECTUS: configurações, kanbans, ideias, Arquivo, históricos e anexos.",
+    "not_configured": "R2 ainda não configurado.",
+    "not_configured_hint": "informe bucket e credenciais em ajustes.",
+    "history": "histórico remoto",
+    "origin_manual": "MANUAL",
+    "origin_auto": "AUTO",
+    "files_size": "{files} arquivos / {mb} MB",
+    "confirm_restore": "Restaurar este snapshot? O estado atual será preservado em uma pasta de recuperação.",
+    "restore": "restaurar",
+    "restored": "snapshot restaurado",
+    "fail_restore": "falha ao restaurar",
+    "fail_query": "não foi possível consultar o R2",
+    "empty": "nenhum snapshot enviado."
+  },
+  "create_project": {
+    "title": "novo projeto",
+    "label_title": "título",
+    "label_description": "descrição",
+    "label_github": "repositório GitHub",
+    "placeholder_github": "https://github.com/voce/projeto",
+    "label_color": "cor",
+    "label_color_aria": "Cor do projeto",
+    "label_tags": "tags",
+    "cancel": "cancelar",
+    "submit": "criar projeto"
+  },
+  "create_task": {
+    "title": "nova tarefa",
+    "label_title": "título",
+    "label_description": "descrição",
+    "label_color": "cor",
+    "label_color_aria": "Cor da tarefa",
+    "label_tags": "tags da tarefa",
+    "cancel": "cancelar",
+    "submit": "criar tarefa"
+  },
+  "edit_project": {
+    "title": "editar projeto",
+    "label_title": "título",
+    "label_github": "repositório GitHub",
+    "aria_open_repo": "Abrir repositório",
+    "label_color": "cor",
+    "label_color_aria": "Cor do projeto",
+    "label_tags": "tags",
+    "label_task_tags": "tags disponíveis nas tarefas",
+    "empty_task_tags": "crie tags para organizar tarefas",
+    "label_description": "descrição",
+    "loading_editor": "carregando editor...",
+    "title_required": "título obrigatório",
+    "github_required": "repositório GitHub obrigatório",
+    "aria_remove_tag": "Remover {titulo}",
+    "label_tag_color": "Cor da tag {titulo}"
+  },
+  "edit_task": {
+    "title": "editar tarefa",
+    "label_title": "título",
+    "label_color": "cor",
+    "label_color_aria": "Cor da tarefa",
+    "label_tags": "tags",
+    "label_description": "descrição",
+    "loading_editor": "carregando editor..."
+  },
+  "kanban": {
+    "aria_board": "Quadro kanban",
+    "aria_card": "Abrir ou mover {titulo}",
+    "instructions": "Para mover um card, pressione espaço. Use as setas para escolher a posição e pressione espaço novamente para soltar. Pressione Escape para cancelar.",
+    "fallback_card": "card",
+    "fallback_board": "quadro",
+    "announce_start": "{card} selecionado.",
+    "announce_over": "{card} sobre a coluna {coluna}.",
+    "announce_invalid": "{card} fora de uma coluna válida.",
+    "announce_end": "{card} solto na coluna {coluna}.",
+    "announce_cancel": "Movimento de {card} cancelado."
+  },
+  "settings": {
+    "eyebrow": "ajustes",
+    "title": "ajustes",
+    "autosaving": "salvando automaticamente...",
+    "autosaved": "salvamento automático ativo",
+    "min_one_column": "mantenha pelo menos uma coluna",
+    "creds_saved": "credenciais R2 fixadas no Keychain",
+    "creds_fail": "não foi possível salvar credenciais",
+    "autostart_installed": "autostart instalado no macOS",
+    "autostart_fail": "não foi possível instalar",
+    "columns": {
+      "header": "colunas padrão",
+      "add": "coluna",
+      "default_new_title": "NOVA COLUNA",
+      "label_color": "Cor da coluna {titulo}",
+      "aria_up": "Mover coluna para cima",
+      "aria_down": "Mover coluna para baixo",
+      "aria_remove": "Remover coluna"
+    },
+    "tags": {
+      "header": "tags",
+      "add": "tag",
+      "default_new_title": "nova tag",
+      "preview_empty": "tag",
+      "label_color": "Cor da tag {titulo}",
+      "aria_remove": "Remover tag",
+      "empty": "adicione tags para atribuir aos projetos."
+    },
+    "theme": {
+      "header": "tema",
+      "label_primary": "cor principal",
+      "description": "aplicada em links, foco e elementos ativos.",
+      "label_primary_aria": "Cor principal do aplicativo"
+    },
+    "language": {
+      "header": "idioma",
+      "label": "idioma da interface"
+    },
+    "r2": {
+      "header": "cloudflare r2",
+      "hide_help": "esconder ajuda",
+      "show_help": "como obter essas credenciais",
+      "help_title": "onde encontrar cada campo no painel da Cloudflare:",
+      "label_endpoint": "endereço S3",
+      "placeholder_endpoint": "https://<account-id>.r2.cloudflarestorage.com",
+      "hint_endpoint": "use o endpoint S3 API da conta, não um domínio customizado.",
+      "error_endpoint": "ERR / este domínio não recebe snapshots. use https://<account-id>.r2.cloudflarestorage.com",
+      "label_bucket": "bucket",
+      "hint_bucket": "apenas o nome do bucket.",
+      "label_access": "access key id",
+      "hint_access": "R2 → Manage R2 API tokens → \"S3 clients\" → Access Key ID.",
+      "label_secret": "secret access key",
+      "hint_secret": "logo abaixo, \"Secret Access Key\". Salva no Keychain do macOS.",
+      "keychain": "KEYCHAIN",
+      "creds_fixed": "credenciais fixadas ({access_key_id})",
+      "creds_empty": "nenhuma credencial fixada — preencha access + secret e clique em salvar.",
+      "save_button": "fixar credenciais no Keychain"
+    },
+    "server": {
+      "header": "servidor local",
+      "label_port": "porta",
+      "description": "A janela desktop usa 127.0.0.1:4387. Ao hospedar na rede local, a interface web é publicada na porta {porta}.",
+      "autostart_installed": "autostart instalado.",
+      "autostart_available": "autostart ainda não instalado.",
+      "autostart_unavailable": "para manter o backend ativo com a janela fechada, execute ./scripts/instalar-autostart.sh.",
+      "install_button": "instalar autostart"
+    }
+  },
+  "columns": {
+    "default": {
+      "PLANEJADO": "PLANEJADO",
+      "FAZENDO": "FAZENDO",
+      "FINALIZANDO": "FINALIZANDO",
+      "PRONTO": "PRONTO",
+      "CONCLUÍDO": "CONCLUÍDO"
+    }
+  }
+}

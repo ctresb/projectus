@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Check, CloudOff, Loader2 } from 'lucide-react'
 import { useSaveStatus } from '../hooks/useSaveStatus'
 import { EASE } from '../lib/motion'
+import { useT } from '../i18n'
 
 const tone: Record<string, string> = {
   idle: 'save-indicator--idle',
@@ -10,15 +11,10 @@ const tone: Record<string, string> = {
   error: 'save-indicator--error',
 }
 
-const label: Record<string, string> = {
-  idle: 'salvo localmente',
-  saving: 'salvando...',
-  saved: 'salvo localmente',
-  error: 'erro ao salvar',
-}
-
 export function SaveIndicator() {
   const state = useSaveStatus()
+  const t = useT()
+  const label = t(`save_indicator.${state.status}`)
   const icon =
     state.status === 'saving' ? (
       <Loader2 size={14} className="save-indicator__spin" />
@@ -28,7 +24,7 @@ export function SaveIndicator() {
       <Check size={14} />
     )
   return (
-    <div className={`save-indicator ${tone[state.status]}`} title={state.errorMessage ?? label[state.status]}>
+    <div className={`save-indicator ${tone[state.status]}`} title={state.errorMessage ?? label}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={state.status}
@@ -39,7 +35,7 @@ export function SaveIndicator() {
           className="save-indicator__inner"
         >
           {icon}
-          <span className="save-indicator__label">{label[state.status]}</span>
+          <span className="save-indicator__label">{label}</span>
         </motion.span>
       </AnimatePresence>
     </div>

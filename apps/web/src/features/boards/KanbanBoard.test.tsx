@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Column, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { KanbanBoard } from './KanbanBoard'
+import { I18nProvider } from '../../i18n'
 
 const columns: Column[] = [
   { id: 'planejado', titulo: 'PLANEJADO', cor: '#55B9F7' },
@@ -15,7 +16,11 @@ describe('KanbanBoard compartilhado', () => {
     const task: TaskCard = { ...metadata, id: 'task', titulo: 'Ajustar colisão', status: 'planejado', cor: '#55B9F7', tags: [] }
     const onOpen = vi.fn()
     const onMove = vi.fn().mockResolvedValue(undefined)
-    render(<KanbanBoard colunas={columns} cards={[task]} tags={tags} vazio="nenhuma tarefa" onOpen={onOpen} onMove={onMove} />)
+    render(
+      <I18nProvider locale="pt-BR">
+        <KanbanBoard colunas={columns} cards={[task]} tags={tags} vazio="nenhuma tarefa" onOpen={onOpen} onMove={onMove} />
+      </I18nProvider>,
+    )
 
     fireEvent.click(screen.getByLabelText('Abrir ou mover Ajustar colisão'))
 
@@ -35,14 +40,16 @@ describe('KanbanBoard compartilhado', () => {
       tags: ['jogo'],
     }
     render(
-      <KanbanBoard
-        colunas={columns}
-        cards={[project]}
-        tags={tags}
-        vazio="nenhum projeto"
-        onOpen={vi.fn()}
-        onMove={vi.fn().mockResolvedValue(undefined)}
-      />,
+      <I18nProvider locale="pt-BR">
+        <KanbanBoard
+          colunas={columns}
+          cards={[project]}
+          tags={tags}
+          vazio="nenhum projeto"
+          onOpen={vi.fn()}
+          onMove={vi.fn().mockResolvedValue(undefined)}
+        />
+      </I18nProvider>,
     )
 
     expect(screen.getByText('github / exemplo/projeto')).toBeInTheDocument()

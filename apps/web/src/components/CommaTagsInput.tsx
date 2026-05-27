@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent } from 'react'
 import type { ColorChoice, Tag } from '../lib/types'
 import { itemId } from '../lib/ids'
 import { randomPaletteColor } from '../lib/colors'
+import { useT } from '../i18n'
 
 type Props = {
   cores: ColorChoice[]
@@ -9,7 +10,8 @@ type Props = {
   placeholder?: string
 }
 
-export function CommaTagsInput({ cores, onCreate, placeholder = 'digite uma tag e vírgula' }: Props) {
+export function CommaTagsInput({ cores, onCreate, placeholder }: Props) {
+  const t = useT()
   const [draft, setDraft] = useState('')
 
   const commit = (raw: string) => {
@@ -42,12 +44,12 @@ export function CommaTagsInput({ cores, onCreate, placeholder = 'digite uma tag 
         className="comma-tags__input"
         type="text"
         value={draft}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('comma_tags.placeholder')}
         onChange={(event) => handleChange(event.target.value)}
         onKeyDown={handleKey}
-        aria-label="Adicionar tags (separe com vírgula)"
+        aria-label={t('comma_tags.aria')}
       />
-      <small className="comma-tags__hint">vírgula adiciona a tag · cor aleatória, edite depois</small>
+      <small className="comma-tags__hint">{t('comma_tags.hint')}</small>
     </div>
   )
 }
