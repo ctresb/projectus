@@ -31,6 +31,7 @@ export type ProjectCard = {
   id: string
   pasta: string
   titulo: string
+  resumo?: string
   github_url: string
   status: string
   cor: string
@@ -43,6 +44,7 @@ export type TaskCard = {
   id: string
   pasta: string
   titulo: string
+  resumo?: string
   status: string
   cor: string
   tags: string[]

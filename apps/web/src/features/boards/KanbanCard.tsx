@@ -76,6 +76,7 @@ function CardContent<T extends EntityCard>({ card, tags }: { card: T; tags: Tag[
     <>
       <div className="board-card__bar" />
       <h3>{card.titulo}</h3>
+      {card.resumo?.trim() && <p className="board-card__summary">{card.resumo}</p>}
       {project && <span className="board-card__repo">github / {new URL(card.github_url).pathname.slice(1)}</span>}
       <div className="board-card__tags">
         {card.tags.map((tagId) => {

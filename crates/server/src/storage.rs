@@ -244,6 +244,7 @@ impl Storage {
             id: id.clone(),
             pasta: folder,
             titulo: project.titulo.clone(),
+            resumo: markdown_summary(&markdown),
             github_url: project.github_url.clone(),
             status: first_column(&project.colunas),
             cor: card_color,
@@ -309,6 +310,7 @@ impl Storage {
         let mut board = self.read_board_inner()?;
         if let Some(card) = board.projetos.iter_mut().find(|card| card.id == id) {
             card.titulo.clone_from(&project.titulo);
+            card.resumo = markdown_summary(&markdown);
             card.github_url.clone_from(&project.github_url);
             card.cor = input.cor;
             card.tags = input.tags;
@@ -445,6 +447,7 @@ impl Storage {
             id: id.clone(),
             pasta: folder,
             titulo: input.titulo.trim().to_owned(),
+            resumo: markdown_summary(&markdown),
             status: first_column(&project.colunas),
             cor: card_color,
             tags: filter_tags(input.tags, &project.tags_disponiveis),
@@ -510,6 +513,7 @@ impl Storage {
         task.tags = input.tags;
         task.atualizado_em = Utc::now();
         let markdown = markdown_with_title(&task.titulo, &input.markdown);
+        task.resumo = markdown_summary(&markdown);
         let dir = self.root.join("projetos").join(&project.pasta);
         atomic_text(
             &dir.join("tarefas").join(&task.pasta).join("card.md"),
@@ -906,7 +910,9 @@ impl Storage {
     }
 
     fn read_board_inner(&self) -> StoreResult<Board> {
-        read_json(&self.root.join("board.json"))
+        let mut board: Board = read_json(&self.root.join("board.json"))?;
+        self.hydrate_project_summaries(&mut board);
+        Ok(board)
     }
 
     fn read_ideas_inner(&self) -> StoreResult<IdeasIndex> {
@@ -1101,10 +1107,42 @@ impl Storage {
             .find(|card| card.id == id)
             .ok_or(StoreError::NotFound)?;
         let dir = self.root.join("projetos").join(&card.pasta);
+        let mut project: Project = read_json(&dir.join("project.json"))?;
+        self.hydrate_task_summaries(&card.pasta, &mut project.tarefas);
         Ok(DocumentResponse {
-            dados: read_json(&dir.join("project.json"))?,
+            dados: project,
             markdown: fs::read_to_string(dir.join("project.md"))?,
         })
+    }
+
+    fn hydrate_project_summaries(&self, board: &mut Board) {
+        for card in &mut board.projetos {
+            if !card.resumo.is_empty() {
+                continue;
+            }
+            let path = self.root.join("projetos").join(&card.pasta).join("project.md");
+            if let Ok(markdown) = fs::read_to_string(path) {
+                card.resumo = markdown_summary(&markdown);
+            }
+        }
+    }
+
+    fn hydrate_task_summaries(&self, project_folder: &str, tasks: &mut [TaskCard]) {
+        for task in tasks {
+            if !task.resumo.is_empty() {
+                continue;
+            }
+            let path = self
+                .root
+                .join("projetos")
+                .join(project_folder)
+                .join("tarefas")
+                .join(&task.pasta)
+                .join("card.md");
+            if let Ok(markdown) = fs::read_to_string(path) {
+                task.resumo = markdown_summary(&markdown);
+            }
+        }
     }
 
     fn history_inner(
@@ -1254,6 +1292,88 @@ fn markdown_with_title(title: &str, markdown: &str) -> String {
     } else {
         format!("# {}\n\n{}\n", title.trim(), body.trim_end())
     }
+}
+
+fn markdown_summary(markdown: &str) -> String {
+    let trimmed = markdown.trim_start();
+    let body = if trimmed.starts_with("# ") {
+        trimmed
+            .split_once('\n')
+            .map(|(_, body)| body.trim_start())
+            .unwrap_or("")
+    } else {
+        trimmed
+    };
+    let mut summary = body
+        .lines()
+        .map(clean_summary_line)
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ");
+    summary = summary.split_whitespace().collect::<Vec<_>>().join(" ");
+    summary.chars().take(220).collect()
+}
+
+fn clean_summary_line(line: &str) -> String {
+    let mut text = line.trim();
+    while text.starts_with('#') {
+        text = text[1..].trim_start();
+    }
+    text = text
+        .trim()
+        .trim_start_matches(['#', '>', '-', '*', '+', ' '])
+        .trim();
+    if text.starts_with("[ ]") || text.starts_with("[x]") || text.starts_with("[X]") {
+        text = text[3..].trim();
+    }
+    let mut output = String::new();
+    let chars: Vec<char> = text.chars().collect();
+    let mut index = 0;
+    while index < chars.len() {
+        let current = chars[index];
+        if current == '!' && chars.get(index + 1) == Some(&'[') {
+            if let Some(end) = find_matching(&chars, index + 2, ']') {
+                if chars.get(end + 1) == Some(&'(') {
+                    if let Some(close) = find_matching(&chars, end + 2, ')') {
+                        index = close + 1;
+                        continue;
+                    }
+                }
+            }
+        }
+        if current == '[' {
+            if let Some(end) = find_matching(&chars, index + 1, ']') {
+                if chars.get(end + 1) == Some(&'(') {
+                    if let Some(close) = find_matching(&chars, end + 2, ')') {
+                        output.extend(chars[index + 1..end].iter());
+                        index = close + 1;
+                        continue;
+                    }
+                }
+            }
+        }
+        if matches!(current, '`' | '*' | '_' | '~') {
+            index += 1;
+            continue;
+        }
+        if current == '<' {
+            if let Some(close) = find_matching(&chars, index + 1, '>') {
+                index = close + 1;
+                continue;
+            }
+        }
+        output.push(current);
+        index += 1;
+    }
+    output.trim().to_owned()
+}
+
+fn find_matching(chars: &[char], start: usize, target: char) -> Option<usize> {
+    chars
+        .iter()
+        .enumerate()
+        .skip(start)
+        .find_map(|(index, current)| (*current == target).then_some(index))
 }
 
 fn hash_text(text: &str) -> String {

@@ -121,6 +121,8 @@ pub struct ProjectCard {
     pub id: String,
     pub pasta: String,
     pub titulo: String,
+    #[serde(default)]
+    pub resumo: String,
     pub github_url: String,
     pub status: String,
     pub cor: String,
@@ -148,6 +150,8 @@ pub struct TaskCard {
     pub id: String,
     pub pasta: String,
     pub titulo: String,
+    #[serde(default)]
+    pub resumo: String,
     pub status: String,
     pub cor: String,
     pub tags: Vec<String>,

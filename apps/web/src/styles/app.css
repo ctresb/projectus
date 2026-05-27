@@ -356,6 +356,15 @@
 .board-card h3 {
   font: 600 14px/1.4 var(--font-mono);
 }
+.board-card__summary {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--fg3);
+  font-size: 11px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
 .board-card__repo {
   overflow: hidden;
   color: var(--fg3);
