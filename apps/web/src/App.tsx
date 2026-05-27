@@ -95,7 +95,7 @@ export function App() {
       )}
       {screen === 'backup' && <BackupView config={workspace.config} onMessage={message} />}
       {screen === 'arquivo' && (
-        <ArchiveView board={workspace.board} ideas={workspace.ideias} onRefresh={refresh} onMessage={message} />
+        <ArchiveView onRefresh={refresh} onMessage={message} />
       )}
       {screen === 'config' && <SettingsView config={workspace.config} onConfig={setConfig} onMessage={message} />}
       <Notice notice={notice} />

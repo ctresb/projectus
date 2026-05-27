@@ -1,20 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ArchiveRestore, CheckSquare, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { cx } from '../../lib/classnames'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
 import type { ArchiveIndex, ArchivedItem, Board, Ideas } from '../../lib/types'
 import { useT, type TFn } from '../../i18n'
-import { Button, Container, EmptyState, LoadingState, PageHeader } from '../../components/ui'
+import { Button, Checkbox, Container, EmptyState, LoadingState, PageHeader } from '../../components/ui'
 
 export function ArchiveView({
-  board,
-  ideas,
   onRefresh,
   onMessage,
 }: {
-  board: Board
-  ideas: Ideas
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
@@ -22,11 +18,18 @@ export function ArchiveView({
   const [archive, setArchive] = useState<ArchiveIndex | null>(null)
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+
+  const loadArchive = useCallback(async () => {
+    const current = await api.archive()
+    setArchive(current)
+    return current
+  }, [])
 
   useEffect(() => {
-    void api.archive().then(setArchive).catch((error: Error) => onMessage('erro', error.message))
-    return api.events(() => void api.archive().then(setArchive).catch(() => undefined))
-  }, [onMessage])
+    void loadArchive().catch((error: Error) => onMessage('erro', error.message))
+    return api.events(() => void loadArchive().catch(() => undefined))
+  }, [loadArchive, onMessage])
 
   useEffect(() => {
     if (!archive) return
@@ -54,37 +57,56 @@ export function ArchiveView({
   }
 
   const restore = async (item: ArchivedItem) => {
-    if (!archive) return
-    const revisions = createRevisionTracker(board, ideas)
+    if (busy) return
+    setBusy(true)
     try {
-      const destinoRevision = await revisions.destination(item)
-      revisions.markRestored(item)
-      const updated = await api.restoreArchived(item.id, archive.revision, destinoRevision)
+      const currentArchive = await loadArchive()
+      const currentItem = currentArchive.itens.find((candidate) => candidate.id === item.id)
+      if (!currentItem) throw new Error(t('archive_view.fail_restore'))
+      const workspace = await api.bootstrap()
+      const revisions = createRevisionTracker(workspace.board, workspace.ideias)
+      const destinoRevision = await revisions.destination(currentItem)
+      const updated = await api.restoreArchived(currentItem.id, currentArchive.revision, destinoRevision)
       setArchive(updated)
       await onRefresh()
+      await loadArchive()
       onMessage('ok', t('archive_view.restored'))
     } catch (error) {
+      await loadArchive().catch(() => undefined)
       onMessage('erro', error instanceof Error ? error.message : t('archive_view.fail_restore'))
+    } finally {
+      setBusy(false)
     }
   }
 
   const deleteOne = async (item: ArchivedItem) => {
-    if (!archive || !window.confirm(t('archive_view.confirm_delete_one', { titulo: item.titulo }))) return
+    if (busy || !window.confirm(t('archive_view.confirm_delete_one', { titulo: item.titulo }))) return
+    setBusy(true)
     try {
-      setArchive(await api.deleteArchived(item.id, archive.revision))
+      const currentArchive = await loadArchive()
+      const currentItem = currentArchive.itens.find((candidate) => candidate.id === item.id)
+      if (!currentItem) throw new Error(t('archive_view.fail_delete'))
+      setArchive(await api.deleteArchived(currentItem.id, currentArchive.revision))
+      await loadArchive()
       setSelectedIds((current) => current.filter((id) => id !== item.id))
       onMessage('ok', t('archive_view.deleted'))
     } catch (error) {
+      await loadArchive().catch(() => undefined)
       onMessage('erro', error instanceof Error ? error.message : t('archive_view.fail_delete'))
+    } finally {
+      setBusy(false)
     }
   }
 
   const restoreSelected = async () => {
-    if (!archive || selectedItems.length === 0 || !window.confirm(t('archive_view.confirm_restore_selected', { count: selectedItems.length }))) return
-    const revisions = createRevisionTracker(board, ideas)
+    if (busy || selectedItems.length === 0 || !window.confirm(t('archive_view.confirm_restore_selected', { count: selectedItems.length }))) return
+    setBusy(true)
     try {
-      let currentArchive = archive
-      for (const item of selectedItems) {
+      let currentArchive = await loadArchive()
+      const currentItems = currentArchive.itens.filter((item) => selectedIds.includes(item.id))
+      const workspace = await api.bootstrap()
+      const revisions = createRevisionTracker(workspace.board, workspace.ideias)
+      for (const item of currentItems) {
         const destinoRevision = await revisions.destination(item)
         currentArchive = await api.restoreArchived(item.id, currentArchive.revision, destinoRevision)
         revisions.markRestored(item)
@@ -92,24 +114,34 @@ export function ArchiveView({
       setArchive(currentArchive)
       cancelSelection()
       await onRefresh()
-      onMessage('ok', t('archive_view.restored_selected', { count: selectedItems.length }))
+      await loadArchive()
+      onMessage('ok', t('archive_view.restored_selected', { count: currentItems.length }))
     } catch (error) {
+      await loadArchive().catch(() => undefined)
       onMessage('erro', error instanceof Error ? error.message : t('archive_view.fail_restore'))
+    } finally {
+      setBusy(false)
     }
   }
 
   const deleteSelected = async () => {
-    if (!archive || selectedItems.length === 0 || !window.confirm(t('archive_view.confirm_delete_selected', { count: selectedItems.length }))) return
+    if (busy || selectedItems.length === 0 || !window.confirm(t('archive_view.confirm_delete_selected', { count: selectedItems.length }))) return
+    setBusy(true)
     try {
-      let currentArchive = archive
-      for (const item of selectedItems) {
+      let currentArchive = await loadArchive()
+      const currentItems = currentArchive.itens.filter((item) => selectedIds.includes(item.id))
+      for (const item of currentItems) {
         currentArchive = await api.deleteArchived(item.id, currentArchive.revision)
       }
       setArchive(currentArchive)
       cancelSelection()
-      onMessage('ok', t('archive_view.deleted_selected', { count: selectedItems.length }))
+      await loadArchive()
+      onMessage('ok', t('archive_view.deleted_selected', { count: currentItems.length }))
     } catch (error) {
+      await loadArchive().catch(() => undefined)
       onMessage('erro', error instanceof Error ? error.message : t('archive_view.fail_delete'))
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -124,15 +156,15 @@ export function ArchiveView({
             <div className="archive-header-actions">
               {selectionMode && (
                 <>
-                  <Button variant="danger" type="button" onClick={() => void deleteSelected()} disabled={selectedCount === 0}>
+                  <Button variant="danger" type="button" onClick={() => void deleteSelected()} disabled={busy || selectedCount === 0}>
                     <Trash2 size={14} /> {t('archive_view.delete')}
                   </Button>
-                  <Button type="button" onClick={() => void restoreSelected()} disabled={selectedCount === 0}>
+                  <Button type="button" onClick={() => void restoreSelected()} disabled={busy || selectedCount === 0}>
                     <ArchiveRestore size={14} /> {t('archive_view.restore')}
                   </Button>
                 </>
               )}
-              <Button type="button" onClick={selectionMode ? cancelSelection : () => setSelectionMode(true)}>
+              <Button type="button" onClick={selectionMode ? cancelSelection : () => setSelectionMode(true)} disabled={busy}>
                 {selectionMode ? <X size={14} /> : <CheckSquare size={14} />}
                 {selectionMode ? t('archive_view.cancel_selection') : t('archive_view.select')}
               </Button>
@@ -143,30 +175,26 @@ export function ArchiveView({
       <SquareScrollArea className="archive-list" viewportClassName="archive-list__viewport">
         {selectionMode && archive && items.length > 0 && (
           <div className="archive-selection-bar">
-            <label className="archive-checkbox-control archive-checkbox-label">
-              <input
-                aria-label={t('archive_view.aria_select_all')}
-                checked={allSelected}
-                type="checkbox"
-                onChange={toggleAll}
-              />
-              <span className="archive-checkbox" aria-hidden="true" />
-              <span>{t('archive_view.selected_count', { selected: selectedCount, total: items.length })}</span>
-            </label>
+            <Checkbox
+              aria-label={t('archive_view.aria_select_all')}
+              checked={allSelected}
+              className="archive-checkbox-label"
+              disabled={busy}
+              label={t('archive_view.selected_count', { selected: selectedCount, total: items.length })}
+              onCheckedChange={toggleAll}
+            />
           </div>
         )}
         {items.map((item) => (
           <article className={cx('archive-item', selectionMode && 'archive-item--selecting')} key={item.id}>
             {selectionMode && (
-              <label className="archive-checkbox-control archive-item__checkbox">
-                <input
-                  aria-label={t('archive_view.aria_select_item', { titulo: item.titulo })}
-                  checked={selectedIds.includes(item.id)}
-                  type="checkbox"
-                  onChange={() => toggleSelected(item.id)}
-                />
-                <span className="archive-checkbox" aria-hidden="true" />
-              </label>
+              <Checkbox
+                aria-label={t('archive_view.aria_select_item', { titulo: item.titulo })}
+                checked={selectedIds.includes(item.id)}
+                className="archive-item__checkbox"
+                disabled={busy}
+                onCheckedChange={() => toggleSelected(item.id)}
+              />
             )}
             <div className="archive-item__body">
               <span className="eyebrow">{label(item.entidade, t)}</span>
@@ -176,10 +204,10 @@ export function ArchiveView({
             </div>
             {!selectionMode && (
               <div className="archive-item__actions">
-                <Button type="button" onClick={() => void restore(item)}>
+                <Button type="button" onClick={() => void restore(item)} disabled={busy}>
                   <ArchiveRestore size={14} /> {t('archive_view.restore')}
                 </Button>
-                <Button variant="danger" type="button" onClick={() => void deleteOne(item)}>
+                <Button variant="danger" type="button" onClick={() => void deleteOne(item)} disabled={busy}>
                   <Trash2 size={14} /> {t('archive_view.delete')}
                 </Button>
               </div>

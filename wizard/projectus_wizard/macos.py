@@ -52,7 +52,16 @@ async def reveal_in_finder(path: Path, root: Path, log: LogFn) -> None:
 
 
 async def open_dmg(path: Path, root: Path, log: LogFn) -> None:
+    await detach_projectus_volumes(root, log)
     await run_command(["open", str(path)], cwd=root, log=log)
+
+
+async def detach_projectus_volumes(root: Path, log: LogFn) -> None:
+    volumes = sorted(Path("/Volumes").glob("PROJECTUS*"))
+    for volume in volumes:
+        if volume.is_dir():
+            await log(f">> desmontando volume anterior: {volume}")
+            await run_command(["hdiutil", "detach", str(volume), "-quiet"], cwd=root, log=log, check=False)
 
 
 async def install_or_restart_daemon(root: Path, log: LogFn) -> None:
@@ -89,4 +98,3 @@ def _plist_body(root: Path, binary: Path, logs: Path) -> str:
 <key>StandardErrorPath</key><string>{html.escape(str(logs / "server.err.log"))}</string>
 </dict></plist>
 """
-

@@ -9,6 +9,10 @@ STRINGS = {
         "app.subtitle": "Wizard de build e ambiente do PROJECTUS",
         "app.hint": "Use setas e Enter. Esc volta. Q sai.",
         "app.ready": "PROJECTUS wizard pronto.",
+        "app.copy_logs": "Logs copiados para a área de transferência.",
+        "app.copy_logs_empty": "Não há logs para copiar.",
+        "app.copy_logs_failed": "Não foi possível copiar os logs: {error}",
+        "app.clear_logs": "Logs limpos.",
         "menu.title": "O que você quer fazer?",
         "menu.desktop": "Compilar programa",
         "menu.server": "Compilar servidor",
@@ -59,11 +63,19 @@ STRINGS = {
         "value.no": "não",
         "value.unavailable": "indisponível",
         "value.no_response": "sem resposta",
+        "binding.quit": "Sair",
+        "binding.back": "Voltar",
+        "binding.copy_logs": "Copiar logs",
+        "binding.clear_logs": "Limpar logs",
     },
     "en_US": {
         "app.subtitle": "PROJECTUS build and environment wizard",
         "app.hint": "Use arrows and Enter. Esc goes back. Q quits.",
         "app.ready": "PROJECTUS wizard ready.",
+        "app.copy_logs": "Logs copied to clipboard.",
+        "app.copy_logs_empty": "There are no logs to copy.",
+        "app.copy_logs_failed": "Could not copy logs: {error}",
+        "app.clear_logs": "Logs cleared.",
         "menu.title": "What do you want to do?",
         "menu.desktop": "Build app",
         "menu.server": "Build server",
@@ -114,6 +126,10 @@ STRINGS = {
         "value.no": "no",
         "value.unavailable": "unavailable",
         "value.no_response": "no response",
+        "binding.quit": "Quit",
+        "binding.back": "Back",
+        "binding.copy_logs": "Copy logs",
+        "binding.clear_logs": "Clear logs",
     },
 }
 
@@ -145,4 +161,3 @@ def detect_language() -> str:
 def _normalize_language(language: str) -> str:
     clean = language.replace("-", "_").split(".", 1)[0]
     return "pt_BR" if clean.lower().startswith("pt") else "en_US"
-

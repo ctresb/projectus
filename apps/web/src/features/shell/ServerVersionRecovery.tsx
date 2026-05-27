@@ -3,7 +3,7 @@ import { api, ApiFailure } from '../../lib/api'
 import { Button, ErrorState } from '../../components/ui'
 import { useT } from '../../i18n'
 
-export const REQUIRED_API_VERSION = 5
+export const REQUIRED_API_VERSION = 6
 
 function wait(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))

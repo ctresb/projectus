@@ -649,6 +649,7 @@
   height: 16px;
   border: 1px solid var(--fg2);
   background: transparent;
+  box-sizing: border-box;
 }
 .markdown-editor [class*='_listItemChecked'] {
   color: var(--fg2);
@@ -940,47 +941,11 @@
   background: var(--ink-2);
 }
 .archive-checkbox-label {
-  gap: var(--s-2);
   color: var(--fg2);
   font-size: 12px;
 }
-.archive-checkbox-control {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-.archive-checkbox-control input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-  pointer-events: none;
-}
 .archive-item__checkbox {
-  width: 16px;
-  height: 16px;
   flex: none;
-}
-.archive-checkbox {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  border: 1px solid var(--fg2);
-  background: transparent;
-  box-sizing: border-box;
-}
-.archive-checkbox-control:hover .archive-checkbox {
-  border-color: var(--paper);
-}
-.archive-checkbox-control input:checked + .archive-checkbox {
-  border-color: var(--accent);
-  background: var(--accent);
-}
-.archive-checkbox-control input:focus-visible + .archive-checkbox {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 .archive-item {
   display: flex;

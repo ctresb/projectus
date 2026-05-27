@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../../i18n'
 import { api } from '../../lib/api'
@@ -8,6 +8,7 @@ import { ArchiveView } from './ArchiveView'
 vi.mock('../../lib/api', () => ({
   api: {
     archive: vi.fn(),
+    bootstrap: vi.fn(),
     deleteArchived: vi.fn(),
     events: vi.fn(),
     project: vi.fn(),
@@ -45,12 +46,15 @@ const archive: ArchiveIndex = {
   itens: [projectItem, ideaItem],
 }
 
+const workspace = { board, ideias: ideas, config: {} } as Awaited<ReturnType<typeof api.bootstrap>>
+
 function renderArchiveView(input: ArchiveIndex = archive) {
   vi.mocked(api.archive).mockResolvedValue(input)
+  vi.mocked(api.bootstrap).mockResolvedValue(workspace)
   vi.mocked(api.events).mockReturnValue(vi.fn())
   return render(
     <I18nProvider locale="pt-BR">
-      <ArchiveView board={board} ideas={ideas} onRefresh={vi.fn().mockResolvedValue(undefined)} onMessage={vi.fn()} />
+      <ArchiveView onRefresh={vi.fn().mockResolvedValue(undefined)} onMessage={vi.fn()} />
     </I18nProvider>,
   )
 }
@@ -62,6 +66,33 @@ afterEach(() => {
 })
 
 describe('ArchiveView selection mode', () => {
+  it('restaura um item individual usando dados frescos', async () => {
+    vi.mocked(api.restoreArchived).mockResolvedValue({ revision: 3, itens: [ideaItem] })
+    renderArchiveView()
+
+    await screen.findByText('Projeto')
+    const row = screen.getByText('Projeto').closest('article')
+    expect(row).toBeTruthy()
+    fireEvent.click(within(row as HTMLElement).getByRole('button', { name: /restaurar/i }))
+
+    await waitFor(() => expect(api.bootstrap).toHaveBeenCalled())
+    expect(api.restoreArchived).toHaveBeenCalledWith('archive-project', 2, 10)
+  })
+
+  it('exclui um item individual usando revisao fresca', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    vi.mocked(api.deleteArchived).mockResolvedValue({ revision: 3, itens: [ideaItem] })
+    renderArchiveView()
+
+    await screen.findByText('Projeto')
+    const row = screen.getByText('Projeto').closest('article')
+    expect(row).toBeTruthy()
+    fireEvent.click(within(row as HTMLElement).getByRole('button', { name: /excluir/i }))
+
+    await waitFor(() => expect(api.deleteArchived).toHaveBeenCalled())
+    expect(api.deleteArchived).toHaveBeenCalledWith('archive-project', 2)
+  })
+
   it('entra e sai do modo selecao limpando itens selecionados', async () => {
     renderArchiveView()
 
@@ -122,12 +153,13 @@ describe('ArchiveView selection mode', () => {
       .mockResolvedValueOnce({ revision: 3, itens: [ideaItem] })
       .mockResolvedValueOnce({ revision: 4, itens: [] })
     const onRefresh = vi.fn().mockResolvedValue(undefined)
+    vi.mocked(api.bootstrap).mockResolvedValue(workspace)
     vi.mocked(api.archive).mockResolvedValue(archive)
     vi.mocked(api.events).mockReturnValue(vi.fn())
 
     render(
       <I18nProvider locale="pt-BR">
-        <ArchiveView board={board} ideas={ideas} onRefresh={onRefresh} onMessage={vi.fn()} />
+        <ArchiveView onRefresh={onRefresh} onMessage={vi.fn()} />
       </I18nProvider>,
     )
 

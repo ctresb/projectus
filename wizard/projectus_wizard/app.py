@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
 from rich.text import Text
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container, Vertical
 from textual.widgets import Footer, OptionList, RichLog, Static
 from textual.widgets.option_list import Option
 
@@ -18,24 +19,27 @@ from .theme import CSS, ERROR, SUCCESS
 
 class ProjectusWizard(App[None]):
     CSS = CSS
-    BINDINGS = [
-        ("q", "quit", "Sair"),
-        ("escape", "back", "Voltar"),
-    ]
 
     def __init__(self, root: Path) -> None:
         super().__init__()
         self.root = root
         self.i18n = I18n()
+        self.BINDINGS = [
+            ("q", "quit", self.i18n.t("binding.quit")),
+            ("escape", "back", self.i18n.t("binding.back")),
+            ("y", "copy_logs", self.i18n.t("binding.copy_logs")),
+            ("l", "clear_logs", self.i18n.t("binding.clear_logs")),
+        ]
         self.mode = "main"
         self.pending_action: str | None = None
         self.running = False
+        self.log_lines: list[str] = []
 
     def compose(self) -> ComposeResult:
         with Container(id="root"):
             yield Static(load_logo(self.root), id="logo")
             yield Static(self.i18n.t("app.subtitle"), id="subtitle")
-            with Horizontal(id="body"):
+            with Vertical(id="body"):
                 with Vertical(id="menu-panel"):
                     yield Static("", id="screen-title")
                     yield OptionList(id="options")
@@ -64,6 +68,22 @@ class ProjectusWizard(App[None]):
         if self.running:
             return
         self._show_main()
+
+    async def action_copy_logs(self) -> None:
+        if not self.log_lines:
+            await self._log(self.i18n.t("app.copy_logs_empty"))
+            return
+        try:
+            subprocess.run(["pbcopy"], input="\n".join(self.log_lines), text=True, check=True)
+        except Exception as error:
+            await self._log(Text(self.i18n.t("app.copy_logs_failed", error=error), style=ERROR))
+        else:
+            await self._log(self.i18n.t("app.copy_logs"))
+
+    async def action_clear_logs(self) -> None:
+        self.log_lines.clear()
+        self.query_one("#log", RichLog).clear()
+        await self._log(self.i18n.t("app.clear_logs"))
 
     async def _handle_main(self, option_id: str) -> None:
         if option_id == "exit":
@@ -174,6 +194,7 @@ class ProjectusWizard(App[None]):
         option_list.add_options(options)
 
     async def _log(self, message) -> None:
+        self.log_lines.append(message.plain if isinstance(message, Text) else str(message))
         log = self.query_one("#log", RichLog)
         log.write(message)
 

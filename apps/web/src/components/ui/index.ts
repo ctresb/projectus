@@ -1,5 +1,6 @@
 export { Button, IconButton } from './Button'
 export { Card } from './Card'
+export { Checkbox } from './Checkbox'
 export { Field, Input } from './Field'
 export { Container, PageHeader, Section } from './Layout'
 export { Modal } from './Modal'

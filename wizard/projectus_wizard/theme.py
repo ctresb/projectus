@@ -15,64 +15,65 @@ Screen {{
 
 #root {{
     height: 100%;
-    padding: 1 2;
+    padding: 0 1;
 }}
 
 #logo {{
     width: 100%;
     content-align: center middle;
-    padding-top: 1;
-    padding-bottom: 1;
+    padding-top: 0;
+    padding-bottom: 0;
 }}
 
 #subtitle {{
     width: 100%;
     content-align: center middle;
     color: {MUTED};
-    padding-bottom: 1;
+    padding-bottom: 0;
 }}
 
 #body {{
     height: 1fr;
+    width: 100%;
 }}
 
 #menu-panel {{
-    width: 42%;
-    min-width: 42;
-    height: 100%;
+    width: 100%;
+    height: 12;
     border: tall {ACCENT};
     background: {PANEL};
-    padding: 1 1;
+    padding: 0 1;
 }}
 
 #log-panel {{
-    width: 1fr;
-    height: 100%;
+    width: 100%;
+    height: 1fr;
     border: tall #5E5437;
     background: #100E0A;
-    padding: 1 1;
-    margin-left: 2;
+    padding: 0 1;
+    margin-top: 1;
 }}
 
 #screen-title {{
     color: {ACCENT};
     text-style: bold;
-    padding-bottom: 1;
+    padding-bottom: 0;
 }}
 
 #hint {{
     color: {MUTED};
-    padding-top: 1;
+    padding-top: 0;
 }}
 
 #log-title {{
     color: {ACCENT};
     text-style: bold;
-    padding-bottom: 1;
+    padding-bottom: 0;
 }}
 
 OptionList {{
-    height: 1fr;
+    height: 6;
+    border: none;
     background: {PANEL};
     color: {TEXT};
 }}
