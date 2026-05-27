@@ -720,10 +720,17 @@
   border: 1px solid var(--hair);
   color: var(--fg3);
 }
+.search:focus-within {
+  border-color: var(--accent);
+  color: var(--paper);
+}
 .search input {
   border: 0;
   background: transparent;
   padding: 0;
+}
+.search input:focus-visible {
+  outline: none;
 }
 .ideas-list nav {
   display: flex;

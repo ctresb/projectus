@@ -132,6 +132,7 @@ export function CreateTaskModal({
   const t = useT()
   const [titulo, setTitulo] = useState('')
   const [markdown, setMarkdown] = useState('')
+  const [draftKey, setDraftKey] = useState(0)
   const [cor, setCor] = useState(FALLBACK_COLOR)
   const [tags, setTags] = useState<string[]>([])
   const [novasTags, setNovasTags] = useState<Tag[]>([])
@@ -143,6 +144,7 @@ export function CreateTaskModal({
     if (aberto) {
       setTitulo(tituloInicial)
       setMarkdown('')
+      setDraftKey((current) => current + 1)
       setCor(randomPaletteColor(cores))
       setTags([])
       setNovasTags([])
@@ -160,9 +162,19 @@ export function CreateTaskModal({
       <BoardEditorForm
         ref={formRef}
         className="editor-form--create"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
-          void onCreate({ titulo, markdown, cor, tags, novasTags })
+          try {
+            await onCreate({ titulo, markdown, cor, tags, novasTags })
+            setTitulo('')
+            setMarkdown('')
+            setDraftKey((current) => current + 1)
+            setCor(randomPaletteColor(cores))
+            setTags([])
+            setNovasTags([])
+          } catch {
+            // The caller already reports the failure; keep the draft intact.
+          }
         }}
       >
         <label>
@@ -178,7 +190,7 @@ export function CreateTaskModal({
         <MarkdownField
           editorRef={editor}
           label={t('create_task.label_description')}
-          documentKey="nova-tarefa"
+          documentKey={`nova-tarefa-${draftKey}`}
           markdown={markdown}
           onChange={setMarkdown}
         />

@@ -110,6 +110,7 @@ export function ProjectDetail({
             onMessage('ok', t('project_detail.task_created'))
           } catch (error) {
             onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_create_task'))
+            throw error
           }
         }}
       />

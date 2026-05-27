@@ -4,6 +4,7 @@ import type { Config, DocumentResponse, IdeaCard } from '../../../lib/types'
 import { ColorPicker } from '../../../components/ColorPicker'
 import { ArchiveAction } from '../../../components/ArchiveAction'
 import { DeferredMarkdownEditor } from '../../editor/DeferredMarkdownEditor'
+import type { MarkdownEditorHandle } from '../../editor/MarkdownEditor'
 import { markdownBody } from '../../../lib/markdown'
 import { useDocumentAutosave } from '../../../hooks/useDocumentAutosave'
 import { LoadingState } from '../../../components/ui'
@@ -17,6 +18,7 @@ export function IdeaEditor({
   onPreview,
   onArchive,
   onMessage,
+  autoFocusToken,
 }: {
   id: string
   revision: number
@@ -25,6 +27,7 @@ export function IdeaEditor({
   onPreview: (change: Partial<Pick<IdeaCard, 'titulo' | 'cor'>>) => void
   onArchive: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
+  autoFocusToken?: number
 }) {
   const t = useT()
   const [note, setNote] = useState<DocumentResponse<IdeaCard> | null>(null)
@@ -33,6 +36,8 @@ export function IdeaEditor({
   const [color, setColor] = useState('#55B9F7')
   const [dirty, setDirty] = useState(false)
   const currentId = useRef(id)
+  const editor = useRef<MarkdownEditorHandle>(null)
+  const focusedToken = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     currentId.current = id
@@ -61,6 +66,13 @@ export function IdeaEditor({
     },
     onError: (message) => onMessage('erro', message),
   })
+
+  useEffect(() => {
+    if (!note || autoFocusToken === undefined || focusedToken.current === autoFocusToken) return
+    focusedToken.current = autoFocusToken
+    const frame = requestAnimationFrame(() => editor.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [autoFocusToken, note])
 
   if (!note) return <LoadingState>{t('ideas.loading_note')}</LoadingState>
   const edit = (action: () => void) => {
@@ -96,6 +108,7 @@ export function IdeaEditor({
         </div>
       </header>
       <DeferredMarkdownEditor
+        ref={editor}
         documentKey={`ideia-${note.dados.id}`}
         markdown={markdown}
         onChange={(value) => {

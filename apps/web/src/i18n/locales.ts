@@ -7,6 +7,6 @@ export const DEFAULT_LOCALE: Locale = 'pt-BR'
 export type Dictionary = { [key: string]: string | Dictionary }
 
 export const LOCALES: Record<Locale, { label: string; dict: Dictionary }> = {
-  'pt-BR': { label: 'Português (Brasil)', dict: ptBR as Dictionary },
+  'pt-BR': { label: 'Português', dict: ptBR as Dictionary },
   'en-US': { label: 'English (US)', dict: enUS as Dictionary },
 }
