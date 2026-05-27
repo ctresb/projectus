@@ -111,6 +111,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ revision, destino_revision: destinoRevision }),
     }),
+  deleteArchived: (id: string, revision: number) =>
+    request<ArchiveIndex>(`/archive/${id}?revision=${revision}`, { method: 'DELETE' }),
   ideas: () => request<Ideas>('/ideas'),
   uploadImage: async (path: string, image: File) => {
     const data = new FormData()

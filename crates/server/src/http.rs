@@ -9,7 +9,7 @@ use axum::{
         IntoResponse, Sse,
         sse::{Event, KeepAlive},
     },
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use serde::{Deserialize, Serialize};
 use tower_http::{
@@ -89,6 +89,7 @@ pub fn router(state: AppState) -> Router {
         .route("/history", get(history))
         .route("/events", get(events))
         .route("/archive", get(archive))
+        .route("/archive/{id}", delete(delete_archived))
         .route("/archive/{id}/restore", post(restore_archived))
         .route("/projects", post(create_project))
         .route("/projects/move", post(move_project))
@@ -162,6 +163,7 @@ async fn health(State(state): State<AppState>) -> Result<Json<serde_json::Value>
             "porta": config.porta,
             "porta_local": crate::LOCAL_CONTROL_PORT,
             "raiz": state.storage.root(),
+            "server_version": env!("CARGO_PKG_VERSION"),
             "api_version": API_VERSION
         }),
     ))
@@ -195,6 +197,14 @@ async fn history(
 
 async fn archive(State(state): State<AppState>) -> Result<Json<ArchiveIndex>, ApiError> {
     Ok(Json(state.storage.archive()?))
+}
+
+async fn delete_archived(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<RevisionQuery>,
+) -> Result<Json<ArchiveIndex>, ApiError> {
+    Ok(Json(state.storage.delete_archived(&id, query.revision)?))
 }
 
 #[derive(Deserialize)]

@@ -336,7 +336,8 @@ impl Storage {
 
     pub fn archive(&self) -> StoreResult<ArchiveIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
-        self.read_archive_inner()
+        let archive = self.read_archive_inner()?;
+        self.purge_unknown_archived_inner(archive)
     }
 
     pub fn archive_project(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
@@ -842,6 +843,36 @@ impl Storage {
         Ok(archive)
     }
 
+    pub fn delete_archived(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
+        let _guard = self.writes.lock().expect("storage mutex poisoned");
+        let mut archive = self.read_archive_inner()?;
+        ensure_revision(archive.revision, revision)?;
+        let position = archive
+            .itens
+            .iter()
+            .position(|item| item.id == id)
+            .ok_or(StoreError::NotFound)?;
+        let item = archive.itens.remove(position);
+        remove_archive_entry(&self.root.join("arquivo").join(&item.pasta))?;
+        archive.revision += 1;
+        atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
+        self.history_inner(
+            "item_excluido_do_arquivo",
+            &item.entidade,
+            &item.entidade_id,
+            Some(serde_json::to_value(&item)?),
+            None,
+            None,
+            None,
+        )?;
+        self.emit(
+            "item_excluido_do_arquivo",
+            &item.entidade,
+            &item.entidade_id,
+        );
+        Ok(archive)
+    }
+
     pub fn save_project_attachment(
         &self,
         project_id: &str,
@@ -921,6 +952,37 @@ impl Storage {
 
     fn read_archive_inner(&self) -> StoreResult<ArchiveIndex> {
         read_json(&self.root.join("arquivo").join("index.json"))
+    }
+
+    fn purge_unknown_archived_inner(&self, mut archive: ArchiveIndex) -> StoreResult<ArchiveIndex> {
+        let mut removed = Vec::new();
+        archive.itens.retain(|item| {
+            if item.entidade == "desconhecido" {
+                removed.push(item.clone());
+                false
+            } else {
+                true
+            }
+        });
+        if removed.is_empty() {
+            return Ok(archive);
+        }
+        for item in &removed {
+            remove_archive_entry(&self.root.join("arquivo").join(&item.pasta))?;
+            self.history_inner(
+                "item_legado_excluido_do_arquivo",
+                &item.entidade,
+                &item.entidade_id,
+                Some(serde_json::to_value(item)?),
+                None,
+                None,
+                None,
+            )?;
+        }
+        archive.revision += 1;
+        atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
+        self.emit("arquivo_legado_limpo", "arquivo", "arquivo");
+        Ok(archive)
     }
 
     fn archive_item(
@@ -1269,6 +1331,18 @@ fn restore_directory(source: &Path, target: &Path) -> StoreResult<()> {
         return Err(StoreError::NotFound);
     }
     fs::rename(source, target)?;
+    Ok(())
+}
+
+fn remove_archive_entry(path: &Path) -> StoreResult<()> {
+    if !path.exists() {
+        return Ok(());
+    }
+    if path.is_dir() {
+        fs::remove_dir_all(path)?;
+    } else {
+        fs::remove_file(path)?;
+    }
     Ok(())
 }
 
@@ -1659,6 +1733,80 @@ mod tests {
             .unwrap();
         assert!(restored.itens.is_empty());
         assert_eq!(store.ideas().unwrap().notas[0].titulo, "Pista");
+    }
+
+    #[test]
+    fn deletes_archived_item_permanently() {
+        let (_dir, store) = store();
+        let idea = store
+            .create_idea(CreateIdea {
+                titulo: "Descartar".into(),
+                markdown: String::new(),
+            })
+            .unwrap();
+        let archived = store
+            .archive_idea(&idea.dados.id, store.ideas().unwrap().revision)
+            .unwrap();
+        let item = archived.itens[0].clone();
+        let archived_dir = store.root().join("arquivo").join(&item.pasta);
+        assert!(archived_dir.exists());
+
+        let updated = store.delete_archived(&item.id, archived.revision).unwrap();
+
+        assert!(updated.itens.is_empty());
+        assert_eq!(updated.revision, archived.revision + 1);
+        assert!(!archived_dir.exists());
+    }
+
+    #[test]
+    fn rejects_archived_delete_with_stale_revision() {
+        let (_dir, store) = store();
+        let idea = store
+            .create_idea(CreateIdea {
+                titulo: "Conflito".into(),
+                markdown: String::new(),
+            })
+            .unwrap();
+        let archived = store
+            .archive_idea(&idea.dados.id, store.ideas().unwrap().revision)
+            .unwrap();
+
+        let result = store.delete_archived(&archived.itens[0].id, archived.revision + 1);
+
+        assert!(matches!(result, Err(StoreError::Conflict)));
+    }
+
+    #[test]
+    fn archive_query_purges_unknown_legacy_items() {
+        let (_dir, store) = store();
+        let legacy_folder = "legado-sem-metadados";
+        let legacy_dir = store.root().join("arquivo").join(legacy_folder);
+        fs::create_dir_all(&legacy_dir).unwrap();
+        fs::write(legacy_dir.join("card.md"), "legado").unwrap();
+        atomic_json(
+            &store.root().join("arquivo").join("index.json"),
+            &ArchiveIndex {
+                revision: 1,
+                itens: vec![ArchivedItem {
+                    id: "legacy-1".into(),
+                    entidade: "desconhecido".into(),
+                    entidade_id: "legacy-entity".into(),
+                    titulo: "Legado".into(),
+                    pasta: legacy_folder.into(),
+                    projeto_id: None,
+                    projeto_titulo: None,
+                    arquivado_em: Utc::now(),
+                    dados: json!({}),
+                }],
+            },
+        )
+        .unwrap();
+
+        let archive = store.archive().unwrap();
+
+        assert!(archive.itens.is_empty());
+        assert_eq!(archive.revision, 2);
+        assert!(!legacy_dir.exists());
     }
 
     #[test]
