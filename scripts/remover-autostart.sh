@@ -1,7 +1,10 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
-PLIST="$HOME/Library/LaunchAgents/com.projectus.server.plist"
-launchctl bootout "gui/$UID" "$PLIST" 2>/dev/null || true
-rm -f "$PLIST"
-echo "Autostart removido."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "$(uname -s)" in
+  Darwin) exec "$SCRIPT_DIR/remover-autostart-macos.sh" "$@" ;;
+  Linux)  exec "$SCRIPT_DIR/remover-autostart-linux.sh" "$@" ;;
+  *)      echo "Autostart não suportado em $(uname -s)" >&2; exit 1 ;;
+esac

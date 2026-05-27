@@ -7,9 +7,11 @@ import type { Config, Snapshot } from '../../lib/types'
 
 export function BackupView({
   config,
+  dataRootLabel,
   onMessage,
 }: {
   config: Config
+  dataRootLabel?: string
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
@@ -45,7 +47,7 @@ export function BackupView({
         />
       </header>
       <p className="panel-copy">
-        cada snapshot envia a pasta integral <code>~/Documents/PROJECTUS</code>: configurações, kanbans, ideias,
+        cada snapshot envia a pasta integral <code>{dataRootLabel ?? '~/Documents/PROJECTUS'}</code>: configurações, kanbans, ideias,
         Arquivo, históricos e anexos.
       </p>
       {!config.r2.configurado ? (

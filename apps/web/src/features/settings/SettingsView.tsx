@@ -87,13 +87,16 @@ export function SettingsView({
     setDirty(true)
   }
 
+  const credentialStore = credentialStatus?.store_nome ?? 'cofre do sistema'
+
   const saveCredentials = async () => {
     try {
       await api.saveCredentials({ access_key_id: accessKey.trim(), secret_access_key: secretKey.trim() })
       setAccessKey('')
       setSecretKey('')
-      setCredentialStatus(await api.credentialStatus())
-      onMessage('ok', 'credenciais R2 fixadas no Keychain')
+      const updated = await api.credentialStatus()
+      setCredentialStatus(updated)
+      onMessage('ok', `credenciais R2 fixadas no ${updated.store_nome}`)
     } catch (error) {
       onMessage('erro', error instanceof Error ? error.message : 'não foi possível salvar credenciais')
     }
@@ -302,10 +305,10 @@ export function SettingsView({
               value={secretKey}
               onChange={(event) => setSecretKey(event.target.value)}
             />
-            <small className="hint">logo abaixo, "Secret Access Key". Salva no Keychain do macOS.</small>
+            <small className="hint">logo abaixo, "Secret Access Key". Salva no {credentialStore}.</small>
           </label>
           <div className={credentialStatus?.fixadas ? 'credential-state credential-state--ok' : 'credential-state'}>
-            <strong>KEYCHAIN</strong>
+            <strong>{credentialStore.toUpperCase()}</strong>
             <span>
               {credentialStatus?.fixadas
                 ? `credenciais fixadas (${credentialStatus.access_key_id_mascarada})`
@@ -318,7 +321,7 @@ export function SettingsView({
             disabled={!accessKey.trim() || !secretKey.trim() || dirty || saving || !validR2Endpoint}
             onClick={() => void saveCredentials()}
           >
-            fixar credenciais no Keychain
+            fixar credenciais no {credentialStore}
           </button>
         </section>
         <section className="panel">
@@ -336,10 +339,12 @@ export function SettingsView({
           </p>
           <p className="panel-copy">
             {daemon?.instalado
-              ? 'autostart instalado.'
+              ? `autostart instalado via ${daemon.autostart_nome}.`
               : daemon?.instalacao_disponivel
-                ? 'autostart ainda não instalado.'
-                : 'para manter o backend ativo com a janela fechada, execute ./scripts/instalar-autostart.sh.'}
+                ? `autostart ainda não instalado.`
+                : daemon?.suportado === false
+                  ? 'autostart não disponível nesta plataforma.'
+                  : `para manter o backend ativo com a janela fechada, use o botão instalar${daemon?.instalacao_manual ? ` ou ${daemon.instalacao_manual}` : ''}.`}
           </p>
           {!daemon?.instalado && daemon?.instalacao_disponivel && (
             <button
@@ -347,8 +352,9 @@ export function SettingsView({
               type="button"
               onClick={async () => {
                 try {
-                  setDaemon(await api.installDaemon())
-                  onMessage('ok', 'autostart instalado no macOS')
+                  const updated = await api.installDaemon()
+                  setDaemon(updated)
+                  onMessage('ok', `autostart instalado via ${updated.autostart_nome}`)
                 } catch (error) {
                   onMessage('erro', error instanceof Error ? error.message : 'não foi possível instalar')
                 }

@@ -14,6 +14,7 @@ export function Shell({
   screen,
   projectTitle,
   config,
+  dataRootLabel,
   onNavigate,
   onSnapshotError,
   children,
@@ -21,6 +22,7 @@ export function Shell({
   screen: Screen
   projectTitle?: string
   config: Config
+  dataRootLabel?: string
   onNavigate: (screen: Screen) => void
   onSnapshotError: (message: string) => void
   children: ReactNode
@@ -71,8 +73,18 @@ export function Shell({
           </ul>
           <footer>
             <span className="eyebrow">dados</span>
-            <div>~/Documents/</div>
-            <strong>PROJECTUS</strong>
+            {(() => {
+              const label = dataRootLabel ?? '~/Documents/PROJECTUS'
+              const slash = label.lastIndexOf('/')
+              const parent = slash >= 0 ? label.slice(0, slash + 1) : label + '/'
+              const base = slash >= 0 ? label.slice(slash + 1) : 'PROJECTUS'
+              return (
+                <>
+                  <div>{parent}</div>
+                  <strong>{base}</strong>
+                </>
+              )
+            })()}
             <span className="eyebrow rail__section">backup</span>
             <div className={config.r2.configurado ? 'status status--ok' : 'status'}>
               {config.r2.configurado ? 'OK' : 'OFF'} / R2

@@ -12,6 +12,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+if [[ "$(uname -s)" == "Linux" ]]; then
+  echo "DMG é macOS. No Linux, use: pnpm build:linux" >&2
+  echo "  ou para só o servidor: cargo build --release -p projectus-server" >&2
+  exit 1
+fi
+
 OPEN_FINDER=1
 INSTALL_DAEMON=0
 for arg in "$@"; do

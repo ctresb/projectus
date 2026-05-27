@@ -3,6 +3,7 @@ pub mod daemon;
 pub mod domain;
 pub mod http;
 pub mod lan;
+pub mod platform;
 pub mod scheduler;
 pub mod secrets;
 pub mod storage;

@@ -55,11 +55,14 @@ export function App() {
     setOpenProject(null)
   }
 
+  const dataRootLabel = workspace.capacidades?.data_root_label || undefined
+
   return (
     <Shell
       screen={screen}
       projectTitle={projectCard?.titulo}
       config={workspace.config}
+      dataRootLabel={dataRootLabel}
       onNavigate={navigate}
       onSnapshotError={(text) => message('erro', text)}
     >
@@ -86,7 +89,7 @@ export function App() {
       {screen === 'ideias' && (
         <IdeasView config={workspace.config} ideas={workspace.ideias} onIdeas={setIdeas} onMessage={message} />
       )}
-      {screen === 'backup' && <BackupView config={workspace.config} onMessage={message} />}
+      {screen === 'backup' && <BackupView config={workspace.config} dataRootLabel={dataRootLabel} onMessage={message} />}
       {screen === 'arquivo' && (
         <ArchiveView board={workspace.board} ideas={workspace.ideias} onRefresh={refresh} onMessage={message} />
       )}

@@ -91,11 +91,19 @@ impl Storage {
 
     pub fn bootstrap(&self) -> StoreResult<Bootstrap> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
+        let data_root = self.root.to_string_lossy().to_string();
+        let data_root_label = dirs::home_dir()
+            .and_then(|home| self.root.strip_prefix(&home).ok().map(|rel| format!("~/{}", rel.display())))
+            .unwrap_or_else(|| data_root.clone());
         Ok(Bootstrap {
             config: self.read_config_inner()?,
             board: self.read_board_inner()?,
             ideias: self.read_ideas_inner()?,
-            capacidades: ApiCapabilities::default(),
+            capacidades: ApiCapabilities {
+                data_root,
+                data_root_label,
+                ..ApiCapabilities::default()
+            },
         })
     }
 
