@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+import tempfile
 from pathlib import Path
 
 from . import macos
@@ -8,7 +10,28 @@ from .i18n import I18n
 from .status import inspect_environment
 
 
+async def generate_desktop_icons(root: Path, log: LogFn, i18n: I18n) -> None:
+    source = root / "apps" / "desktop" / "src-tauri" / "icons" / "icon.png"
+    output = source.parent
+    if not source.exists():
+        raise FileNotFoundError(i18n.t("desktop.icon_source_missing", path=source))
+
+    await log(i18n.t("desktop.generating_icons", path=source))
+    with tempfile.TemporaryDirectory(prefix="projectus-icons-") as temp_dir:
+        temp_source = Path(temp_dir) / source.name
+        shutil.copy2(source, temp_source)
+        try:
+            await run_command(
+                ["pnpm", "--filter", "@projectus/desktop", "tauri", "icon", "--output", str(output), str(temp_source)],
+                cwd=root,
+                log=log,
+            )
+        finally:
+            shutil.copy2(temp_source, source)
+
+
 async def build_desktop_macos(root: Path, log: LogFn, i18n: I18n) -> None:
+    await generate_desktop_icons(root, log, i18n)
     await log(i18n.t("desktop.building"))
     await run_command(
         ["pnpm", "--filter", "@projectus/desktop", "tauri", "build", "--bundles", "dmg"],

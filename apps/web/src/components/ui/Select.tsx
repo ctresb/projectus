@@ -17,30 +17,32 @@ type SelectProps = {
 
 export function Select({ value, options, onChange, label, className }: SelectProps) {
   const [open, setOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, options.findIndex((option) => option.value === value)))
+  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
+  const [activeIndex, setActiveIndex] = useState(selectedIndex)
+  const [showActiveOption, setShowActiveOption] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   const listId = useId()
   const selected = options.find((option) => option.value === value) ?? options[0]
 
   useEffect(() => {
     if (!open) return
-    const onPointerDown = (event: MouseEvent) => {
+    const onPointerDown = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false)
     }
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false)
     }
-    window.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('pointerdown', onPointerDown, true)
     window.addEventListener('keydown', onKeyDown)
     return () => {
-      window.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('pointerdown', onPointerDown, true)
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [open])
 
   useEffect(() => {
-    setActiveIndex(Math.max(0, options.findIndex((option) => option.value === value)))
-  }, [options, value])
+    setActiveIndex(selectedIndex)
+  }, [selectedIndex])
 
   useEffect(() => {
     setOpen(false)
@@ -56,8 +58,11 @@ export function Select({ value, options, onChange, label, className }: SelectPro
     event.preventDefault()
     if (!open) {
       setOpen(true)
+      setActiveIndex(selectedIndex)
+      setShowActiveOption(true)
       return
     }
+    setShowActiveOption(true)
     if (event.key === 'ArrowDown') {
       setActiveIndex((index) => Math.min(options.length - 1, index + 1))
       return
@@ -66,11 +71,18 @@ export function Select({ value, options, onChange, label, className }: SelectPro
       setActiveIndex((index) => Math.max(0, index - 1))
       return
     }
-    commit(options[activeIndex])
+    const optionToCommit = options[activeIndex] ?? selected
+    if (optionToCommit) commit(optionToCommit)
   }
 
   return (
-    <div className={cx('select', className)} ref={root}>
+    <div
+      className={cx('select', className)}
+      ref={root}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false)
+      }}
+    >
       <button
         type="button"
         className={cx('select__trigger', open && 'select__trigger--open')}
@@ -78,7 +90,11 @@ export function Select({ value, options, onChange, label, className }: SelectPro
         aria-expanded={open}
         aria-controls={listId}
         aria-label={label}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setActiveIndex(selectedIndex)
+          setShowActiveOption(false)
+          setOpen((current) => !current)
+        }}
         onKeyDown={onTriggerKeyDown}
       >
         <span>{selected?.label ?? value}</span>
@@ -86,7 +102,13 @@ export function Select({ value, options, onChange, label, className }: SelectPro
       </button>
       {open && (
         <div className="select__popover">
-          <div id={listId} role="listbox" aria-label={label} className="select__list">
+          <div
+            id={listId}
+            role="listbox"
+            aria-label={label}
+            className="select__list"
+            onMouseLeave={() => setShowActiveOption(false)}
+          >
             {options.map((option, index) => {
               const active = option.value === value
               return (
@@ -95,8 +117,15 @@ export function Select({ value, options, onChange, label, className }: SelectPro
                   type="button"
                   role="option"
                   aria-selected={active}
-                  className={cx('select__option', active && 'select__option--selected', index === activeIndex && 'select__option--active')}
-                  onMouseEnter={() => setActiveIndex(index)}
+                  className={cx(
+                    'select__option',
+                    active && 'select__option--selected',
+                    showActiveOption && index === activeIndex && 'select__option--active',
+                  )}
+                  onMouseEnter={() => {
+                    setActiveIndex(index)
+                    setShowActiveOption(true)
+                  }}
                   onPointerDown={(event) => {
                     event.preventDefault()
                     commit(option)

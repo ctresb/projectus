@@ -73,6 +73,59 @@
     "placeholder": "escreva em markdown...",
     "image_unavailable": "envio de imagem indisponível neste editor"
   },
+  "editor": {
+    "toolbar": {
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "underline": "Sublinhado",
+      "strike": "Tachado",
+      "inline_code": "Código inline",
+      "bullet": "Lista",
+      "numbered": "Lista numerada",
+      "check": "Checklist",
+      "insert": "Inserir",
+      "image": "Imagem",
+      "table": "Tabela",
+      "hr": "Separador",
+      "code_block": "Bloco de código",
+      "wikilink": "Wikilink",
+      "mention": "Menção",
+      "link": "Link",
+      "more": "Mais"
+    },
+    "block": {
+      "paragraph": "Parágrafo",
+      "h1": "Título 1",
+      "h2": "Título 2",
+      "h3": "Título 3",
+      "quote": "Citação",
+      "code": "Código",
+      "bullet": "Lista",
+      "numbered": "Lista numerada",
+      "check": "Checklist"
+    },
+    "slash": {
+      "paragraph": "Parágrafo",
+      "h1": "Título 1",
+      "h2": "Título 2",
+      "h3": "Título 3",
+      "bullet": "Lista",
+      "numbered": "Lista numerada",
+      "check": "Checklist",
+      "quote": "Citação",
+      "code": "Bloco de código",
+      "table": "Tabela",
+      "image": "Imagem",
+      "hr": "Separador",
+      "wikilink": "Wikilink",
+      "mention": "Menção"
+    },
+    "link": {
+      "placeholder": "Cole a URL"
+    }
+  },
   "archive_action": {
     "confirm": "mover {entidade} para Arquivo?",
     "cancel": "cancelar",

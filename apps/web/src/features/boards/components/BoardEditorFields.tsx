@@ -4,6 +4,7 @@ import { ColorPicker } from '../../../components/ColorPicker'
 import { TagPicker } from '../../../components/TagPicker'
 import type { MarkdownEditorHandle } from '../../editor/MarkdownEditor'
 import { DeferredMarkdownEditor } from '../../editor/DeferredMarkdownEditor'
+import { editorStyles } from '../../editor/theme'
 import type { ColorChoice, Tag } from '../../../lib/types'
 import { Button } from '../../../components/ui'
 
@@ -43,7 +44,7 @@ export function MarkdownField({
     <div className="editor-form__markdown">
       <span>{label}</span>
       {loading ? (
-        <div className="editor-loading">{loadingLabel}</div>
+        <div className={editorStyles.loading}>{loadingLabel}</div>
       ) : (
         <DeferredMarkdownEditor
           ref={editorRef}

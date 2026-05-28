@@ -1,0 +1,11 @@
+.projectus-editor [contenteditable='true']:focus {
+  outline: none;
+}
+
+.projectus-editor ::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.projectus-editor [data-lexical-decorator='true'] {
+  max-width: 100%;
+}
