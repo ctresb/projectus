@@ -1,0 +1,73 @@
+.archive-list {
+  flex: 1;
+  min-height: 0;
+  max-width: 860px;
+  border: 1px solid var(--hair);
+}
+
+.archive-header-actions,
+.archive-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
+}
+
+.archive-selection-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-card);
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 var(--s-5);
+  border-bottom: 1px solid var(--hair);
+  background: var(--ink-2);
+}
+
+.archive-checkbox-label {
+  color: var(--fg2);
+  font-size: var(--text-base);
+}
+
+.archive-item__checkbox {
+  flex: none;
+}
+
+.archive-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px dashed var(--hair);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.archive-item--selecting {
+  justify-content: flex-start;
+  gap: var(--s-3);
+}
+
+.archive-item--focused {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: var(--accent);
+}
+
+.archive-item__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.archive-item h2 {
+  margin: var(--s-1) 0;
+  color: var(--paper);
+  font: var(--fw-medium) var(--text-title)/1.25 var(--font-display);
+}
+
+.archive-item p,
+.archive-item time,
+.archive-item small {
+  color: var(--fg3);
+  font-size: var(--text-sm);
+}

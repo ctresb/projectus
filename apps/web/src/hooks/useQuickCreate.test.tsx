@@ -26,4 +26,3 @@ describe('useQuickCreate', () => {
     expect(onNovo).not.toHaveBeenCalled()
   })
 })
-

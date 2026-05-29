@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import './features/shell/notice-boot.css'
 import { Notice, type NoticeValue } from './components/Notice'
 import type { Board, Config, Ideas } from './lib/types'
 import { useWorkspace } from './hooks/useWorkspace'
@@ -45,38 +46,47 @@ export function App() {
     setOpenProject(null)
   }, [])
 
-  const navigateFromSearch = useCallback((target: SearchNavigationTarget) => {
-    searchToken.current += 1
-    setSearchFocus({ ...target, token: searchToken.current })
+  const navigateFromSearch = useCallback(
+    (target: SearchNavigationTarget) => {
+      searchToken.current += 1
+      setSearchFocus({ ...target, token: searchToken.current })
 
-    if (target.type === 'project') {
-      setScreen('projetos')
-      setOpenProject(target.projectId)
-      return
-    }
+      if (target.type === 'project') {
+        setScreen('projetos')
+        setOpenProject(target.projectId)
+        return
+      }
 
-    if (target.type === 'task') {
-      setScreen('projetos')
-      setOpenProject(target.projectId)
-      return
-    }
+      if (target.type === 'task') {
+        setScreen('projetos')
+        setOpenProject(target.projectId)
+        return
+      }
 
-    if (target.type === 'idea') {
-      setScreen('ideias')
-      setOpenProject(null)
-      return
-    }
+      if (target.type === 'idea') {
+        setScreen('ideias')
+        setOpenProject(null)
+        return
+      }
 
-    if (target.type === 'archive') {
-      setScreen('arquivo')
-      setOpenProject(null)
-      return
-    }
+      if (target.type === 'archive') {
+        setScreen('arquivo')
+        setOpenProject(null)
+        return
+      }
 
-    navigate(target.screen)
-  }, [navigate])
+      navigate(target.screen)
+    },
+    [navigate],
+  )
 
-  if (carregando) return <LoadingState className="boot">iniciando projectus<span className="cursor" /></LoadingState>
+  if (carregando)
+    return (
+      <LoadingState className="boot">
+        iniciando projectus
+        <span className="cursor" />
+      </LoadingState>
+    )
   if (!workspace)
     return (
       <ErrorState className="boot boot--error">
@@ -100,68 +110,68 @@ export function App() {
 
   return (
     <I18nProvider locale={workspace.config.idioma}>
-    <Shell
-      screen={screen}
-      projectTitle={projectCard?.titulo}
-      config={workspace.config}
-      onNavigate={navigate}
-      onSnapshotError={(text) => message('erro', text)}
-    >
-      {screen === 'projetos' &&
-        (projectCard ? (
-          <ProjectDetail
-            id={projectCard.id}
-            card={projectCard}
+      <Shell
+        screen={screen}
+        projectTitle={projectCard?.titulo}
+        config={workspace.config}
+        onNavigate={navigate}
+        onSnapshotError={(text) => message('erro', text)}
+      >
+        {screen === 'projetos' &&
+          (projectCard ? (
+            <ProjectDetail
+              id={projectCard.id}
+              card={projectCard}
+              config={workspace.config}
+              navigationRequest={
+                searchFocus?.type === 'task' && searchFocus.projectId === projectCard.id
+                  ? { type: 'task', taskId: searchFocus.taskId, token: searchFocus.token }
+                  : searchFocus?.type === 'project' && searchFocus.projectId === projectCard.id
+                    ? { type: 'project', token: searchFocus.token }
+                    : null
+              }
+              onBack={() => {
+                setSearchFocus(null)
+                setOpenProject(null)
+              }}
+              onRefresh={refresh}
+              onMessage={message}
+            />
+          ) : (
+            <ProjectsView
+              config={workspace.config}
+              board={workspace.board}
+              onBoard={setBoard}
+              onOpen={setOpenProject}
+              onRefresh={refresh}
+              onMessage={message}
+            />
+          ))}
+        {screen === 'ideias' && (
+          <IdeasView
             config={workspace.config}
+            ideas={workspace.ideias}
             navigationRequest={
-              searchFocus?.type === 'task' && searchFocus.projectId === projectCard.id
-                ? { type: 'task', taskId: searchFocus.taskId, token: searchFocus.token }
-                : searchFocus?.type === 'project' && searchFocus.projectId === projectCard.id
-                  ? { type: 'project', token: searchFocus.token }
-                  : null
+              searchFocus?.type === 'idea' ? { id: searchFocus.ideaId, token: searchFocus.token } : null
             }
-            onBack={() => {
-              setSearchFocus(null)
-              setOpenProject(null)
-            }}
+            onIdeas={setIdeas}
+            onMessage={message}
+          />
+        )}
+        {screen === 'backup' && <BackupView config={workspace.config} onMessage={message} />}
+        {screen === 'arquivo' && (
+          <ArchiveView
+            focusRequest={
+              searchFocus?.type === 'archive' ? { id: searchFocus.archiveId, token: searchFocus.token } : null
+            }
             onRefresh={refresh}
             onMessage={message}
           />
-        ) : (
-          <ProjectsView
-            config={workspace.config}
-            board={workspace.board}
-            onBoard={setBoard}
-            onOpen={setOpenProject}
-            onRefresh={refresh}
-            onMessage={message}
-          />
-        ))}
-      {screen === 'ideias' && (
-        <IdeasView
-          config={workspace.config}
-          ideas={workspace.ideias}
-          navigationRequest={
-            searchFocus?.type === 'idea' ? { id: searchFocus.ideaId, token: searchFocus.token } : null
-          }
-          onIdeas={setIdeas}
-          onMessage={message}
-        />
-      )}
-      {screen === 'backup' && <BackupView config={workspace.config} onMessage={message} />}
-      {screen === 'arquivo' && (
-        <ArchiveView
-          focusRequest={
-            searchFocus?.type === 'archive' ? { id: searchFocus.archiveId, token: searchFocus.token } : null
-          }
-          onRefresh={refresh}
-          onMessage={message}
-        />
-      )}
-      {screen === 'config' && <SettingsView config={workspace.config} onConfig={setConfig} onMessage={message} />}
-      <GlobalSearchController workspace={workspace} onNavigate={navigateFromSearch} />
-      <Notice notice={notice} />
-    </Shell>
+        )}
+        {screen === 'config' && <SettingsView config={workspace.config} onConfig={setConfig} onMessage={message} />}
+        <GlobalSearchController workspace={workspace} onNavigate={navigateFromSearch} />
+        <Notice notice={notice} />
+      </Shell>
     </I18nProvider>
   )
 }

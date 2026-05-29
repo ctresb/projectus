@@ -13,12 +13,26 @@ const metadata = { pasta: 'card-a1b2c3d4', criado_em: '2026-05-26T00:00:00Z', at
 
 describe('KanbanBoard compartilhado', () => {
   it('abre uma tarefa por clique sem persistir movimento', () => {
-    const task: TaskCard = { ...metadata, id: 'task', titulo: 'Ajustar colisão', status: 'planejado', cor: '#55B9F7', tags: [] }
+    const task: TaskCard = {
+      ...metadata,
+      id: 'task',
+      titulo: 'Ajustar colisão',
+      status: 'planejado',
+      cor: '#55B9F7',
+      tags: [],
+    }
     const onOpen = vi.fn()
     const onMove = vi.fn().mockResolvedValue(undefined)
     render(
       <I18nProvider locale="pt-BR">
-        <KanbanBoard colunas={columns} cards={[task]} tags={tags} vazio="nenhuma tarefa" onOpen={onOpen} onMove={onMove} />
+        <KanbanBoard
+          colunas={columns}
+          cards={[task]}
+          tags={tags}
+          vazio="nenhuma tarefa"
+          onOpen={onOpen}
+          onMove={onMove}
+        />
       </I18nProvider>,
     )
 

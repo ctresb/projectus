@@ -28,9 +28,24 @@ export function OverflowMenu({ state }: { state: ToolbarState }) {
             undoLabel={t('editor.toolbar.undo')}
             redoLabel={t('editor.toolbar.redo')}
           />
-          <FormatToggle active={state.formats.underline} format="underline" icon={Underline} label={t('editor.toolbar.underline')} />
-          <FormatToggle active={state.formats.strikethrough} format="strikethrough" icon={Strikethrough} label={t('editor.toolbar.strike')} />
-          <FormatToggle active={state.formats.code} format="code" icon={Code2} label={t('editor.toolbar.inline_code')} />
+          <FormatToggle
+            active={state.formats.underline}
+            format="underline"
+            icon={Underline}
+            label={t('editor.toolbar.underline')}
+          />
+          <FormatToggle
+            active={state.formats.strikethrough}
+            format="strikethrough"
+            icon={Strikethrough}
+            label={t('editor.toolbar.strike')}
+          />
+          <FormatToggle
+            active={state.formats.code}
+            format="code"
+            icon={Code2}
+            label={t('editor.toolbar.inline_code')}
+          />
         </div>
       )}
     </div>

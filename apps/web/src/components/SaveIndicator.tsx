@@ -3,6 +3,7 @@ import { Check, CloudOff, Loader2 } from 'lucide-react'
 import { useSaveStatus } from '../hooks/useSaveStatus'
 import { EASE } from '../lib/motion'
 import { useT } from '../i18n'
+import './save-indicator.css'
 
 const tone: Record<string, string> = {
   idle: 'save-indicator--idle',

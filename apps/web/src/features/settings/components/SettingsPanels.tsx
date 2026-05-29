@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import '../r2-help.css'
 import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../../lib/api'
 import type { BackupCredentialStatus, ColorChoice, Column, DaemonStatus, R2Config, Tag } from '../../../lib/types'
@@ -37,7 +38,10 @@ export function ColumnsPanel({
         {columns.map((column, index) => (
           <div className="setting-row setting-row--column" key={column.id}>
             <span className="setting-row__index">{String(index + 1).padStart(2, '0')}</span>
-            <Input value={column.titulo} onChange={(event) => onUpdate(column.id, { titulo: event.target.value.toUpperCase() })} />
+            <Input
+              value={column.titulo}
+              onChange={(event) => onUpdate(column.id, { titulo: event.target.value.toUpperCase() })}
+            />
             <ColorPicker
               cores={colors}
               value={column.cor}
@@ -90,7 +94,10 @@ export function TagsPanel({
         {tags.map((tag) => (
           <div className="setting-row setting-row--tag" key={tag.id}>
             <Input value={tag.titulo} onChange={(event) => onUpdate(tag.id, { titulo: event.target.value })} />
-            <span className="tag-choice tag-choice--active setting-row__tag-preview" style={{ '--tag-color': tag.cor } as CSSProperties}>
+            <span
+              className="tag-choice tag-choice--active setting-row__tag-preview"
+              style={{ '--tag-color': tag.cor } as CSSProperties}
+            >
               {tag.titulo.trim() || t('settings.tags.preview_empty')}
             </span>
             <ColorPicker
@@ -130,15 +137,7 @@ export function ThemePanel({
   )
 }
 
-export function LanguagePanel({
-  value,
-  onChange,
-  t,
-}: {
-  value: string
-  onChange: (value: string) => void
-  t: TFn
-}) {
+export function LanguagePanel({ value, onChange, t }: { value: string; onChange: (value: string) => void; t: TFn }) {
   return (
     <Card title={t('settings.language.header')}>
       <Field label={t('settings.language.label')}>
@@ -213,7 +212,12 @@ export function R2Panel({
         />
       </Field>
       <Field label={t('settings.r2.label_secret')} hint={t('settings.r2.hint_secret')}>
-        <Input autoComplete="new-password" type="password" value={secretKey} onChange={(event) => onSecretKey(event.target.value)} />
+        <Input
+          autoComplete="new-password"
+          type="password"
+          value={secretKey}
+          onChange={(event) => onSecretKey(event.target.value)}
+        />
       </Field>
       <div className={credentialStatus?.fixadas ? 'credential-state credential-state--ok' : 'credential-state'}>
         <strong>{t('settings.r2.keychain')}</strong>
@@ -284,7 +288,9 @@ export function ServerPanel({
 function CloudflareHelp({ t }: { t: TFn }) {
   return (
     <div className="r2-help">
-      <p><strong>{t('settings.r2.help_title')}</strong></p>
+      <p>
+        <strong>{t('settings.r2.help_title')}</strong>
+      </p>
       <ul>
         <li>
           <strong>{t('settings.r2.label_endpoint')}</strong> - {t('settings.r2.help_endpoint')}
@@ -295,7 +301,8 @@ function CloudflareHelp({ t }: { t: TFn }) {
           <strong>{t('settings.r2.label_bucket')}</strong> - {t('settings.r2.help_bucket')}
         </li>
         <li>
-          <strong>{t('settings.r2.label_access')}</strong> / <strong>{t('settings.r2.label_secret')}</strong> - {t('settings.r2.help_access')}
+          <strong>{t('settings.r2.label_access')}</strong> / <strong>{t('settings.r2.label_secret')}</strong> -{' '}
+          {t('settings.r2.help_access')}
         </li>
       </ul>
     </div>

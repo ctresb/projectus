@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { triggerSnapshot, useSnapshotState } from '../hooks/useSnapshot'
 import { EASE } from '../lib/motion'
 import { useT } from '../i18n'
+import './snapshot-button.css'
 
 type Props = {
   onError?: (message: string) => void
@@ -17,17 +18,16 @@ export function SnapshotButton({ onError, className, idleLabel }: Props) {
   const running = state.phase === 'running'
   const done = state.phase === 'done'
   const error = state.phase === 'error'
-  const percent = state.arquivos_total > 0
-    ? Math.min(100, Math.round((state.arquivos_enviados / state.arquivos_total) * 100))
-    : running
-      ? 0
-      : 100
+  const percent =
+    state.arquivos_total > 0
+      ? Math.min(100, Math.round((state.arquivos_enviados / state.arquivos_total) * 100))
+      : running
+        ? 0
+        : 100
 
   const label = (() => {
     if (running) {
-      const counter = state.arquivos_total > 0
-        ? `${state.arquivos_enviados}/${state.arquivos_total}`
-        : '…'
+      const counter = state.arquivos_total > 0 ? `${state.arquivos_enviados}/${state.arquivos_total}` : '…'
       return `${percent}% (${counter})`
     }
     if (done) return t('snapshot.done')
@@ -69,11 +69,7 @@ export function SnapshotButton({ onError, className, idleLabel }: Props) {
       title={error && state.erro ? state.erro : undefined}
       aria-live="polite"
     >
-      <span
-        className="snapshot-button__bar"
-        style={{ width: `${running ? percent : done ? 100 : 0}%` }}
-        aria-hidden
-      />
+      <span className="snapshot-button__bar" style={{ width: `${running ? percent : done ? 100 : 0}%` }} aria-hidden />
       <span className="snapshot-button__content">
         {icon}
         <span className="snapshot-button__label">{label}</span>

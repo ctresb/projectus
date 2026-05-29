@@ -14,7 +14,12 @@ export function MobileToolbar({ state }: { state: ToolbarState }) {
   const t = useT()
   return (
     <div className={`${editorStyles.toolbar} ${editorStyles.mobileToolbar}`}>
-      <UndoRedo canUndo={state.canUndo} canRedo={false} undoLabel={t('editor.toolbar.undo')} redoLabel={t('editor.toolbar.redo')} />
+      <UndoRedo
+        canUndo={state.canUndo}
+        canRedo={false}
+        undoLabel={t('editor.toolbar.undo')}
+        redoLabel={t('editor.toolbar.redo')}
+      />
       <FormatToggle active={state.formats.bold} format="bold" icon={Bold} label={t('editor.toolbar.bold')} />
       <FormatToggle active={state.formats.italic} format="italic" icon={Italic} label={t('editor.toolbar.italic')} />
       <button

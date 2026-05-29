@@ -1,0 +1,33 @@
+/* R2 helper */
+.r2-help {
+  border: 1px solid var(--hair);
+  background: var(--ink);
+  padding: var(--s-3);
+  font-size: var(--text-base);
+  color: var(--fg2);
+}
+
+.r2-help p {
+  margin-bottom: var(--s-2);
+  color: var(--paper);
+}
+
+.r2-help ul {
+  margin: 0;
+  padding-left: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.r2-help code {
+  background: var(--ink-2);
+  padding: 1px 5px;
+  border: 1px solid var(--hair);
+  font-size: var(--text-sm);
+}
+
+.r2-help em {
+  font-style: italic;
+  color: var(--fg2);
+}

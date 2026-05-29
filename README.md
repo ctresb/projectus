@@ -10,6 +10,10 @@ Kanban local para projetos, tarefas e ideias. A fonte de verdade fica em `~/Docu
 - Tauri v2 para a janela macOS.
 - `launchd` para manter o backend ativo no login.
 
+## Convenções de frontend
+
+As regras estritas da UI (tokens, tipografia, cores, BEM, lint, checklist de nova feature) estão em [GUIDELINES.md](GUIDELINES.md). Leia antes de mexer em qualquer `.tsx` ou `.css`.
+
 ## Desenvolvimento
 
 ```bash

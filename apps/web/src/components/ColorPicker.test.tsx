@@ -32,7 +32,9 @@ describe('ColorPicker', () => {
 
     fireEvent.change(screen.getByLabelText('Título da nova tag'), { target: { value: 'bug' } })
     fireEvent.click(screen.getByRole('button', { name: 'Cor da nova tag' }))
-    fireEvent.click(within(screen.getByRole('listbox', { name: 'Cor da nova tag' })).getByRole('option', { name: 'Verde' }))
+    fireEvent.click(
+      within(screen.getByRole('listbox', { name: 'Cor da nova tag' })).getByRole('option', { name: 'Verde' }),
+    )
     expect(screen.getByText('bug')).toHaveStyle({ '--tag-color': '#61E141' })
 
     fireEvent.click(screen.getByRole('button', { name: /adicionar/i }))

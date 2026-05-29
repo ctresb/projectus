@@ -30,7 +30,11 @@ export function IdeasList({
       </header>
       <label className="search">
         <Search size={14} />
-        <input placeholder={t('ideas.search_placeholder')} value={search} onChange={(event) => onSearch(event.target.value)} />
+        <input
+          placeholder={t('ideas.search_placeholder')}
+          value={search}
+          onChange={(event) => onSearch(event.target.value)}
+        />
       </label>
       <nav>
         {ideas.map((idea) => (

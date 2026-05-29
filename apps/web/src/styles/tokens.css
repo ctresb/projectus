@@ -5,11 +5,13 @@
   src: url('/fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 800;
 }
+
 @font-face {
   font-family: 'Space Grotesk';
   src: url('/fonts/SpaceGrotesk-VariableFont_wght.ttf') format('truetype');
   font-weight: 300 700;
 }
+
 :root {
   /* sistema (estrutura do app — não personalizável pelo usuário) */
   --ink: #1a1a1a;
@@ -19,6 +21,7 @@
   --paper: #f5f2ea;
   --fg2: #b8b3a4;
   --fg3: #6e6a60;
+
   /* acento — dinâmico, sobrescrito por App.tsx a partir de config.cor_principal */
   --accent: #55b9f7;
 
@@ -63,8 +66,6 @@
   --dur-fast: 120ms;
   --dur: 200ms;
   --dur-slow: 320ms;
-  /* aliases legados — não usar em código novo */
-  --fast: var(--dur-fast);
 
   /* componentes — alturas de controle padrão */
   --ctrl-lg: 40px;
@@ -76,123 +77,34 @@
   --panel-pad: var(--s-4);
   --panel-head-h: 48px;
   --panel-scroll-max: 310px;
-}
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-html,
-body,
-#root {
-  margin: 0;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--ink);
-  color: var(--paper);
-  font: var(--text-lg) / var(--lh-relaxed) var(--font-mono);
-}
-body,
-#root {
-  user-select: none;
-  -webkit-user-select: none;
-}
-button,
-input {
-  font: inherit;
-  border-radius: var(--r-none);
-}
-button {
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-input,
-textarea,
-[contenteditable='true'],
-.cm-content {
-  cursor: text;
-  user-select: text;
-  -webkit-user-select: text;
-}
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-::selection {
-  background: var(--accent);
-  color: var(--ink);
-}
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
-h1 {
-  font: 700 clamp(32px, 4vw, 46px) / 0.96 var(--font-display);
-  letter-spacing: var(--track-display);
-}
-a {
-  color: var(--accent);
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease);
-}
-a:hover {
-  color: var(--paper);
-}
-kbd {
-  border: 1px solid var(--hair);
-  padding: 1px 5px;
-  font-size: var(--text-sm);
-  color: var(--fg2);
-}
-.eyebrow {
-  color: var(--fg3);
-  font-size: var(--text-xs);
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-}
-.cursor {
-  display: inline-block;
-  margin-left: 4px;
-  width: 0.55em;
-  height: 1em;
-  vertical-align: text-bottom;
-  background: var(--accent);
-  animation: blink 1s steps(2, start) infinite;
-}
-@keyframes blink {
-  to {
-    visibility: hidden;
-  }
-}
 
-/* scrollbar global — espelha o padrão do scroll das colunas (SquareScrollArea):
-   trilho ink-2, polegar fg3 quadrado, hover/active accent. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--fg3) var(--ink-2);
-}
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-*::-webkit-scrollbar-track,
-*::-webkit-scrollbar-corner {
-  background: var(--ink-2);
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--fg3);
-  border: 1px solid var(--fg3);
-  border-radius: 0;
-  min-height: 30px;
-}
-*::-webkit-scrollbar-thumb:hover,
-*::-webkit-scrollbar-thumb:active {
-  background: var(--accent);
-  border-color: var(--accent);
+  /* tipografia — títulos (escala estendida) */
+  --text-title-sm: 16px;
+  --text-title: 17px;
+  --text-title-lg: 18px;
+  --text-2xl: 32px;
+  --text-display: 44px;
+
+  /* rastreamento adicional */
+  --track-wide: 0.02em;
+
+  /* peso de fonte */
+  --fw-regular: 400;
+  --fw-medium: 600;
+  --fw-bold: 700;
+
+  /* sombras */
+  --shadow-popover: 0 12px 30px rgb(0 0 0 / 42%);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 40%);
+
+  /* camadas (z-index) */
+  --z-base: 1;
+  --z-card: 2;
+  --z-raised: 3;
+  --z-sticky: 5;
+  --z-rail: 10;
+  --z-backdrop: 20;
+  --z-overlay: 40;
+  --z-popover: 60;
+  --z-dropdown: 80;
 }

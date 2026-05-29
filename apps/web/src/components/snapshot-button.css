@@ -1,0 +1,101 @@
+/* snapshot button — progress + estado, partilhado por topbar e BackupView */
+.snapshot-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  min-height: var(--ctrl-md);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--fg2);
+  font: inherit;
+  font-size: var(--text-base);
+  letter-spacing: var(--track-wide);
+  text-transform: lowercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.snapshot-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--paper);
+}
+
+.snapshot-button:disabled {
+  cursor: wait;
+  opacity: 1;
+}
+
+.snapshot-button__bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  pointer-events: none;
+  transition: width var(--dur) var(--ease);
+}
+
+.snapshot-button__content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.snapshot-button__label {
+  white-space: nowrap;
+  min-width: 92px;
+  text-align: left;
+}
+
+.snapshot-button__spin {
+  animation: save-spin 1s linear infinite;
+}
+
+.snapshot-button--running {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.snapshot-button--done {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.snapshot-button--done .snapshot-button__bar {
+  background: color-mix(in srgb, var(--ok) 22%, transparent);
+}
+
+.snapshot-button--error {
+  border-color: var(--erro);
+  color: var(--erro);
+}
+
+.snapshot-button--error .snapshot-button__bar {
+  background: color-mix(in srgb, var(--erro) 22%, transparent);
+}
+
+.snapshot-button--primary {
+  /* variante usada na BackupView (header). Maior, com fundo accent quando idle. */
+  min-height: var(--ctrl-lg);
+  padding: 0 var(--s-5);
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--accent);
+}
+
+.snapshot-button--primary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--paper);
+}
+
+.snapshot-button--primary.snapshot-button--running,
+.snapshot-button--primary.snapshot-button--done,
+.snapshot-button--primary.snapshot-button--error {
+  background: transparent;
+}

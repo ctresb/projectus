@@ -1,32 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import './settings.css'
 import { api } from '../../lib/api'
 import type { BackupCredentialStatus, Column, Config, DaemonStatus, Tag } from '../../lib/types'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
 import { itemId } from '../../lib/ids'
-import { markError, markSaved, markSaving } from '../../hooks/useSaveStatus'
 import { useT } from '../../i18n'
 import { Container, PageHeader } from '../../components/ui'
-import {
-  ColumnsPanel,
-  LanguagePanel,
-  R2Panel,
-  ServerPanel,
-  TagsPanel,
-  ThemePanel,
-} from './components/SettingsPanels'
+import { ColumnsPanel, LanguagePanel, R2Panel, ServerPanel, TagsPanel, ThemePanel } from './components/SettingsPanels'
+import { isR2S3Endpoint } from './settingsValidation'
+import { useSettingsAutosave } from './useSettingsAutosave'
 
-function isR2S3Endpoint(endpoint: string) {
-  try {
-    const url = new URL(endpoint)
-    return (
-      url.protocol === 'https:' &&
-      url.hostname.endsWith('.r2.cloudflarestorage.com') &&
-      (url.pathname === '' || url.pathname === '/')
-    )
-  } catch {
-    return false
-  }
-}
+export { isR2S3Endpoint } from './settingsValidation'
 
 export function SettingsView({
   config,
@@ -38,110 +22,24 @@ export function SettingsView({
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
   const t = useT()
-  const [draft, setDraft] = useState(config)
+  const { draft, dirty, saving, change } = useSettingsAutosave({ config, onConfig, onMessage })
   const [accessKey, setAccessKey] = useState('')
   const [secretKey, setSecretKey] = useState('')
   const [credentialStatus, setCredentialStatus] = useState<BackupCredentialStatus | null>(null)
   const [daemon, setDaemon] = useState<DaemonStatus | null>(null)
   const [showCloudflareHelp, setShowCloudflareHelp] = useState(false)
-  const [dirty, setDirty] = useState(false)
-  const [saving, setSaving] = useState(false)
   const validR2Endpoint = isR2S3Endpoint(draft.r2.endpoint)
-  const draftRef = useRef(config)
-  const dirtyRef = useRef(false)
-  const savingRef = useRef(false)
-  const mountedRef = useRef(true)
-  const onConfigRef = useRef(onConfig)
-  const onMessageRef = useRef(onMessage)
 
   useEffect(() => {
-    onConfigRef.current = onConfig
-    onMessageRef.current = onMessage
-  }, [onConfig, onMessage])
-
-  useEffect(() => {
-    dirtyRef.current = dirty
-    savingRef.current = saving
-  }, [dirty, saving])
-
-  useEffect(() => {
-    if (dirty || saving) return
-    draftRef.current = config
-    setDraft(config)
-  }, [config, dirty, saving])
-  useEffect(() => {
-    void api.daemonStatus().then(setDaemon).catch(() => undefined)
-    void api.credentialStatus().then(setCredentialStatus).catch(() => undefined)
+    void api
+      .daemonStatus()
+      .then(setDaemon)
+      .catch(() => undefined)
+    void api
+      .credentialStatus()
+      .then(setCredentialStatus)
+      .catch(() => undefined)
   }, [])
-
-  const persistConfig = useCallback(async (submitted: Config, updateMountedState: boolean) => {
-    try {
-      const saved = await api.updateConfig(submitted)
-      const hasNewerChange = draftRef.current !== submitted
-      const next = hasNewerChange ? { ...draftRef.current, revision: saved.revision } : saved
-      draftRef.current = next
-      onConfigRef.current(next)
-      if (updateMountedState && mountedRef.current) {
-        setDraft(next)
-        if (hasNewerChange) {
-          dirtyRef.current = true
-          setDirty(true)
-        } else {
-          markSaved()
-        }
-      } else if (!hasNewerChange) {
-        markSaved()
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'erro ao salvar ajustes'
-      markError(message)
-      onMessageRef.current('erro', message)
-      if (!updateMountedState || !mountedRef.current) return
-      const fresh = (await api.bootstrap()).config
-      draftRef.current = fresh
-      setDraft(fresh)
-      onConfigRef.current(fresh)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!dirty || saving) return
-    markSaving()
-    const timer = window.setTimeout(() => {
-      const submitted = draftRef.current
-      dirtyRef.current = false
-      savingRef.current = true
-      setDirty(false)
-      setSaving(true)
-      void persistConfig(submitted, true).finally(() => {
-        savingRef.current = false
-        if (mountedRef.current) setSaving(false)
-      })
-    }, 1000)
-    return () => window.clearTimeout(timer)
-  }, [dirty, persistConfig, saving])
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false
-      if (!dirtyRef.current || savingRef.current) return
-      const submitted = draftRef.current
-      dirtyRef.current = false
-      savingRef.current = true
-      markSaving()
-      void persistConfig(submitted, false).finally(() => {
-        savingRef.current = false
-      })
-    }
-  }, [persistConfig])
-
-  const change = (next: Config) => {
-    draftRef.current = next
-    setDraft(next)
-    onConfig(next)
-    dirtyRef.current = true
-    setDirty(true)
-  }
 
   const saveCredentials = async () => {
     try {
@@ -194,7 +92,11 @@ export function SettingsView({
       <PageHeader
         eyebrow={t('settings.eyebrow')}
         title={t('settings.title')}
-        actions={<span className="settings-autosave">{dirty || saving ? t('settings.autosaving') : t('settings.autosaved')}</span>}
+        actions={
+          <span className="settings-autosave">
+            {dirty || saving ? t('settings.autosaving') : t('settings.autosaved')}
+          </span>
+        }
       />
       <SquareScrollArea viewportClassName="settings-scroll">
         <div className="settings-grid">

@@ -17,7 +17,10 @@ type SelectProps = {
 
 export function Select({ value, options, onChange, label, className }: SelectProps) {
   const [open, setOpen] = useState(false)
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  )
   const [activeIndex, setActiveIndex] = useState(selectedIndex)
   const [showActiveOption, setShowActiveOption] = useState(false)
   const root = useRef<HTMLDivElement>(null)

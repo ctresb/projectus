@@ -63,7 +63,10 @@ export function SlashMenuPlugin() {
           closeMenu()
           option.item.run(editor, { requestImageUpload: () => inputRef.current?.click() })
         }}
-        menuRenderFn={(anchorElementRef, { options: menuOptions, selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }) => {
+        menuRenderFn={(
+          anchorElementRef,
+          { options: menuOptions, selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
+        ) => {
           const anchor = anchorElementRef.current
           if (!anchor) return null
           return createPortal(

@@ -17,8 +17,18 @@ export function FloatingToolbar({ formats }: { formats: ToolbarFormats }) {
     <div className={editorStyles.floatingToolbar}>
       <FormatToggle active={formats.bold} format="bold" icon={Bold} label={t('editor.toolbar.bold')} />
       <FormatToggle active={formats.italic} format="italic" icon={Italic} label={t('editor.toolbar.italic')} />
-      <FormatToggle active={formats.underline} format="underline" icon={Underline} label={t('editor.toolbar.underline')} />
-      <FormatToggle active={formats.strikethrough} format="strikethrough" icon={Strikethrough} label={t('editor.toolbar.strike')} />
+      <FormatToggle
+        active={formats.underline}
+        format="underline"
+        icon={Underline}
+        label={t('editor.toolbar.underline')}
+      />
+      <FormatToggle
+        active={formats.strikethrough}
+        format="strikethrough"
+        icon={Strikethrough}
+        label={t('editor.toolbar.strike')}
+      />
       <FormatToggle active={formats.code} format="code" icon={Code2} label={t('editor.toolbar.inline_code')} />
       <button
         type="button"

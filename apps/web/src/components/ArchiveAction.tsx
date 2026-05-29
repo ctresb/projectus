@@ -3,13 +3,7 @@ import { Archive } from 'lucide-react'
 import { useT } from '../i18n'
 import { Button } from './ui'
 
-export function ArchiveAction({
-  entidade,
-  onArchive,
-}: {
-  entidade: string
-  onArchive: () => Promise<void>
-}) {
+export function ArchiveAction({ entidade, onArchive }: { entidade: string; onArchive: () => Promise<void> }) {
   const t = useT()
   const [confirming, setConfirming] = useState(false)
   if (confirming) {

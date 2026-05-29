@@ -40,13 +40,7 @@ function setBlock(editor: ReturnType<typeof useLexicalComposerContext>[0], block
   })
 }
 
-export function BlockTypeSelect({
-  blockType,
-  labels,
-}: {
-  blockType: BlockType
-  labels: Record<BlockType, string>
-}) {
+export function BlockTypeSelect({ blockType, labels }: { blockType: BlockType; labels: Record<BlockType, string> }) {
   const [editor] = useLexicalComposerContext()
   const options: Array<{ value: BlockType; label: string }> = [
     { value: 'paragraph', label: labels.paragraph },

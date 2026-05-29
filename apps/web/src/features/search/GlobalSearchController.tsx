@@ -4,6 +4,7 @@ import { matchesShortcut } from './shortcuts'
 import type { SearchNavigationTarget } from './types'
 import { useGlobalSearchIndex } from './useGlobalSearchIndex'
 import { GlobalSearchModal } from './GlobalSearchModal'
+import './search.css'
 
 type GlobalSearchControllerProps = {
   workspace: Bootstrap

@@ -45,10 +45,9 @@ describe('useDocumentAutosave', () => {
       onSaved: vi.fn(),
       onError: vi.fn(),
     }
-    const { rerender } = renderHook(
-      ({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }),
-      { initialProps: { keyValue: 'ideia-1' } },
-    )
+    const { rerender } = renderHook(({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }), {
+      initialProps: { keyValue: 'ideia-1' },
+    })
     rerender({ keyValue: 'ideia-2' })
     await act(async () => vi.advanceTimersByTimeAsync(599))
     expect(save).not.toHaveBeenCalled()
@@ -74,10 +73,9 @@ describe('useDocumentAutosave', () => {
       onSaved: vi.fn(),
       onError: vi.fn(),
     }
-    const { rerender } = renderHook(
-      ({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }),
-      { initialProps: { keyValue: 'ideia-1' } },
-    )
+    const { rerender } = renderHook(({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }), {
+      initialProps: { keyValue: 'ideia-1' },
+    })
     await act(async () => vi.advanceTimersByTimeAsync(600))
     expect(save).toHaveBeenCalledOnce()
     rerender({ keyValue: 'ideia-2' })

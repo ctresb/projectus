@@ -44,12 +44,7 @@ export function InsertMenu() {
       </button>
       {open && (
         <div className={`${editorStyles.popover} ${editorStyles.insertMenuPanel}`}>
-          <button
-            type="button"
-            className={editorStyles.toolbarButton}
-            disabled={!uploadImage}
-            onClick={pickImage}
-          >
+          <button type="button" className={editorStyles.toolbarButton} disabled={!uploadImage} onClick={pickImage}>
             <Image size={15} /> {t('editor.toolbar.image')}
           </button>
           <button

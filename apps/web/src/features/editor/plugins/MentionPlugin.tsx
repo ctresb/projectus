@@ -83,7 +83,10 @@ export function MentionPlugin() {
         editor.update(() => replaceWithMention(textNodeContainingQuery, matchingString, option))
         closeMenu()
       }}
-      menuRenderFn={(anchorElementRef, { options: menuOptions, selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }) => {
+      menuRenderFn={(
+        anchorElementRef,
+        { options: menuOptions, selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
+      ) => {
         const anchor = anchorElementRef.current
         if (!anchor) return null
         return createPortal(

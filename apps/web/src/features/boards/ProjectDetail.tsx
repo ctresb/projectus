@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, ExternalLink, Pencil, Plus } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { Config, DocumentResponse, Project, ProjectCard, TaskCard } from '../../lib/types'
 import { useQuickCreate } from '../../hooks/useQuickCreate'
+import { useNavigationRequest } from '../../hooks/useNavigationRequest'
 import { CreateTaskModal } from './CreateModals'
 import { EditProjectModal, EditTaskModal } from './EditModals'
 import { KanbanBoard } from './KanbanBoard'
 import { useT } from '../../i18n'
 import { Button, Container, LoadingState } from '../../components/ui'
+import './boards.css'
 
-type ProjectNavigationRequest =
-  | { type: 'project'; token: number }
-  | { type: 'task'; taskId: string; token: number }
+type ProjectNavigationRequest = { type: 'project'; token: number } | { type: 'task'; taskId: string; token: number }
 
 export function ProjectDetail({
   id,
@@ -36,7 +36,6 @@ export function ProjectDetail({
   const [initialTitle, setInitialTitle] = useState('')
   const [editProject, setEditProject] = useState(false)
   const [taskOpen, setTaskOpen] = useState<TaskCard | null>(null)
-  const handledNavigationToken = useRef<number | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -54,30 +53,26 @@ export function ProjectDetail({
     void load()
   }, [load])
 
-  useEffect(() => {
-    if (
-      !document ||
-      document.dados.id !== id ||
-      !navigationRequest ||
-      handledNavigationToken.current === navigationRequest.token
-    ) {
-      return
-    }
-    handledNavigationToken.current = navigationRequest.token
-    if (navigationRequest.type === 'project') {
-      setCreating(false)
-      setEditProject(false)
-      setTaskOpen(null)
-      return
-    }
+  useNavigationRequest(
+    navigationRequest,
+    (request) => {
+      if (!document || document.dados.id !== id) return false
+      if (request.type === 'project') {
+        setCreating(false)
+        setEditProject(false)
+        setTaskOpen(null)
+        return
+      }
 
-    const task = document.dados.tarefas.find((candidate) => candidate.id === navigationRequest.taskId)
-    if (task) {
-      setCreating(false)
-      setEditProject(false)
-      setTaskOpen(task)
-    }
-  }, [document, navigationRequest])
+      const task = document.dados.tarefas.find((candidate) => candidate.id === request.taskId)
+      if (task) {
+        setCreating(false)
+        setEditProject(false)
+        setTaskOpen(task)
+      }
+    },
+    [document],
+  )
 
   const openCreator = useCallback((title: string) => {
     setInitialTitle(title)
@@ -118,7 +113,10 @@ export function ProjectDetail({
         onOpen={setTaskOpen}
         onMove={async (taskId, status, indice) => {
           try {
-            setDocument({ ...document, dados: await api.moveTask(id, { revision: project.revision, id: taskId, status, indice }) })
+            setDocument({
+              ...document,
+              dados: await api.moveTask(id, { revision: project.revision, id: taskId, status, indice }),
+            })
           } catch (error) {
             onMessage('erro', error instanceof Error ? error.message : t('project_detail.fail_move_task'))
             await load()

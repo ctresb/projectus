@@ -1,0 +1,127 @@
+.settings-scroll[data-overflowing='true'] {
+  padding-right: var(--s-5);
+}
+
+.panel__scroll-viewport[data-overflowing='true'] {
+  padding-right: var(--s-2);
+}
+
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  width: min(860px, 100%);
+  gap: var(--s-5);
+  flex: none;
+  min-height: auto;
+  padding-bottom: var(--s-6);
+}
+
+.panel__scroll {
+  margin: 0 calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad));
+  max-height: var(--panel-scroll-max);
+  flex: none;
+}
+
+.settings-autosave {
+  align-self: center;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--hair);
+  color: var(--fg2);
+  font-size: var(--text-sm);
+}
+
+.setting-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px dashed var(--hair);
+}
+
+.setting-row--column {
+  grid-template-columns: 28px minmax(112px, 1fr) auto auto;
+}
+
+.setting-row--tag {
+  grid-template-columns: minmax(140px, 1fr) auto auto auto;
+}
+
+.setting-row__tag-preview {
+  max-width: 144px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting-row__actions {
+  display: flex;
+  gap: var(--s-1);
+}
+
+.setting-row__actions .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+
+.setting-row input {
+  min-width: 0;
+}
+
+.setting-row__index {
+  color: var(--fg3);
+  font-size: var(--text-sm);
+}
+
+.credential-state {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--hair);
+  color: var(--fg3);
+  font-size: var(--text-sm);
+}
+
+.credential-state strong {
+  color: var(--erro);
+  letter-spacing: 0.14em;
+}
+
+.credential-state--ok strong {
+  color: var(--ok);
+}
+
+.credential-state--ok span {
+  color: var(--fg2);
+}
+
+.snapshots {
+  max-width: 920px;
+}
+
+.snapshot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-4);
+  border-bottom: 1px dashed var(--hair);
+}
+
+.snapshot div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.snapshot span {
+  color: var(--fg3);
+  font-size: var(--text-sm);
+}
+
+@media (width <= 900px) {
+  .settings-grid {
+    width: 100%;
+  }
+}

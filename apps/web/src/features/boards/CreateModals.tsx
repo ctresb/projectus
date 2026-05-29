@@ -6,6 +6,7 @@ import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
 import { useCmdEnterSubmit } from '../../hooks/useCmdEnterSubmit'
 import { useT } from '../../i18n'
 import { BoardEditorForm, ColorAndTagsFields, EditorActions, MarkdownField } from './components/BoardEditorFields'
+import './tags-catalog.css'
 
 function focusDescription(event: KeyboardEvent<HTMLInputElement>, editor: RefObject<MarkdownEditorHandle | null>) {
   if (event.key !== 'Tab' || event.shiftKey) return
@@ -26,7 +27,14 @@ export function CreateProjectModal({
   tagsDisponiveis: Tag[]
   cores: ColorChoice[]
   onClose: () => void
-  onCreate: (input: { titulo: string; githubUrl: string; markdown: string; cor: string; tags: string[]; novasTags: Tag[] }) => Promise<void>
+  onCreate: (input: {
+    titulo: string
+    githubUrl: string
+    markdown: string
+    cor: string
+    tags: string[]
+    novasTags: Tag[]
+  }) => Promise<void>
 }) {
   const t = useT()
   const [titulo, setTitulo] = useState('')
@@ -108,7 +116,11 @@ export function CreateProjectModal({
             setTags((current) => [...current, tag.id])
           }}
         />
-        <EditorActions cancelLabel={t('create_project.cancel')} submitLabel={t('create_project.submit')} onCancel={onClose} />
+        <EditorActions
+          cancelLabel={t('create_project.cancel')}
+          submitLabel={t('create_project.submit')}
+          onCancel={onClose}
+        />
       </BoardEditorForm>
     </Modal>
   )
@@ -127,7 +139,13 @@ export function CreateTaskModal({
   tagsDisponiveis: Tag[]
   cores: ColorChoice[]
   onClose: () => void
-  onCreate: (input: { titulo: string; markdown: string; cor: string; tags: string[]; novasTags: Tag[] }) => Promise<void>
+  onCreate: (input: {
+    titulo: string
+    markdown: string
+    cor: string
+    tags: string[]
+    novasTags: Tag[]
+  }) => Promise<void>
 }) {
   const t = useT()
   const [titulo, setTitulo] = useState('')

@@ -39,8 +39,18 @@ export function DesktopToolbar({ state }: { state: ToolbarState }) {
       <div className={editorStyles.toolbarGroup}>
         <FormatToggle active={state.formats.bold} format="bold" icon={Bold} label={t('editor.toolbar.bold')} />
         <FormatToggle active={state.formats.italic} format="italic" icon={Italic} label={t('editor.toolbar.italic')} />
-        <FormatToggle active={state.formats.underline} format="underline" icon={Underline} label={t('editor.toolbar.underline')} />
-        <FormatToggle active={state.formats.strikethrough} format="strikethrough" icon={Strikethrough} label={t('editor.toolbar.strike')} />
+        <FormatToggle
+          active={state.formats.underline}
+          format="underline"
+          icon={Underline}
+          label={t('editor.toolbar.underline')}
+        />
+        <FormatToggle
+          active={state.formats.strikethrough}
+          format="strikethrough"
+          icon={Strikethrough}
+          label={t('editor.toolbar.strike')}
+        />
         <FormatToggle active={state.formats.code} format="code" icon={Code2} label={t('editor.toolbar.inline_code')} />
       </div>
       <div className={editorStyles.toolbarGroup}>

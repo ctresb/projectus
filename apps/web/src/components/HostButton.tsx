@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import type { LanStatus } from '../lib/types'
 import { EASE } from '../lib/motion'
 import { useT } from '../i18n'
+import './host-button.css'
 
 export function HostButton({ porta }: { porta: number }) {
   const t = useT()
@@ -16,7 +17,10 @@ export function HostButton({ porta }: { porta: number }) {
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    void api.lanStatus().then(setStatus).catch(() => undefined)
+    void api
+      .lanStatus()
+      .then(setStatus)
+      .catch(() => undefined)
   }, [])
 
   useEffect(() => {
@@ -101,14 +105,21 @@ export function HostButton({ porta }: { porta: number }) {
 
   const ativo = status?.ativo ?? false
   const restarting = status?.precisa_reiniciar ?? false
-  const icon = pending || restarting ? (
-    <Loader2 size={14} className="host-button__spin" />
-  ) : ativo ? (
-    <Globe size={14} />
-  ) : (
-    <WifiOff size={14} />
-  )
-  const label = pending ? t('host.applying') : restarting ? t('host.restarting') : ativo ? t('host.hosting') : t('host.host')
+  const icon =
+    pending || restarting ? (
+      <Loader2 size={14} className="host-button__spin" />
+    ) : ativo ? (
+      <Globe size={14} />
+    ) : (
+      <WifiOff size={14} />
+    )
+  const label = pending
+    ? t('host.applying')
+    : restarting
+      ? t('host.restarting')
+      : ativo
+        ? t('host.hosting')
+        : t('host.host')
 
   return (
     <div className="host-button" ref={root}>
@@ -146,26 +157,25 @@ export function HostButton({ porta }: { porta: number }) {
                 <span className="host-pop__switch-knob" />
               </button>
             </div>
-            <p className="host-pop__hint">
-              {t('host.popup_hint')}
-            </p>
+            <p className="host-pop__hint">{t('host.popup_hint')}</p>
             {status?.erro && <div className="host-pop__error">{status.erro}</div>}
             {restarting && !restartFailed && (
               <p className="host-pop__hint host-pop__hint--warn">
                 <RefreshCw size={11} /> {t('host.restart_in_progress')}
               </p>
             )}
-            {restartFailed && (
-              <div className="host-pop__error">
-                {t('host.restart_failed')}
-              </div>
-            )}
+            {restartFailed && <div className="host-pop__error">{t('host.restart_failed')}</div>}
             {ativo && !restarting && status && status.urls.length > 0 && (
               <ul className="host-pop__urls">
                 {status.urls.map((url) => (
                   <li key={url}>
                     <code>{url}</code>
-                    <button type="button" className="icon-btn" onClick={() => void copy(url)} aria-label={t('host.aria_copy', { url })}>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => void copy(url)}
+                      aria-label={t('host.aria_copy', { url })}
+                    >
                       {copied === url ? <Check size={14} /> : <Copy size={14} />}
                     </button>
                   </li>
@@ -173,9 +183,7 @@ export function HostButton({ porta }: { porta: number }) {
               </ul>
             )}
             {ativo && !restarting && status?.urls.length === 0 && (
-              <p className="host-pop__hint host-pop__hint--warn">
-                {t('host.no_local_ip')}
-              </p>
+              <p className="host-pop__hint host-pop__hint--warn">{t('host.no_local_ip')}</p>
             )}
             {!ativo && !restarting && (
               <p className="host-pop__hint">{t('host.port_label', { porta: status?.porta ?? porta })}</p>

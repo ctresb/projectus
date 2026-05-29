@@ -2,17 +2,33 @@
   "name": "projectus",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "packageManager": "pnpm@10.30.2",
   "scripts": {
     "dev": "pnpm --filter @projectus/web dev",
     "build": "pnpm --filter @projectus/web build",
     "test": "pnpm --filter @projectus/web test",
     "typecheck": "pnpm --filter @projectus/web typecheck",
+    "lint": "pnpm lint:js && pnpm lint:css",
+    "lint:js": "eslint .",
+    "lint:css": "stylelint \"apps/web/src/**/*.css\"",
+    "format": "prettier --write \"apps/web/src/**/*.{ts,tsx}\"",
     "desktop:dev": "pnpm --filter @projectus/desktop tauri dev",
     "desktop:build": "pnpm --filter @projectus/desktop tauri build",
     "server:dev": "cargo run -p projectus-server",
     "server:test": "cargo test --workspace",
     "instalar": "./scripts/instalar.sh",
     "instalador": "./scripts/instalar.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "stylelint": "^17.12.0",
+    "stylelint-config-standard": "^40.0.0",
+    "typescript-eslint": "^8.60.0"
   }
 }

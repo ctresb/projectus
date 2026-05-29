@@ -39,11 +39,13 @@ export function BackupView({
       <PageHeader
         eyebrow={t('backup_view.eyebrow')}
         title={t('backup_view.title')}
-        actions={<SnapshotButton
-          className="snapshot-button--primary"
-          idleLabel={t('backup_view.snapshot_now')}
-          onError={(text) => onMessage('erro', text)}
-        />}
+        actions={
+          <SnapshotButton
+            className="snapshot-button--primary"
+            idleLabel={t('backup_view.snapshot_now')}
+            onError={(text) => onMessage('erro', text)}
+          />
+        }
       />
       <Text className="panel-copy">{t('backup_view.description')}</Text>
       {!config.r2.configurado ? (
@@ -59,7 +61,10 @@ export function BackupView({
                 <strong>{snapshot.id}</strong>
                 <span>
                   {snapshot.origem === 'manual' ? t('backup_view.origin_manual') : t('backup_view.origin_auto')} /{' '}
-                  {t('backup_view.files_size', { files: snapshot.arquivos, mb: (snapshot.bytes / 1024 / 1024).toFixed(2) })}
+                  {t('backup_view.files_size', {
+                    files: snapshot.arquivos,
+                    mb: (snapshot.bytes / 1024 / 1024).toFixed(2),
+                  })}
                 </span>
               </div>
               <Button

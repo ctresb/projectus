@@ -1,0 +1,58 @@
+/* color picker */
+.color-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.color-picker__trigger {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--hair);
+  background: var(--ink-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.color-picker__trigger::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: var(--swatch);
+}
+
+.color-picker__trigger:hover,
+.color-picker__trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+}
+
+.color-picker__panel {
+  position: fixed;
+  z-index: var(--z-popover);
+  display: grid;
+  grid-template-columns: repeat(4, 28px);
+  gap: var(--s-1);
+  padding: var(--s-2);
+  border: 1px solid var(--hair);
+  background: var(--ink);
+  box-shadow: var(--shadow-pop);
+}
+
+.color-picker__option {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hair);
+  background: transparent;
+}
+
+.color-picker__option::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  background: var(--swatch);
+}
+
+.color-picker__option--active {
+  border-color: var(--paper);
+}

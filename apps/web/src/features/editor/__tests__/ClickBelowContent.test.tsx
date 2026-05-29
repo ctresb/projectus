@@ -41,7 +41,7 @@ describe('ClickBelowContentPlugin', () => {
     Object.defineProperty(contentEditable, 'lastElementChild', { configurable: true, value: paragraph })
     Object.defineProperty(paragraph, 'getBoundingClientRect', {
       configurable: true,
-      value: () => ({ bottom: 100 } as DOMRect),
+      value: () => ({ bottom: 100 }) as DOMRect,
     })
 
     const betweenBlocks = new MouseEvent('pointerdown', { bubbles: true, button: 0, clientY: 80 })

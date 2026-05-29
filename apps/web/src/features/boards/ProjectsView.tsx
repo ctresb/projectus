@@ -63,9 +63,9 @@ export function ProjectsView({
         eyebrow={t('projects.eyebrow')}
         title={t('projects.title')}
         actions={
-        <Button variant="primary" onClick={() => openCreator('')} type="button">
-          <Plus size={15} /> {t('projects.new_button')} <kbd>⌘N</kbd>
-        </Button>
+          <Button variant="primary" onClick={() => openCreator('')} type="button">
+            <Plus size={15} /> {t('projects.new_button')} <kbd>⌘N</kbd>
+          </Button>
         }
       />
       <KanbanBoard<ProjectCard>

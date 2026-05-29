@@ -19,7 +19,10 @@ export function useFloatingPosition(
     const margin = 8
     const width = floating.offsetWidth
     const height = floating.offsetHeight
-    const left = Math.min(Math.max(margin, targetRect.left + targetRect.width / 2 - width / 2), window.innerWidth - width - margin)
+    const left = Math.min(
+      Math.max(margin, targetRect.left + targetRect.width / 2 - width / 2),
+      window.innerWidth - width - margin,
+    )
     const aboveTop = targetRect.top - height - margin
     const top = placement === 'below' || aboveTop < margin ? targetRect.bottom + margin : aboveTop
     setStyle({ left, position: 'fixed', top, visibility: 'visible', zIndex: 120 })

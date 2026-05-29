@@ -9,6 +9,8 @@ const labels: Record<string, string> = {
 describe('slash menu filtering', () => {
   it('filters by localized label prefix and keyword prefix', () => {
     expect(filterSlashItems(SLASH_ITEMS, 'hea', (key) => labels[key] ?? key).map((item) => item.id)).toContain('h2')
-    expect(filterSlashItems(SLASH_ITEMS, 'upload', (key) => labels[key] ?? key).map((item) => item.id)).toEqual(['image'])
+    expect(filterSlashItems(SLASH_ITEMS, 'upload', (key) => labels[key] ?? key).map((item) => item.id)).toEqual([
+      'image',
+    ])
   })
 })

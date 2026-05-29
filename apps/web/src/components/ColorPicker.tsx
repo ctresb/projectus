@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ColorChoice } from '../lib/types'
 import { EASE } from '../lib/motion'
+import './color-picker.css'
 
 type Props = {
   cores: ColorChoice[]

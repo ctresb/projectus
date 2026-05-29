@@ -1,0 +1,263 @@
+.shell {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  flex: none;
+  z-index: var(--z-sticky);
+  display: grid;
+  grid-template-columns: 152px 1fr auto auto auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 62px;
+  padding: 0 var(--s-5);
+  border-bottom: 1px solid var(--hair);
+  background: var(--ink);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.brand svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.crumbs {
+  display: flex;
+  gap: var(--s-3);
+  color: var(--fg2);
+  font-size: var(--text-md);
+}
+
+.crumbs button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg2);
+}
+
+.crumbs button:hover {
+  color: var(--accent);
+}
+
+.crumbs strong {
+  color: var(--paper);
+  font-weight: var(--fw-regular);
+}
+
+.save-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--fg2);
+  font-size: var(--text-base);
+  letter-spacing: var(--track-wide);
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.save-button span {
+  color: var(--accent);
+}
+
+.save-button small {
+  color: var(--fg3);
+}
+
+.save-button:hover {
+  border-color: var(--accent);
+  color: var(--paper);
+}
+
+.local {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--fg2);
+  font-size: var(--text-base);
+}
+
+.local__dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ok);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 222px minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rail {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--s-5) var(--s-4);
+  border-right: 1px solid var(--hair);
+}
+
+.rail ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail__link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10px optical vertical inset for rail links */
+  padding: 10px var(--s-3);
+  color: var(--fg2);
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  text-align: left;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.rail__link:hover,
+.rail__link--active {
+  color: var(--paper);
+}
+
+.rail__link--active {
+  background: var(--ink-2);
+  border-left-color: var(--accent);
+}
+
+.rail footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-3);
+  color: var(--fg2);
+  font-size: var(--text-base);
+}
+
+.rail footer strong {
+  color: var(--paper);
+}
+
+.rail__section {
+  margin-top: var(--s-5);
+}
+
+.rail footer p {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  margin-top: var(--s-5);
+  color: var(--fg3);
+}
+
+.status {
+  color: var(--fg3);
+}
+
+.status--ok {
+  color: var(--ok);
+}
+
+.main {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (width <= 900px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+    gap: var(--s-3);
+  }
+
+  .crumbs,
+  .local {
+    display: none;
+  }
+
+  .body {
+    display: block;
+    position: relative;
+  }
+
+  .rail {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    z-index: var(--z-rail);
+    width: 100%;
+    height: 58px;
+    padding: 0;
+    border-top: 1px solid var(--hair);
+    border-right: 0;
+    background: var(--ink);
+  }
+
+  .rail ul {
+    flex-direction: row;
+    height: 100%;
+  }
+
+  .rail li {
+    flex: 1;
+  }
+
+  .rail__link {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+    padding: 0;
+    border-left: 0;
+    border-top: 2px solid transparent;
+    font-size: var(--text-xs);
+  }
+
+  .rail__link--active {
+    border-top-color: var(--accent);
+  }
+
+  .rail footer {
+    display: none;
+  }
+
+  .main {
+    height: 100%;
+    /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 58px clears the fixed mobile rail height */
+    padding-bottom: 58px;
+  }
+
+  .workspace {
+    padding: var(--s-5) var(--s-4);
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: var(--s-5);
+  }
+}

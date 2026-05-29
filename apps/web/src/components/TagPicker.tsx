@@ -26,9 +26,7 @@ export function TagPicker({
           style={{ '--tag-color': tag.cor } as CSSProperties}
           key={tag.id}
           type="button"
-          onClick={() =>
-            onChange(value.includes(tag.id) ? value.filter((id) => id !== tag.id) : [...value, tag.id])
-          }
+          onClick={() => onChange(value.includes(tag.id) ? value.filter((id) => id !== tag.id) : [...value, tag.id])}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.12, ease: EASE }}
@@ -41,13 +39,7 @@ export function TagPicker({
   )
 }
 
-export function NewTagRow({
-  cores,
-  onCreate,
-}: {
-  cores: ColorChoice[]
-  onCreate: (tag: Tag) => void
-}) {
+export function NewTagRow({ cores, onCreate }: { cores: ColorChoice[]; onCreate: (tag: Tag) => void }) {
   const t = useT()
   const [title, setTitle] = useState('')
   const [color, setColor] = useState(cores[0]?.valor ?? '#55B9F7')

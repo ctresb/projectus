@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import './square-scroll.css'
 
 type Metrics = {
   clientHeight: number
@@ -69,7 +70,11 @@ export function SquareScrollArea({
     const viewport = viewportRef.current
     if (!drag || !viewport || travel <= 0) return
     event.preventDefault()
-    viewport.scrollTop = clamp(drag.startScrollTop + ((event.clientY - drag.startY) / travel) * scrollRange, 0, scrollRange)
+    viewport.scrollTop = clamp(
+      drag.startScrollTop + ((event.clientY - drag.startY) / travel) * scrollRange,
+      0,
+      scrollRange,
+    )
     measure()
   }
 

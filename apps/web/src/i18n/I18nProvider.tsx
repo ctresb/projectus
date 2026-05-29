@@ -23,9 +23,7 @@ function resolve(dict: Dictionary, key: string): string | undefined {
 
 function interpolate(template: string, vars?: Vars): string {
   if (!vars) return template
-  return template.replace(/\{(\w+)\}/g, (_, key) =>
-    key in vars ? String(vars[key]) : `{${key}}`,
-  )
+  return template.replace(/\{(\w+)\}/g, (_, key) => (key in vars ? String(vars[key]) : `{${key}}`))
 }
 
 export function I18nProvider({ locale, children }: { locale?: string; children: ReactNode }) {

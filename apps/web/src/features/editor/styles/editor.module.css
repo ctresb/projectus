@@ -139,7 +139,7 @@
   color: var(--fg2);
   cursor: pointer;
   font: 12px var(--font-mono);
-  transition: border-color var(--fast) var(--ease), color var(--fast) var(--ease), background var(--fast) var(--ease);
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .toolbarButton:hover,

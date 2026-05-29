@@ -20,10 +20,9 @@ export function columnFromDropId(overId: string) {
 }
 
 export function groupCards<T extends PositionedCard>(cards: T[], columns: Column[]) {
-  return Object.fromEntries(columns.map((column) => [column.id, cards.filter((card) => card.status === column.id)])) as Record<
-    string,
-    T[]
-  >
+  return Object.fromEntries(
+    columns.map((column) => [column.id, cards.filter((card) => card.status === column.id)]),
+  ) as Record<string, T[]>
 }
 
 export function positionOf<T extends PositionedCard>(cards: T[], activeId: string): Placement | null {
@@ -31,7 +30,9 @@ export function positionOf<T extends PositionedCard>(cards: T[], activeId: strin
   if (!card) return null
   return {
     status: card.status,
-    indice: cards.filter((candidate) => candidate.status === card.status).findIndex((candidate) => candidate.id === activeId),
+    indice: cards
+      .filter((candidate) => candidate.status === card.status)
+      .findIndex((candidate) => candidate.id === activeId),
   }
 }
 
@@ -59,7 +60,11 @@ export function findPlacementAtPoint<T extends PositionedCard>(
   return { status: target.id, indice: indice < 0 ? bucket.length : indice }
 }
 
-export function placementFromOver<T extends PositionedCard>(cards: T[], activeId: string, overId: string): Placement | null {
+export function placementFromOver<T extends PositionedCard>(
+  cards: T[],
+  activeId: string,
+  overId: string,
+): Placement | null {
   const targetStatus = columnFromDropId(overId) ?? cards.find((card) => card.id === overId)?.status
   if (!targetStatus) return null
 

@@ -1,0 +1,46 @@
+/* save indicator */
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--fg2);
+  font-size: var(--text-base);
+  letter-spacing: var(--track-wide);
+  text-transform: lowercase;
+  min-width: 150px;
+  box-sizing: border-box;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.save-indicator__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.save-indicator__label {
+  white-space: nowrap;
+}
+
+.save-indicator--saving {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.save-indicator--saved {
+  color: var(--ok);
+}
+
+.save-indicator--error {
+  color: var(--erro);
+  border-color: var(--erro);
+}
+
+.save-indicator__spin {
+  animation: save-spin 1s linear infinite;
+}

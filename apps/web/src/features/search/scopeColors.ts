@@ -37,7 +37,7 @@ function colorToHsl(color: string | undefined) {
   if (delta === 0) return { h: 0, s: 0, l: Math.round(lightness * 100) }
 
   const saturation = delta / (1 - Math.abs(2 * lightness - 1))
-  let hue = 0
+  let hue: number
   if (max === red) hue = ((green - blue) / delta) % 6
   else if (max === green) hue = (blue - red) / delta + 2
   else hue = (red - green) / delta + 4

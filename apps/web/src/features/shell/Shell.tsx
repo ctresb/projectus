@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import './shell.css'
 import { Archive, CloudUpload, FolderKanban, Lightbulb, Settings, SlidersHorizontal } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { Config } from '../../lib/types'

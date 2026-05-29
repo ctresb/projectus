@@ -15,15 +15,7 @@ type ResultsListProps = {
   onSelect: (entry: GlobalSearchEntry) => void
 }
 
-export function ResultsList({
-  results,
-  activeId,
-  query,
-  indexing,
-  indexError,
-  onActive,
-  onSelect,
-}: ResultsListProps) {
+export function ResultsList({ results, activeId, query, indexing, indexError, onActive, onSelect }: ResultsListProps) {
   const t = useT()
   const hasResults = results.length > 0
 
@@ -44,7 +36,9 @@ export function ResultsList({
               />
             )
           })}
-          {!hasResults && indexing && <LoadingState className="global-search-state">{t('search.indexing')}</LoadingState>}
+          {!hasResults && indexing && (
+            <LoadingState className="global-search-state">{t('search.indexing')}</LoadingState>
+          )}
           {!hasResults && !indexing && (
             <EmptyState className="global-search-state">
               {query.trim() ? t('search.empty') : t('search.empty_query')}
@@ -53,7 +47,9 @@ export function ResultsList({
         </div>
       </SquareScrollArea>
       <footer className="global-search-footer">
-        <span>{indexError ?? (indexing ? t('search.indexing') : t('search.result_count', { count: results.length }))}</span>
+        <span>
+          {indexError ?? (indexing ? t('search.indexing') : t('search.result_count', { count: results.length }))}
+        </span>
       </footer>
     </>
   )

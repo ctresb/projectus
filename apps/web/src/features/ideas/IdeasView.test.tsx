@@ -22,7 +22,9 @@ vi.mock('../editor/DeferredMarkdownEditor', async () => {
       { documentKey: string; markdown: string; onChange: (markdown: string) => void }
     >(function DeferredMarkdownEditor({ markdown, onChange }, ref) {
       React.useImperativeHandle(ref, () => ({ focus: vi.fn() }), [])
-      return <textarea aria-label="draft markdown" value={markdown} onChange={(event) => onChange(event.target.value)} />
+      return (
+        <textarea aria-label="draft markdown" value={markdown} onChange={(event) => onChange(event.target.value)} />
+      )
     }),
   }
 })

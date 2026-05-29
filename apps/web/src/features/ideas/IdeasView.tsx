@@ -1,34 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { Config, Ideas } from '../../lib/types'
 import { useT } from '../../i18n'
 import { Button, EmptyState } from '../../components/ui'
-import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
 import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
 import { IdeaEditor } from './components/IdeaEditor'
 import { IdeasList } from './components/IdeasList'
-
-type QuickDraft = {
-  key: number
-  title: string
-  markdown: string
-}
-
-const QUICK_CREATE_SETTLE_MS = 160
-
-function isEditingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
-    Boolean(target.closest('[role="dialog"], [role="listbox"], [role="menu"]'))
-  )
-}
-
-function wait(ms: number) {
-  return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
-}
+import { useIdeasNavigation } from './useIdeasNavigation'
+import { useQuickIdea } from './useQuickIdea'
+import './ideas.css'
 
 export function IdeasView({
   config,
@@ -46,166 +27,33 @@ export function IdeasView({
   const t = useT()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(ideas.notas[0]?.id ?? null)
-  const [quickDraft, setQuickDraft] = useState<QuickDraft | null>(null)
   const [focusIdeaId, setFocusIdeaId] = useState<string | null>(null)
   const [focusToken, setFocusToken] = useState(0)
-  const quickDraftRef = useRef<QuickDraft | null>(null)
-  const quickPersisting = useRef(false)
-  const quickSession = useRef(0)
-  const handledNavigationToken = useRef<number | null>(null)
-  const draftEditor = useRef<MarkdownEditorHandle>(null)
   const filtered = useMemo(
     () => ideas.notas.filter((note) => note.titulo.toLowerCase().includes(search.toLowerCase())),
     [ideas.notas, search],
   )
 
-  const replaceQuickDraft = useCallback((draft: QuickDraft | null) => {
-    quickDraftRef.current = draft
-    setQuickDraft(draft)
-  }, [])
+  const { quickDraft, quickSession, draftEditor, replaceQuickDraft, updateQuickDraftMarkdown, startDraft, selectIdea } =
+    useQuickIdea({
+      onIdeas,
+      onMessage,
+      setSearch,
+      setSelected,
+      setFocusIdeaId,
+      setFocusToken,
+    })
 
-  const updateQuickDraftMarkdown = useCallback(
-    (markdown: string) => {
-      const current = quickDraftRef.current
-      if (!current) return
-      replaceQuickDraft({ ...current, markdown })
-    },
-    [replaceQuickDraft],
-  )
-
-  const persistQuickDraft = useCallback(
-    async (session: number) => {
-      if (quickPersisting.current) return
-      quickPersisting.current = true
-      try {
-        const firstDraft = quickDraftRef.current
-        if (!firstDraft) return
-
-        const defaultTitle = t('ideas.default_title')
-        let savedTitle = firstDraft.title.trim() || defaultTitle
-        let savedMarkdown = firstDraft.markdown
-        const created = await api.createIdea({ titulo: savedTitle, markdown: savedMarkdown })
-        let next = await api.ideas()
-        onIdeas(next)
-
-        if (savedMarkdown.trim()) await wait(QUICK_CREATE_SETTLE_MS)
-
-        while (quickSession.current === session) {
-          const latestDraft = quickDraftRef.current
-          if (!latestDraft) return
-
-          const latestTitle = latestDraft.title.trim() || defaultTitle
-          if (latestTitle === savedTitle && latestDraft.markdown === savedMarkdown) break
-
-          await api.updateIdea(created.dados.id, {
-            revision: next.revision,
-            titulo: latestTitle,
-            markdown: latestDraft.markdown,
-            cor: created.dados.cor,
-          })
-          savedTitle = latestTitle
-          savedMarkdown = latestDraft.markdown
-          next = await api.ideas()
-          onIdeas(next)
-
-          if (savedMarkdown.trim()) await wait(QUICK_CREATE_SETTLE_MS)
-        }
-
-        if (quickSession.current !== session) return
-        replaceQuickDraft(null)
-        setSelected(created.dados.id)
-        setFocusIdeaId(created.dados.id)
-        setFocusToken((current) => current + 1)
-      } catch (error) {
-        onMessage('erro', error instanceof Error ? error.message : t('ideas.fail_create'))
-      } finally {
-        quickPersisting.current = false
-      }
-    },
-    [onIdeas, onMessage, replaceQuickDraft, t],
-  )
-
-  const startDraft = useCallback(
-    (initialMarkdown: string) => {
-      const current = quickDraftRef.current
-      if (current) {
-        if (initialMarkdown) replaceQuickDraft({ ...current, markdown: `${current.markdown}${initialMarkdown}` })
-        return
-      }
-
-      setSearch('')
-      setSelected(null)
-      setFocusIdeaId(null)
-      quickSession.current += 1
-      const draft = {
-        key: quickSession.current,
-        title: t('ideas.default_title'),
-        markdown: initialMarkdown,
-      }
-      replaceQuickDraft(draft)
-      requestAnimationFrame(() => draftEditor.current?.focus())
-      void persistQuickDraft(quickSession.current)
-    },
-    [persistQuickDraft, replaceQuickDraft, t],
-  )
-
-  const selectIdea = useCallback((id: string) => {
-    quickSession.current += 1
-    replaceQuickDraft(null)
-    setFocusIdeaId(null)
-    setSelected(id)
-  }, [replaceQuickDraft])
-
-  useEffect(() => {
-    if (!navigationRequest || handledNavigationToken.current === navigationRequest.token) return
-    handledNavigationToken.current = navigationRequest.token
-    if (!ideas.notas.some((idea) => idea.id === navigationRequest.id)) return
-
-    quickSession.current += 1
-    replaceQuickDraft(null)
-    setSearch('')
-    setFocusIdeaId(navigationRequest.id)
-    setFocusToken((current) => current + 1)
-    setSelected(navigationRequest.id)
-  }, [ideas.notas, navigationRequest, replaceQuickDraft])
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (isEditingTarget(event.target)) return
-      const draft = quickDraftRef.current
-      if (draft) {
-        if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1) {
-          event.preventDefault()
-          updateQuickDraftMarkdown(`${draft.markdown}${event.key}`)
-        } else if (event.key === 'Backspace') {
-          event.preventDefault()
-          updateQuickDraftMarkdown(draft.markdown.slice(0, -1))
-        } else if (event.key === 'Enter') {
-          event.preventDefault()
-          updateQuickDraftMarkdown(`${draft.markdown}\n`)
-        }
-        return
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
-        event.preventDefault()
-        startDraft('')
-        return
-      }
-      if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && event.key.trim()) {
-        event.preventDefault()
-        startDraft(event.key)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [startDraft, updateQuickDraftMarkdown])
-
-  useEffect(() => {
-    if (!quickDraft) return
-    const frame = requestAnimationFrame(() => draftEditor.current?.focus())
-    return () => cancelAnimationFrame(frame)
-  }, [quickDraft?.key])
+  useIdeasNavigation({
+    navigationRequest,
+    notas: ideas.notas,
+    quickSession,
+    replaceQuickDraft,
+    setSearch,
+    setFocusIdeaId,
+    setFocusToken,
+    setSelected,
+  })
 
   const archive = async (id: string) => {
     try {

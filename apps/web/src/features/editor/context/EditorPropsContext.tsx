@@ -8,13 +8,7 @@ type EditorPropsContextValue = Pick<
 
 const EditorPropsContext = createContext<EditorPropsContextValue>({})
 
-export function EditorPropsProvider({
-  children,
-  value,
-}: {
-  children: ReactNode
-  value: EditorPropsContextValue
-}) {
+export function EditorPropsProvider({ children, value }: { children: ReactNode; value: EditorPropsContextValue }) {
   return <EditorPropsContext.Provider value={value}>{children}</EditorPropsContext.Provider>
 }
 

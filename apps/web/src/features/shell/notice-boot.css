@@ -1,0 +1,42 @@
+.notice {
+  position: fixed;
+  right: var(--s-5);
+  bottom: var(--s-5);
+  z-index: var(--z-overlay);
+  min-width: 280px;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--hair);
+  background: var(--ink-2);
+  color: var(--paper);
+}
+
+.notice strong {
+  margin-right: var(--s-3);
+}
+
+.notice--ok strong {
+  color: var(--ok);
+}
+
+.notice--erro strong {
+  color: var(--erro);
+}
+
+.notice--info strong {
+  color: var(--accent);
+}
+
+.boot {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: var(--s-7);
+  color: var(--fg2);
+}
+
+.boot--error {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+  color: var(--erro);
+}

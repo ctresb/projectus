@@ -34,15 +34,7 @@ import { ImperativeHandleBridge } from './ImperativeHandleBridge'
 import '../styles/editor.global.css'
 
 export const Composer = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(function Composer(
-  {
-    documentKey,
-    markdown,
-    onChange,
-    onWikilinkClick,
-    searchEntries,
-    searchMentions,
-    uploadImage,
-  },
+  { documentKey, markdown, onChange, onWikilinkClick, searchEntries, searchMentions, uploadImage },
   ref,
 ) {
   const t = useT()

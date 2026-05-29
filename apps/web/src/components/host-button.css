@@ -1,0 +1,151 @@
+/* Host (LAN expose) button + popover */
+.host-button {
+  position: relative;
+  display: inline-flex;
+}
+
+.host-button__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--fg2);
+  font-size: var(--text-base);
+  letter-spacing: var(--track-wide);
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.host-button__trigger:hover {
+  border-color: var(--accent);
+  color: var(--paper);
+}
+
+.host-button__trigger--active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.host-button__spin {
+  animation: save-spin 1s linear infinite;
+}
+
+.host-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-popover);
+  width: 320px;
+  background: var(--ink-2);
+  border: 1px solid var(--hair);
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  color: var(--paper);
+  font: var(--text-base) var(--font-mono);
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 60%));
+}
+
+.host-pop__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.host-pop__head strong {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--paper);
+}
+
+.host-pop__switch {
+  position: relative;
+  width: 36px;
+  height: 18px;
+  border: 1px solid var(--hair);
+  background: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.host-pop__switch:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.host-pop__switch--on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.host-pop__switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--paper);
+  transition: left var(--dur-fast) var(--ease);
+}
+
+.host-pop__switch--on .host-pop__switch-knob {
+  left: 20px;
+  background: var(--ink);
+}
+
+.host-pop__hint {
+  color: var(--fg2);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.host-pop__hint--warn {
+  color: var(--erro);
+}
+
+.host-pop__error {
+  border: 1px solid var(--erro);
+  color: var(--erro);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--text-sm);
+}
+
+.host-pop__urls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.host-pop__urls li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 6px 8px;
+  background: var(--ink);
+  border: 1px solid var(--hair);
+}
+
+.host-pop__urls code {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font: var(--text-base) var(--font-mono);
+  user-select: all;
+  word-break: break-all;
+}
