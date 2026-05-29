@@ -91,12 +91,44 @@ Não há autenticação adicional no v1. Controle o acesso pelas ACLs e disposit
     history.json
     _anexos/
     tarefas/<slug>-<id8>/card.md
-  ideias/
-    ideas.json
+  notes/
+    notes.json
     <slug>-<id8>/note.md
+  plugins/
+    registry.json
+    installed.lock.json
+    <id>/<versão>/manifest.json + frontend + assets
+    <id>/data/<coleção>.json
 ```
 
+A pasta `notes/` é o store de Notas (a antiga feature Ideas, hoje um plugin nativo).
+Instalações antigas com `ideias/`/`ideias/ideas.json` são migradas automaticamente para
+`notes/`/`notes/notes.json` na primeira inicialização do servidor.
+
 Google Drive e iCloud não fazem parte do código. Configure esses clientes para copiar a pasta local se desejar.
+
+## Plugins
+
+PROJECTUS tem um sistema de plugins de duas metades: um subsistema no backend Rust
+(`crates/server/src/plugins`, o escritor durável e a autoridade de verificação) e um host
+na SPA (`apps/web/src/plugins`, que carrega, ativa e renderiza as contribuições). O core
+nunca nomeia um plugin: ele consome um `PluginRegistry` de contribuições. Notes (a antiga
+feature Ideas) é o primeiro plugin nativo e vive inteiramente em
+`apps/web/src/plugins/builtin/notes/`.
+
+Plugins são pacotes `.zip` (`manifest.json` + entry ESM de frontend + assets). O backend
+valida o manifesto, confere o SHA-256 obrigatório e a assinatura Ed25519 opcional, e
+extrai o pacote para `plugins/<id>/<versão>/`. A SPA carrega o entry com o loader ESM
+nativo (`import()` de uma URL) — nunca `eval`. A tela `plugins` gerencia instalação e
+ciclo de vida, sem restart.
+
+Documentação:
+
+- [docs/plugins/arquitetura.md](docs/plugins/arquitetura.md) — mapa de módulos e diagrama.
+- [docs/plugins/autoria-de-plugins.md](docs/plugins/autoria-de-plugins.md) — manifesto,
+  pontos de extensão, layout do `.zip`, assinatura/integridade e fluxo de instalação.
+- [docs/plugins/notes-como-plugin.md](docs/plugins/notes-como-plugin.md) — como Notes
+  prova que uma feature nativa pode ser um plugin.
 
 ## R2
 

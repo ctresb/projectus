@@ -1,0 +1,85 @@
+{
+  "$comment": "INERT planning example. Not registered, not loaded, not wired into any code. A complete, plausible PluginManifest for a FUTURE Cloudflare R2 backup/sync plugin, mirroring the marketplace contract (crates/server/src/plugins/manifest.rs). This plugin would carry a native backend_entry because durable writes and credentials live behind the Rust server (the only durable writer). Field names stay English (marketplace surface); host PROJECTUS domain identifiers (revision, criado_em, atualizado_em, arquivo) are untouched.",
+  "id": "cloudflare-r2",
+  "title": "Cloudflare R2 Backup",
+  "short_description": "Encrypted off-site backup and snapshots to Cloudflare R2 object storage.",
+  "long_description": "Cloudflare R2 Backup pushes full, integral snapshots of your PROJECTUS data to an R2 bucket using S3-compatible APIs. It schedules background backup jobs, stores R2 access credentials in the host secret store (never in plaintext), and verifies every uploaded object with a SHA-256 digest (never MD5). Snapshots preserve the host revision and criado_em / atualizado_em metadata so a restore is faithful. A settings panel configures the bucket, endpoint, schedule and retention; the backup subsystem integration triggers on demand or on a timer. The Rust backend remains the only durable writer: this plugin's backend_entry brokers the actual transfers and credential access.",
+  "version": "1.1.0",
+  "author": "PROJECTUS Labs",
+  "publisher": "projectus-labs",
+  "homepage": "https://plugins.projectus.app/cloudflare-r2",
+  "repository": "https://github.com/projectus-labs/cloudflare-r2",
+  "license": "MIT",
+  "icon": "CloudUpload",
+  "screenshots": [
+    "https://plugins.projectus.app/cloudflare-r2/shots/settings.png",
+    "https://plugins.projectus.app/cloudflare-r2/shots/snapshots.png"
+  ],
+  "changelog": "1.1.0 - Retention policy and snapshot pruning.\n1.0.0 - Scheduled encrypted backups to R2.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": "backend/r2_sync.wasm",
+  "storage_schema_version": 2,
+  "migrations": [
+    {
+      "from": 1,
+      "to": 2,
+      "description": "Move R2 credentials out of plugin storage into the host secret store."
+    }
+  ],
+  "extension_points": ["settingsPanel", "backupIntegration", "navItem"],
+  "permissions": [
+    "network",
+    "secrets",
+    "background-jobs",
+    "settings:add",
+    "file:storage",
+    "events"
+  ],
+  "shortcuts": [],
+  "commands": [
+    {
+      "id": "cloudflare-r2.backup-now",
+      "title": "Cloudflare R2: Back up now",
+      "description": "Upload a full snapshot to the configured R2 bucket immediately."
+    },
+    {
+      "id": "cloudflare-r2.restore",
+      "title": "Cloudflare R2: Restore from snapshot",
+      "description": "Pick a snapshot in the bucket and restore it through the backend."
+    }
+  ],
+  "interacts_with": [
+    "BACKUP",
+    "SECRETS",
+    "NETWORK",
+    "BACKGROUND_JOBS",
+    "SETTINGS",
+    "FILE_STORAGE"
+  ],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "projectus-labs",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "backup-sync",
+    "tags": ["backup", "cloudflare", "r2", "s3", "sync", "encryption"],
+    "verified": false,
+    "featured": false,
+    "downloads": 0,
+    "rating": 0
+  }
+}

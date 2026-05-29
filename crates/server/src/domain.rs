@@ -5,8 +5,8 @@ use rand::{Rng, distr::Alphanumeric};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const SCHEMA_VERSION: u32 = 5;
-pub const API_VERSION: u32 = 6;
+pub const SCHEMA_VERSION: u32 = 6;
+pub const API_VERSION: u32 = 7;
 
 const TOKENS_JSON: &str = include_str!("../../../apps/web/src/styles/tokens.json");
 
@@ -160,9 +160,9 @@ pub struct TaskCard {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IdeasIndex {
+pub struct NotesIndex {
     pub revision: u64,
-    pub notas: Vec<IdeaCard>,
+    pub notas: Vec<Note>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -185,7 +185,7 @@ pub struct ArchivedItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IdeaCard {
+pub struct Note {
     pub id: String,
     pub pasta: String,
     pub titulo: String,
@@ -282,14 +282,14 @@ pub struct UpdateTask {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateIdea {
+pub struct CreateNote {
     pub titulo: String,
     #[serde(default)]
     pub markdown: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateIdea {
+pub struct UpdateNote {
     pub revision: u64,
     pub titulo: String,
     pub markdown: String,
@@ -323,7 +323,7 @@ impl Default for ApiCapabilities {
 pub struct Bootstrap {
     pub config: Config,
     pub board: Board,
-    pub ideias: IdeasIndex,
+    pub notes: NotesIndex,
     pub capacidades: ApiCapabilities,
 }
 
@@ -451,7 +451,7 @@ impl Default for Board {
     }
 }
 
-impl Default for IdeasIndex {
+impl Default for NotesIndex {
     fn default() -> Self {
         Self {
             revision: 1,

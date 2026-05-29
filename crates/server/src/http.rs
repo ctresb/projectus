@@ -44,6 +44,17 @@ pub struct ApiError {
     message: String,
 }
 
+impl ApiError {
+    /// A `400 Bad Request` with a caller-supplied message. Used by the plugins
+    /// router for malformed multipart uploads.
+    pub fn bad_request(message: String) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            message,
+        }
+    }
+}
+
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         (
@@ -113,13 +124,13 @@ pub fn router(state: AppState) -> Router {
             "/projects/{project_id}/tasks/{task_id}/anexos",
             post(task_attachment),
         )
-        .route("/ideas", get(ideas).post(create_idea))
-        .route("/ideas/{id}/archive", post(archive_idea))
+        .route("/notes", get(notes).post(create_note))
+        .route("/notes/{id}/archive", post(archive_note))
         .route(
-            "/ideas/{id}",
-            get(idea).put(update_idea).delete(delete_idea),
+            "/notes/{id}",
+            get(note).put(update_note).delete(delete_note),
         )
-        .route("/ideas/{id}/anexos", post(idea_attachment))
+        .route("/notes/{id}/anexos", post(note_attachment))
         .route("/backups", get(backup_history))
         .route(
             "/backups/credenciais",
@@ -136,6 +147,7 @@ pub fn router(state: AppState) -> Router {
 
     let mut application = Router::new()
         .nest("/api", api)
+        .nest("/api/plugins", crate::plugins::http::router(state.clone()))
         .nest_service("/conteudo", ServeDir::new(root))
         .layer(
             CorsLayer::new()
@@ -331,46 +343,46 @@ async fn archive_task(
     )?))
 }
 
-async fn ideas(State(state): State<AppState>) -> Result<Json<IdeasIndex>, ApiError> {
-    Ok(Json(state.storage.ideas()?))
+async fn notes(State(state): State<AppState>) -> Result<Json<NotesIndex>, ApiError> {
+    Ok(Json(state.storage.notes()?))
 }
 
-async fn idea(
+async fn note(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> Result<Json<DocumentResponse<IdeaCard>>, ApiError> {
-    Ok(Json(state.storage.idea(&id)?))
+) -> Result<Json<DocumentResponse<Note>>, ApiError> {
+    Ok(Json(state.storage.note(&id)?))
 }
 
-async fn create_idea(
+async fn create_note(
     State(state): State<AppState>,
-    Json(input): Json<CreateIdea>,
-) -> Result<Json<DocumentResponse<IdeaCard>>, ApiError> {
-    Ok(Json(state.storage.create_idea(input)?))
+    Json(input): Json<CreateNote>,
+) -> Result<Json<DocumentResponse<Note>>, ApiError> {
+    Ok(Json(state.storage.create_note(input)?))
 }
 
-async fn update_idea(
+async fn update_note(
     State(state): State<AppState>,
     Path(id): Path<String>,
-    Json(input): Json<UpdateIdea>,
-) -> Result<Json<DocumentResponse<IdeaCard>>, ApiError> {
-    Ok(Json(state.storage.update_idea(&id, input)?))
+    Json(input): Json<UpdateNote>,
+) -> Result<Json<DocumentResponse<Note>>, ApiError> {
+    Ok(Json(state.storage.update_note(&id, input)?))
 }
 
-async fn delete_idea(
+async fn delete_note(
     State(state): State<AppState>,
     Path(id): Path<String>,
     Query(query): Query<RevisionQuery>,
-) -> Result<Json<IdeasIndex>, ApiError> {
-    Ok(Json(state.storage.delete_idea(&id, query.revision)?))
+) -> Result<Json<NotesIndex>, ApiError> {
+    Ok(Json(state.storage.delete_note(&id, query.revision)?))
 }
 
-async fn archive_idea(
+async fn archive_note(
     State(state): State<AppState>,
     Path(id): Path<String>,
     Json(input): Json<RevisionInput>,
 ) -> Result<Json<ArchiveIndex>, ApiError> {
-    Ok(Json(state.storage.archive_idea(&id, input.revision)?))
+    Ok(Json(state.storage.archive_note(&id, input.revision)?))
 }
 
 async fn project_attachment(
@@ -395,14 +407,14 @@ async fn task_attachment(
     ))
 }
 
-async fn idea_attachment(
+async fn note_attachment(
     State(state): State<AppState>,
     Path(id): Path<String>,
     multipart: Multipart,
 ) -> Result<Json<serde_json::Value>, ApiError> {
     let (name, bytes) = image_from_multipart(multipart).await?;
     Ok(Json(
-        serde_json::json!({"url": state.storage.save_idea_attachment(&id, &name, &bytes)?}),
+        serde_json::json!({"url": state.storage.save_note_attachment(&id, &name, &bytes)?}),
     ))
 }
 

@@ -3,7 +3,7 @@ import { ArchiveRestore, CheckSquare, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { cx } from '../../lib/classnames'
 import { SquareScrollArea } from '../../components/SquareScrollArea'
-import type { ArchiveIndex, ArchivedItem, Board, Ideas } from '../../lib/types'
+import type { ArchiveIndex, ArchivedItem, Board, NotesIndex } from '../../lib/types'
 import { useT, type TFn } from '../../i18n'
 import { Button, Checkbox, Container, EmptyState, LoadingState, PageHeader } from '../../components/ui'
 
@@ -86,7 +86,7 @@ export function ArchiveView({
       const currentItem = currentArchive.itens.find((candidate) => candidate.id === item.id)
       if (!currentItem) throw new Error(t('archive_view.fail_restore'))
       const workspace = await api.bootstrap()
-      const revisions = createRevisionTracker(workspace.board, workspace.ideias)
+      const revisions = createRevisionTracker(workspace.board, workspace.notes)
       const destinoRevision = await revisions.destination(currentItem)
       const updated = await api.restoreArchived(currentItem.id, currentArchive.revision, destinoRevision)
       setArchive(updated)
@@ -127,7 +127,7 @@ export function ArchiveView({
       let currentArchive = await loadArchive()
       const currentItems = currentArchive.itens.filter((item) => selectedIds.includes(item.id))
       const workspace = await api.bootstrap()
-      const revisions = createRevisionTracker(workspace.board, workspace.ideias)
+      const revisions = createRevisionTracker(workspace.board, workspace.notes)
       for (const item of currentItems) {
         const destinoRevision = await revisions.destination(item)
         currentArchive = await api.restoreArchived(item.id, currentArchive.revision, destinoRevision)
@@ -251,15 +251,15 @@ export function ArchiveView({
   )
 }
 
-function createRevisionTracker(board: Board, ideas: Ideas) {
+function createRevisionTracker(board: Board, notes: NotesIndex) {
   let boardRevision = board.revision
-  let ideasRevision = ideas.revision
+  let notesRevision = notes.revision
   const projectRevisions = new Map<string, number>()
 
   return {
     async destination(item: ArchivedItem) {
       if (item.entidade === 'projeto') return boardRevision
-      if (item.entidade === 'ideia') return ideasRevision
+      if (item.entidade === 'note') return notesRevision
       if (!item.projeto_id) return 0
       if (!projectRevisions.has(item.projeto_id)) {
         projectRevisions.set(item.projeto_id, (await api.project(item.projeto_id)).dados.revision)
@@ -268,7 +268,7 @@ function createRevisionTracker(board: Board, ideas: Ideas) {
     },
     markRestored(item: ArchivedItem) {
       if (item.entidade === 'projeto') boardRevision += 1
-      if (item.entidade === 'ideia') ideasRevision += 1
+      if (item.entidade === 'note') notesRevision += 1
       if (item.entidade === 'tarefa' && item.projeto_id) {
         projectRevisions.set(item.projeto_id, (projectRevisions.get(item.projeto_id) ?? 0) + 1)
       }
@@ -279,6 +279,6 @@ function createRevisionTracker(board: Board, ideas: Ideas) {
 function label(entity: ArchivedItem['entidade'], t: TFn) {
   if (entity === 'projeto') return t('archive_view.entity_label.projeto')
   if (entity === 'tarefa') return t('archive_view.entity_label.tarefa')
-  if (entity === 'ideia') return t('archive_view.entity_label.ideia')
+  if (entity === 'note') return t('archive_view.entity_label.note')
   return t('archive_view.entity_label.item')
 }

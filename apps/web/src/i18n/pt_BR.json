@@ -23,10 +23,10 @@
     "aria_rail": "Espaços",
     "nav": {
       "projetos": "projetos",
-      "ideias": "notas",
       "arquivo": "arquivo",
       "backup": "snapshots",
-      "config": "ajustes"
+      "config": "ajustes",
+      "plugins": "plugins"
     }
   },
   "notice": {
@@ -81,12 +81,10 @@
     "kind": {
       "project": "projeto",
       "task": "tarefa",
-      "idea": "nota",
       "archive": "arquivo",
       "screen": "atalho"
     },
     "location": {
-      "ideas": "notas",
       "archive": "arquivo",
       "screen": "tela",
       "project_status": "projetos / {status}",
@@ -95,10 +93,10 @@
     },
     "screen_summary": {
       "projects": "quadro principal de projetos",
-      "ideas": "notas e rascunhos",
       "archive": "projetos, tarefas e notas arquivados",
       "backup": "snapshots e restauração",
-      "settings": "colunas, tags, cores e servidor local"
+      "settings": "colunas, tags, cores e servidor local",
+      "plugins": "plugins instalados e extensões"
     }
   },
   "markdown": {
@@ -202,21 +200,6 @@
     "entity_project": "este projeto",
     "entity_task": "esta tarefa"
   },
-  "ideas": {
-    "eyebrow": "notas",
-    "aria_new": "Nova nota",
-    "search_placeholder": "buscar nota",
-    "list_empty": "nenhuma nota",
-    "view_empty": "nenhuma nota ainda",
-    "new_button": "nova nota",
-    "loading_note": "carregando nota...",
-    "label_color": "Cor da nota",
-    "default_title": "nova nota",
-    "fail_create": "não foi possível criar a nota",
-    "archived": "nota movida para Arquivo",
-    "fail_archive": "não foi possível arquivar a nota",
-    "entity": "esta nota"
-  },
   "archive_view": {
     "eyebrow": "arquivo",
     "title": "itens arquivados",
@@ -242,7 +225,7 @@
     "entity_label": {
       "projeto": "projeto",
       "tarefa": "tarefa",
-      "ideia": "nota",
+      "note": "nota",
       "item": "item"
     },
     "project_of": "projeto / {titulo}"
@@ -395,6 +378,267 @@
       "autostart_available": "autostart ainda não instalado.",
       "autostart_unavailable": "para manter o backend ativo com a janela fechada, execute ./scripts/instalar-autostart.sh.",
       "install_button": "instalar autostart"
+    }
+  },
+  "plugins": {
+    "manager": {
+      "eyebrow": "extensões",
+      "title": "plugins",
+      "loading": "carregando plugins...",
+      "load_failed": "não foi possível carregar os plugins",
+      "empty": "nenhum plugin instalado",
+      "byline": "v{version} · {publisher}",
+      "unknown_publisher": "publicador desconhecido",
+      "open_details": "abrir detalhes de {title}",
+      "review": "revisar",
+      "enable": "ativar",
+      "disable": "desativar",
+      "section": {
+        "installed": "plugins instalados",
+        "installed_hint": "ative, desative ou revise as extensões que você já tem.",
+        "install": "adicionar plugin",
+        "install_hint": "instale uma extensão a partir de um pacote ou de uma URL."
+      },
+      "state": {
+        "enabled": "ativo",
+        "disabled": "inativo"
+      },
+      "action_failed": "não foi possível concluir a ação",
+      "enabled": "plugin ativado",
+      "disabled": "plugin desativado",
+      "uninstalled": "plugin removido",
+      "data_deleted": "dados do plugin excluídos"
+    },
+    "install": {
+      "title": "instalar plugin",
+      "subtitle": "adicione uma extensão a partir de um pacote .zip ou de uma URL.",
+      "error": "não foi possível instalar o plugin",
+      "invalid_file": "arquivo de plugin inválido",
+      "installing": "instalando...",
+      "dropzone": {
+        "title": "arraste um pacote .zip aqui",
+        "hint": "ou clique para selecionar um arquivo"
+      },
+      "url": {
+        "label": "instalar por URL",
+        "hint": "informe a URL de um pacote de plugin",
+        "placeholder": "https://exemplo.com/plugin.zip",
+        "action": "instalar"
+      },
+      "allow_unsigned": {
+        "label": "permitir plugins não assinados",
+        "description": "plugins sem assinatura não podem ter a integridade verificada. instale apenas de fontes confiáveis."
+      },
+      "preview": {
+        "title": "plugin instalado",
+        "byline": "v{version} · {publisher}",
+        "disabled_notice": "o plugin foi instalado desativado. revise as permissões antes de ativar."
+      }
+    },
+    "details": {
+      "version": "v{version}",
+      "publisher": "por {publisher}",
+      "publisher_label": "publicador",
+      "author": "autor",
+      "license": "licença",
+      "homepage": "página inicial",
+      "repository": "repositório",
+      "digest": "SHA-256",
+      "digest_none": "indisponível",
+      "screenshot_alt": "{title} captura {index}",
+      "state": {
+        "enabled": "ativo",
+        "disabled": "inativo"
+      },
+      "section": {
+        "about": "sobre",
+        "identity": "identidade",
+        "permissions": "permissões",
+        "interactions": "interações",
+        "shortcuts": "atalhos",
+        "conflicts": "conflitos",
+        "changelog": "histórico de mudanças"
+      },
+      "screenshots": {
+        "none": "nenhuma captura disponível"
+      },
+      "unsigned_confirm": {
+        "label": "ativar plugin não assinado",
+        "description": "a integridade deste plugin não pôde ser verificada. ative apenas se confiar na fonte."
+      },
+      "action": {
+        "enable": "ativar",
+        "disable": "desativar",
+        "uninstall": "remover",
+        "delete_data": "excluir dados"
+      }
+    },
+    "permissions": {
+      "none": "nenhuma permissão declarada"
+    },
+    "permission": {
+      "notes:read": {
+        "label": "ler notas",
+        "description": "ler as notas do host."
+      },
+      "notes:write": {
+        "label": "escrever notas",
+        "description": "criar e atualizar notas do host."
+      },
+      "projects:read": {
+        "label": "ler projetos",
+        "description": "ler os projetos do host."
+      },
+      "tasks:read": {
+        "label": "ler tarefas",
+        "description": "ler as tarefas do host."
+      },
+      "screens:add": {
+        "label": "adicionar telas",
+        "description": "contribuir com uma tela e um item de navegação."
+      },
+      "settings:add": {
+        "label": "adicionar ajustes",
+        "description": "contribuir com um painel de ajustes."
+      },
+      "shortcuts:register": {
+        "label": "registrar atalhos",
+        "description": "registrar atalhos de teclado."
+      },
+      "commands:register": {
+        "label": "registrar comandos",
+        "description": "registrar comandos da paleta."
+      },
+      "search:provide": {
+        "label": "fornecer busca",
+        "description": "contribuir com resultados na busca global."
+      },
+      "editor:extend": {
+        "label": "estender o editor",
+        "description": "adicionar nós, transformadores e itens ao editor."
+      },
+      "archive:create": {
+        "label": "criar no arquivo",
+        "description": "criar entradas no arquivo do host."
+      },
+      "attachments": {
+        "label": "anexos",
+        "description": "receber anexos enviados."
+      },
+      "events": {
+        "label": "eventos",
+        "description": "assinar o fluxo de eventos do host."
+      },
+      "network": {
+        "label": "rede",
+        "description": "fazer requisições de rede externas."
+      },
+      "file:storage": {
+        "label": "armazenamento",
+        "description": "ler e escrever no armazenamento próprio do plugin."
+      },
+      "secrets": {
+        "label": "segredos",
+        "description": "armazenar e ler segredos criptografados."
+      },
+      "background-jobs": {
+        "label": "tarefas em segundo plano",
+        "description": "agendar tarefas e timers em segundo plano."
+      }
+    },
+    "interactions": {
+      "none": "nenhuma interação declarada"
+    },
+    "interaction": {
+      "MARKDOWN_EDITOR": {
+        "label": "editor markdown",
+        "description": "o editor markdown compartilhado."
+      },
+      "SIDE_NAVIGATION": {
+        "label": "navegação lateral",
+        "description": "a navegação lateral esquerda."
+      },
+      "GLOBAL_SEARCH": {
+        "label": "busca global",
+        "description": "a busca global e a paleta de comandos."
+      },
+      "SETTINGS": {
+        "label": "ajustes",
+        "description": "a tela de ajustes."
+      },
+      "PROJECT_CARDS": {
+        "label": "cards de projeto",
+        "description": "selos e ações nos cards de projeto."
+      },
+      "TASK_CARDS": {
+        "label": "cards de tarefa",
+        "description": "selos e ações nos cards de tarefa."
+      },
+      "TAGS": {
+        "label": "tags",
+        "description": "o sistema de tags."
+      },
+      "ARCHIVE": {
+        "label": "arquivo",
+        "description": "o arquivo do host."
+      },
+      "BACKUP": {
+        "label": "backup",
+        "description": "o subsistema de backup."
+      },
+      "SECRETS": {
+        "label": "segredos",
+        "description": "o cofre de segredos do host."
+      },
+      "NETWORK": {
+        "label": "rede",
+        "description": "a rede externa."
+      },
+      "FILE_STORAGE": {
+        "label": "armazenamento",
+        "description": "o armazenamento de arquivos próprio do plugin."
+      },
+      "SHORTCUTS": {
+        "label": "atalhos",
+        "description": "o gerenciador global de atalhos."
+      },
+      "BACKGROUND_JOBS": {
+        "label": "tarefas em segundo plano",
+        "description": "tarefas e timers em segundo plano."
+      }
+    },
+    "shortcuts": {
+      "none": "nenhum atalho declarado",
+      "reserved": "o PROJECTUS reserva este atalho e o delega à tela ativa"
+    },
+    "conflicts": {
+      "none": "nenhum conflito detectado"
+    },
+    "conflict": {
+      "severity": {
+        "fatal": "fatal",
+        "warning": "aviso",
+        "info": "informativo"
+      },
+      "kind": {
+        "duplicate-shortcut": "atalho duplicado",
+        "reserved-delegated": "atalho reservado (delegado)",
+        "duplicate-screen": "tela duplicada",
+        "duplicate-toolbar-slot": "espaço de barra duplicado",
+        "incompatible-node-name": "nome de nó incompatível",
+        "api-version-too-new": "versão de API muito recente",
+        "permission-disabled": "permissão desativada",
+        "native-supersede": "substituído por recurso nativo",
+        "integrity-mismatch": "falha de integridade",
+        "declared-conflict": "conflito declarado"
+      }
+    },
+    "trust": {
+      "verified": "verificado",
+      "signed_untrusted": "assinado · não confiável",
+      "unsigned": "não assinado",
+      "mismatch": "integridade falhou",
+      "builtin": "integrado ao PROJECTUS"
     }
   },
   "columns": {

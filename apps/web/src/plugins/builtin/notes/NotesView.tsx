@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { api } from '../../lib/api'
-import type { Config, Ideas } from '../../lib/types'
-import { useT } from '../../i18n'
-import { Button, EmptyState } from '../../components/ui'
-import type { MarkdownEditorHandle } from '../editor/MarkdownEditor'
-import { DeferredMarkdownEditor } from '../editor/DeferredMarkdownEditor'
-import { IdeaEditor } from './components/IdeaEditor'
-import { IdeasList } from './components/IdeasList'
+import { notesApi } from './notesApi'
+import type { Config, NotesIndex } from '../../../lib/types'
+import { useT } from '../../../i18n'
+import { Button, EmptyState } from '../../../components/ui'
+import type { MarkdownEditorHandle } from '../../../features/editor/MarkdownEditor'
+import { DeferredMarkdownEditor } from '../../../features/editor/DeferredMarkdownEditor'
+import { NoteEditor } from './components/NoteEditor'
+import { NotesList } from './components/NotesList'
 
 type QuickDraft = {
   key: number
@@ -17,37 +17,29 @@ type QuickDraft = {
 
 const QUICK_CREATE_SETTLE_MS = 160
 
-function isEditingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
-    Boolean(target.closest('[role="dialog"], [role="listbox"], [role="menu"]'))
-  )
-}
-
 function wait(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
 }
 
-export function IdeasView({
-  config,
-  ideas,
-  navigationRequest,
-  onIdeas,
-  onMessage,
-}: {
-  config: Config
-  ideas: Ideas
-  navigationRequest?: { id: string; token: number } | null
-  onIdeas: (ideas: Ideas) => void
-  onMessage: (type: 'ok' | 'erro', text: string) => void
-}) {
+export type NotesViewHandle = {
+  quickCreate: (initialMarkdown?: string) => void
+}
+
+export const NotesView = forwardRef<
+  NotesViewHandle,
+  {
+    config: Config
+    notes: NotesIndex
+    navigationRequest?: { id: string; token: number } | null
+    onNotes: (notes: NotesIndex) => void
+    onMessage: (type: 'ok' | 'erro', text: string) => void
+  }
+>(function NotesView({ config, notes, navigationRequest, onNotes, onMessage }, ref) {
   const t = useT()
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<string | null>(ideas.notas[0]?.id ?? null)
+  const [selected, setSelected] = useState<string | null>(notes.notas[0]?.id ?? null)
   const [quickDraft, setQuickDraft] = useState<QuickDraft | null>(null)
-  const [focusIdeaId, setFocusIdeaId] = useState<string | null>(null)
+  const [focusNoteId, setFocusNoteId] = useState<string | null>(null)
   const [focusToken, setFocusToken] = useState(0)
   const quickDraftRef = useRef<QuickDraft | null>(null)
   const quickPersisting = useRef(false)
@@ -55,8 +47,8 @@ export function IdeasView({
   const handledNavigationToken = useRef<number | null>(null)
   const draftEditor = useRef<MarkdownEditorHandle>(null)
   const filtered = useMemo(
-    () => ideas.notas.filter((note) => note.titulo.toLowerCase().includes(search.toLowerCase())),
-    [ideas.notas, search],
+    () => notes.notas.filter((note) => note.titulo.toLowerCase().includes(search.toLowerCase())),
+    [notes.notas, search],
   )
 
   const replaceQuickDraft = useCallback((draft: QuickDraft | null) => {
@@ -81,12 +73,12 @@ export function IdeasView({
         const firstDraft = quickDraftRef.current
         if (!firstDraft) return
 
-        const defaultTitle = t('ideas.default_title')
+        const defaultTitle = t('notes.default_title')
         let savedTitle = firstDraft.title.trim() || defaultTitle
         let savedMarkdown = firstDraft.markdown
-        const created = await api.createIdea({ titulo: savedTitle, markdown: savedMarkdown })
-        let next = await api.ideas()
-        onIdeas(next)
+        const created = await notesApi.createNote({ titulo: savedTitle, markdown: savedMarkdown })
+        let next = await notesApi.notes()
+        onNotes(next)
 
         if (savedMarkdown.trim()) await wait(QUICK_CREATE_SETTLE_MS)
 
@@ -97,7 +89,7 @@ export function IdeasView({
           const latestTitle = latestDraft.title.trim() || defaultTitle
           if (latestTitle === savedTitle && latestDraft.markdown === savedMarkdown) break
 
-          await api.updateIdea(created.dados.id, {
+          await notesApi.updateNote(created.dados.id, {
             revision: next.revision,
             titulo: latestTitle,
             markdown: latestDraft.markdown,
@@ -105,8 +97,8 @@ export function IdeasView({
           })
           savedTitle = latestTitle
           savedMarkdown = latestDraft.markdown
-          next = await api.ideas()
-          onIdeas(next)
+          next = await notesApi.notes()
+          onNotes(next)
 
           if (savedMarkdown.trim()) await wait(QUICK_CREATE_SETTLE_MS)
         }
@@ -114,15 +106,15 @@ export function IdeasView({
         if (quickSession.current !== session) return
         replaceQuickDraft(null)
         setSelected(created.dados.id)
-        setFocusIdeaId(created.dados.id)
+        setFocusNoteId(created.dados.id)
         setFocusToken((current) => current + 1)
       } catch (error) {
-        onMessage('erro', error instanceof Error ? error.message : t('ideas.fail_create'))
+        onMessage('erro', error instanceof Error ? error.message : t('notes.fail_create'))
       } finally {
         quickPersisting.current = false
       }
     },
-    [onIdeas, onMessage, replaceQuickDraft, t],
+    [onNotes, onMessage, replaceQuickDraft, t],
   )
 
   const startDraft = useCallback(
@@ -135,11 +127,11 @@ export function IdeasView({
 
       setSearch('')
       setSelected(null)
-      setFocusIdeaId(null)
+      setFocusNoteId(null)
       quickSession.current += 1
       const draft = {
         key: quickSession.current,
-        title: t('ideas.default_title'),
+        title: t('notes.default_title'),
         markdown: initialMarkdown,
       }
       replaceQuickDraft(draft)
@@ -149,57 +141,30 @@ export function IdeasView({
     [persistQuickDraft, replaceQuickDraft, t],
   )
 
-  const selectIdea = useCallback((id: string) => {
-    quickSession.current += 1
-    replaceQuickDraft(null)
-    setFocusIdeaId(null)
-    setSelected(id)
-  }, [replaceQuickDraft])
+  useImperativeHandle(ref, () => ({ quickCreate: (initialMarkdown = '') => startDraft(initialMarkdown) }), [startDraft])
+
+  const selectNote = useCallback(
+    (id: string) => {
+      quickSession.current += 1
+      replaceQuickDraft(null)
+      setFocusNoteId(null)
+      setSelected(id)
+    },
+    [replaceQuickDraft],
+  )
 
   useEffect(() => {
     if (!navigationRequest || handledNavigationToken.current === navigationRequest.token) return
     handledNavigationToken.current = navigationRequest.token
-    if (!ideas.notas.some((idea) => idea.id === navigationRequest.id)) return
+    if (!notes.notas.some((note) => note.id === navigationRequest.id)) return
 
     quickSession.current += 1
     replaceQuickDraft(null)
     setSearch('')
-    setFocusIdeaId(navigationRequest.id)
+    setFocusNoteId(navigationRequest.id)
     setFocusToken((current) => current + 1)
     setSelected(navigationRequest.id)
-  }, [ideas.notas, navigationRequest, replaceQuickDraft])
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (isEditingTarget(event.target)) return
-      const draft = quickDraftRef.current
-      if (draft) {
-        if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1) {
-          event.preventDefault()
-          updateQuickDraftMarkdown(`${draft.markdown}${event.key}`)
-        } else if (event.key === 'Backspace') {
-          event.preventDefault()
-          updateQuickDraftMarkdown(draft.markdown.slice(0, -1))
-        } else if (event.key === 'Enter') {
-          event.preventDefault()
-          updateQuickDraftMarkdown(`${draft.markdown}\n`)
-        }
-        return
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
-        event.preventDefault()
-        startDraft('')
-        return
-      }
-      if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && event.key.trim()) {
-        event.preventDefault()
-        startDraft(event.key)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [startDraft, updateQuickDraftMarkdown])
+  }, [notes.notas, navigationRequest, replaceQuickDraft])
 
   useEffect(() => {
     if (!quickDraft) return
@@ -209,51 +174,51 @@ export function IdeasView({
 
   const archive = async (id: string) => {
     try {
-      await api.archiveIdea(id, ideas.revision)
-      const next = await api.ideas()
-      onIdeas(next)
+      await notesApi.archiveNote(id, notes.revision)
+      const next = await notesApi.notes()
+      onNotes(next)
       setSelected(next.notas[0]?.id ?? null)
-      onMessage('ok', t('ideas.archived'))
+      onMessage('ok', t('notes.archived'))
     } catch (error) {
-      onMessage('erro', error instanceof Error ? error.message : t('ideas.fail_archive'))
+      onMessage('erro', error instanceof Error ? error.message : t('notes.fail_archive'))
     }
   }
 
   return (
-    <section className="ideas">
-      <IdeasList
-        ideas={filtered}
+    <section className="notes">
+      <NotesList
+        notes={filtered}
         search={search}
         selected={selected}
         onSearch={setSearch}
-        onSelect={selectIdea}
+        onSelect={selectNote}
         onCreate={() => startDraft('')}
         t={t}
       />
-      <main className="idea-editor">
+      <main className="note-editor">
         {quickDraft ? (
           <>
-            <header className="idea-editor__head">
-              <input className="idea-title" value={quickDraft.title} readOnly />
+            <header className="note-editor__head">
+              <input className="note-title" value={quickDraft.title} readOnly />
             </header>
             <DeferredMarkdownEditor
               ref={draftEditor}
-              documentKey={`nova-ideia-${quickDraft.key}`}
+              documentKey={`nova-nota-${quickDraft.key}`}
               markdown={quickDraft.markdown}
               onChange={updateQuickDraftMarkdown}
             />
           </>
         ) : selected ? (
-          <IdeaEditor
+          <NoteEditor
             id={selected}
-            revision={ideas.revision}
+            revision={notes.revision}
             cores={config.cores}
-            autoFocusToken={selected === focusIdeaId ? focusToken : undefined}
-            onSaved={async () => onIdeas(await api.ideas())}
+            autoFocusToken={selected === focusNoteId ? focusToken : undefined}
+            onSaved={async () => onNotes(await notesApi.notes())}
             onPreview={(change) =>
-              onIdeas({
-                ...ideas,
-                notas: ideas.notas.map((idea) => (idea.id === selected ? { ...idea, ...change } : idea)),
+              onNotes({
+                ...notes,
+                notas: notes.notas.map((note) => (note.id === selected ? { ...note, ...change } : note)),
               })
             }
             onArchive={() => archive(selected)}
@@ -261,13 +226,13 @@ export function IdeasView({
           />
         ) : (
           <EmptyState>
-            <p>{t('ideas.view_empty')}</p>
+            <p>{t('notes.view_empty')}</p>
             <Button variant="primary" type="button" onClick={() => startDraft('')}>
-              <Plus size={15} /> {t('ideas.new_button')}
+              <Plus size={15} /> {t('notes.new_button')}
             </Button>
           </EmptyState>
         )}
       </main>
     </section>
   )
-}
+})

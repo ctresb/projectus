@@ -1,0 +1,90 @@
+{
+  "$comment": "INERT planning example. Not registered, not loaded, not wired into any code. A complete, plausible PluginManifest for a FUTURE GitHub integration plugin, mirroring the marketplace contract (crates/server/src/plugins/manifest.rs). Field names stay English (marketplace surface); host PROJECTUS domain identifiers (tarefa, projeto, titulo, atualizado_em) are untouched.",
+  "id": "github",
+  "title": "GitHub",
+  "short_description": "Link issues and pull requests to projects and tasks, with live status badges.",
+  "long_description": "GitHub connects your PROJECTUS projeto and tarefa items to repositories, issues and pull requests. Paste a GitHub URL onto a tarefa to attach it and show a live status badge (open / merged / closed) on the task card; link a projeto to a repo to surface its open issues in a routed screen. OAuth tokens are kept in the host secret store, all calls go out over the network, and a background job refreshes statuses on a timer so badges stay current without manual reloads. A command-palette provider lets you search and attach issues without leaving the keyboard.",
+  "version": "0.9.0",
+  "author": "PROJECTUS Labs",
+  "publisher": "projectus-labs",
+  "homepage": "https://plugins.projectus.app/github",
+  "repository": "https://github.com/projectus-labs/github-plugin",
+  "license": "MIT",
+  "icon": "Github",
+  "screenshots": [
+    "https://plugins.projectus.app/github/shots/task-badge.png",
+    "https://plugins.projectus.app/github/shots/issues-screen.png"
+  ],
+  "changelog": "0.9.0 - Background status refresh and PR badges.\n0.8.0 - Attach issues to tasks.\n0.7.0 - OAuth via host secret store.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": null,
+  "storage_schema_version": 1,
+  "migrations": [],
+  "extension_points": ["navItem", "screen", "settingsPanel", "commandPalette", "contextMenu"],
+  "permissions": [
+    "projects:read",
+    "tasks:read",
+    "network",
+    "secrets",
+    "background-jobs",
+    "screens:add",
+    "settings:add",
+    "commands:register",
+    "events"
+  ],
+  "shortcuts": [
+    {
+      "id": "attach-issue",
+      "keys": "mod+shift+g",
+      "description": "Attach a GitHub issue or pull request to the current task"
+    }
+  ],
+  "commands": [
+    {
+      "id": "github.link-repo",
+      "title": "GitHub: Link repository to project",
+      "description": "Connect the current project to a GitHub repository."
+    },
+    {
+      "id": "github.attach-issue",
+      "title": "GitHub: Attach issue or pull request",
+      "description": "Search GitHub and attach an issue or PR to the current task."
+    }
+  ],
+  "interacts_with": [
+    "SIDE_NAVIGATION",
+    "GLOBAL_SEARCH",
+    "PROJECT_CARDS",
+    "TASK_CARDS",
+    "SETTINGS",
+    "SECRETS",
+    "NETWORK",
+    "BACKGROUND_JOBS"
+  ],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "projectus-labs",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "integrations",
+    "tags": ["github", "issues", "pull-requests", "developer-tools", "integration"],
+    "verified": false,
+    "featured": false,
+    "downloads": 0,
+    "rating": 0
+  }
+}

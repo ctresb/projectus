@@ -23,10 +23,10 @@
     "aria_rail": "Spaces",
     "nav": {
       "projetos": "projects",
-      "ideias": "notes",
       "arquivo": "archive",
       "backup": "snapshots",
-      "config": "settings"
+      "config": "settings",
+      "plugins": "plugins"
     }
   },
   "notice": {
@@ -81,12 +81,10 @@
     "kind": {
       "project": "project",
       "task": "task",
-      "idea": "note",
       "archive": "archive",
       "screen": "shortcut"
     },
     "location": {
-      "ideas": "notes",
       "archive": "archive",
       "screen": "screen",
       "project_status": "projects / {status}",
@@ -95,10 +93,10 @@
     },
     "screen_summary": {
       "projects": "main project board",
-      "ideas": "notes and drafts",
       "archive": "archived projects, tasks, and notes",
       "backup": "snapshots and restore",
-      "settings": "columns, tags, colors, and local server"
+      "settings": "columns, tags, colors, and local server",
+      "plugins": "installed plugins and extensions"
     }
   },
   "markdown": {
@@ -202,21 +200,6 @@
     "entity_project": "this project",
     "entity_task": "this task"
   },
-  "ideas": {
-    "eyebrow": "notes",
-    "aria_new": "New note",
-    "search_placeholder": "search note",
-    "list_empty": "no notes",
-    "view_empty": "no notes yet",
-    "new_button": "new note",
-    "loading_note": "loading note...",
-    "label_color": "Note color",
-    "default_title": "new note",
-    "fail_create": "could not create the note",
-    "archived": "note moved to Archive",
-    "fail_archive": "could not archive the note",
-    "entity": "this note"
-  },
   "archive_view": {
     "eyebrow": "archive",
     "title": "archived items",
@@ -242,7 +225,7 @@
     "entity_label": {
       "projeto": "project",
       "tarefa": "task",
-      "ideia": "note",
+      "note": "note",
       "item": "item"
     },
     "project_of": "project / {titulo}"
@@ -395,6 +378,267 @@
       "autostart_available": "autostart not installed yet.",
       "autostart_unavailable": "to keep the backend active with the window closed, run ./scripts/instalar-autostart.sh.",
       "install_button": "install autostart"
+    }
+  },
+  "plugins": {
+    "manager": {
+      "eyebrow": "extensions",
+      "title": "plugins",
+      "loading": "loading plugins...",
+      "load_failed": "could not load plugins",
+      "empty": "no plugins installed",
+      "byline": "v{version} · {publisher}",
+      "unknown_publisher": "unknown publisher",
+      "open_details": "open details for {title}",
+      "review": "review",
+      "enable": "enable",
+      "disable": "disable",
+      "section": {
+        "installed": "installed plugins",
+        "installed_hint": "enable, disable, or review the extensions you already have.",
+        "install": "add plugin",
+        "install_hint": "install an extension from a package or a URL."
+      },
+      "state": {
+        "enabled": "enabled",
+        "disabled": "disabled"
+      },
+      "action_failed": "could not complete the action",
+      "enabled": "plugin enabled",
+      "disabled": "plugin disabled",
+      "uninstalled": "plugin removed",
+      "data_deleted": "plugin data deleted"
+    },
+    "install": {
+      "title": "install plugin",
+      "subtitle": "add an extension from a .zip package or a URL.",
+      "error": "could not install the plugin",
+      "invalid_file": "invalid plugin file",
+      "installing": "installing...",
+      "dropzone": {
+        "title": "drop a .zip package here",
+        "hint": "or click to choose a file"
+      },
+      "url": {
+        "label": "install from URL",
+        "hint": "provide the URL of a plugin package",
+        "placeholder": "https://example.com/plugin.zip",
+        "action": "install"
+      },
+      "allow_unsigned": {
+        "label": "allow unsigned plugins",
+        "description": "unsigned plugins cannot have their integrity verified. install only from trusted sources."
+      },
+      "preview": {
+        "title": "plugin installed",
+        "byline": "v{version} · {publisher}",
+        "disabled_notice": "the plugin was installed disabled. review its permissions before enabling."
+      }
+    },
+    "details": {
+      "version": "v{version}",
+      "publisher": "by {publisher}",
+      "publisher_label": "publisher",
+      "author": "author",
+      "license": "license",
+      "homepage": "homepage",
+      "repository": "repository",
+      "digest": "SHA-256",
+      "digest_none": "unavailable",
+      "screenshot_alt": "{title} screenshot {index}",
+      "state": {
+        "enabled": "enabled",
+        "disabled": "disabled"
+      },
+      "section": {
+        "about": "about",
+        "identity": "identity",
+        "permissions": "permissions",
+        "interactions": "interactions",
+        "shortcuts": "shortcuts",
+        "conflicts": "conflicts",
+        "changelog": "changelog"
+      },
+      "screenshots": {
+        "none": "no screenshots available"
+      },
+      "unsigned_confirm": {
+        "label": "enable unsigned plugin",
+        "description": "this plugin's integrity could not be verified. enable only if you trust the source."
+      },
+      "action": {
+        "enable": "enable",
+        "disable": "disable",
+        "uninstall": "uninstall",
+        "delete_data": "delete data"
+      }
+    },
+    "permissions": {
+      "none": "no permissions declared"
+    },
+    "permission": {
+      "notes:read": {
+        "label": "read notes",
+        "description": "read host notes."
+      },
+      "notes:write": {
+        "label": "write notes",
+        "description": "create and update host notes."
+      },
+      "projects:read": {
+        "label": "read projects",
+        "description": "read host projects."
+      },
+      "tasks:read": {
+        "label": "read tasks",
+        "description": "read host tasks."
+      },
+      "screens:add": {
+        "label": "add screens",
+        "description": "contribute a screen and a navigation entry."
+      },
+      "settings:add": {
+        "label": "add settings",
+        "description": "contribute a settings panel."
+      },
+      "shortcuts:register": {
+        "label": "register shortcuts",
+        "description": "register keyboard shortcuts."
+      },
+      "commands:register": {
+        "label": "register commands",
+        "description": "register command-palette commands."
+      },
+      "search:provide": {
+        "label": "provide search",
+        "description": "contribute results to global search."
+      },
+      "editor:extend": {
+        "label": "extend the editor",
+        "description": "add editor nodes, transformers, and items."
+      },
+      "archive:create": {
+        "label": "create in archive",
+        "description": "create entries in the host archive."
+      },
+      "attachments": {
+        "label": "attachments",
+        "description": "receive uploaded attachments."
+      },
+      "events": {
+        "label": "events",
+        "description": "subscribe to the host event stream."
+      },
+      "network": {
+        "label": "network",
+        "description": "make outbound network requests."
+      },
+      "file:storage": {
+        "label": "storage",
+        "description": "read and write the plugin's own storage."
+      },
+      "secrets": {
+        "label": "secrets",
+        "description": "store and read encrypted secrets."
+      },
+      "background-jobs": {
+        "label": "background jobs",
+        "description": "schedule background jobs and timers."
+      }
+    },
+    "interactions": {
+      "none": "no interactions declared"
+    },
+    "interaction": {
+      "MARKDOWN_EDITOR": {
+        "label": "markdown editor",
+        "description": "the shared markdown editor."
+      },
+      "SIDE_NAVIGATION": {
+        "label": "side navigation",
+        "description": "the left-rail side navigation."
+      },
+      "GLOBAL_SEARCH": {
+        "label": "global search",
+        "description": "global search and the command palette."
+      },
+      "SETTINGS": {
+        "label": "settings",
+        "description": "the settings screen."
+      },
+      "PROJECT_CARDS": {
+        "label": "project cards",
+        "description": "badges and actions on project cards."
+      },
+      "TASK_CARDS": {
+        "label": "task cards",
+        "description": "badges and actions on task cards."
+      },
+      "TAGS": {
+        "label": "tags",
+        "description": "the tag system."
+      },
+      "ARCHIVE": {
+        "label": "archive",
+        "description": "the host archive."
+      },
+      "BACKUP": {
+        "label": "backup",
+        "description": "the backup subsystem."
+      },
+      "SECRETS": {
+        "label": "secrets",
+        "description": "the host secret store."
+      },
+      "NETWORK": {
+        "label": "network",
+        "description": "outbound network."
+      },
+      "FILE_STORAGE": {
+        "label": "storage",
+        "description": "the plugin's own file storage."
+      },
+      "SHORTCUTS": {
+        "label": "shortcuts",
+        "description": "the global shortcut manager."
+      },
+      "BACKGROUND_JOBS": {
+        "label": "background jobs",
+        "description": "background jobs and timers."
+      }
+    },
+    "shortcuts": {
+      "none": "no shortcuts declared",
+      "reserved": "PROJECTUS reserves this shortcut and delegates it to the active screen"
+    },
+    "conflicts": {
+      "none": "no conflicts detected"
+    },
+    "conflict": {
+      "severity": {
+        "fatal": "fatal",
+        "warning": "warning",
+        "info": "info"
+      },
+      "kind": {
+        "duplicate-shortcut": "duplicate shortcut",
+        "reserved-delegated": "reserved shortcut (delegated)",
+        "duplicate-screen": "duplicate screen",
+        "duplicate-toolbar-slot": "duplicate toolbar slot",
+        "incompatible-node-name": "incompatible node name",
+        "api-version-too-new": "API version too new",
+        "permission-disabled": "permission disabled",
+        "native-supersede": "superseded by native feature",
+        "integrity-mismatch": "integrity mismatch",
+        "declared-conflict": "declared conflict"
+      }
+    },
+    "trust": {
+      "verified": "verified",
+      "signed_untrusted": "signed · untrusted",
+      "unsigned": "unsigned",
+      "mismatch": "integrity failed",
+      "builtin": "built-in"
     }
   },
   "columns": {

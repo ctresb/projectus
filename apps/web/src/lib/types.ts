@@ -63,7 +63,7 @@ export type Project = {
   criado_em: string
   atualizado_em: string
 }
-export type IdeaCard = {
+export type Note = {
   id: string
   pasta: string
   titulo: string
@@ -71,10 +71,10 @@ export type IdeaCard = {
   criado_em: string
   atualizado_em: string
 }
-export type Ideas = { revision: number; notas: IdeaCard[] }
+export type NotesIndex = { revision: number; notas: Note[] }
 export type ArchivedItem = {
   id: string
-  entidade: 'projeto' | 'tarefa' | 'ideia' | 'desconhecido'
+  entidade: 'projeto' | 'tarefa' | 'note' | 'desconhecido'
   entidade_id: string
   titulo: string
   pasta: string
@@ -84,7 +84,7 @@ export type ArchivedItem = {
 }
 export type ArchiveIndex = { revision: number; itens: ArchivedItem[] }
 export type ApiCapabilities = { api_version: number; arquivo: boolean; config_autosave: boolean }
-export type Bootstrap = { config: Config; board: Board; ideias: Ideas; capacidades?: ApiCapabilities }
+export type Bootstrap = { config: Config; board: Board; notes: NotesIndex; capacidades?: ApiCapabilities }
 export type DocumentResponse<T> = { dados: T; markdown: string }
 export type Snapshot = {
   id: string

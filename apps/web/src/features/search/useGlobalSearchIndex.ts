@@ -2,10 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../../lib/api'
 import type { ArchiveIndex, Bootstrap, DocumentResponse, Project } from '../../lib/types'
 import { useT } from '../../i18n'
+import { useRegistry } from '../../plugins/registry/useRegistry'
 import { buildSearchEntries } from './searchIndex'
 
 export function useGlobalSearchIndex(workspace: Bootstrap) {
   const t = useT()
+  // Live plugin search providers (e.g. the builtin Notes provider). Reading the
+  // registry snapshot here — `useGlobalSearchIndex` runs inside `<PluginHost>`
+  // via `GlobalSearchController` — keeps search plugin-agnostic: core never names
+  // a plugin, it just merges whatever providers are registered, and re-indexes
+  // when the snapshot changes (a plugin enabled/disabled).
+  const { searchProviders } = useRegistry()
   const [projectDocuments, setProjectDocuments] = useState<Array<DocumentResponse<Project>>>([])
   const [archive, setArchive] = useState<ArchiveIndex | null>(null)
   const [indexing, setIndexing] = useState(false)
@@ -55,8 +62,8 @@ export function useGlobalSearchIndex(workspace: Bootstrap) {
   }, [t, workspace])
 
   const entries = useMemo(
-    () => buildSearchEntries({ workspace, projectDocuments, archive, t }),
-    [archive, projectDocuments, t, workspace],
+    () => buildSearchEntries({ workspace, projectDocuments, archive, searchProviders, t }),
+    [archive, projectDocuments, searchProviders, t, workspace],
   )
 
   return { entries, indexing, indexError }

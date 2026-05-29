@@ -18,7 +18,7 @@ describe('useDocumentAutosave', () => {
       useDocumentAutosave({
         ativo: true,
         dirty: true,
-        documentKey: 'ideia-1',
+        documentKey: 'doc-1',
         onStart,
         save,
         onSaved,
@@ -47,9 +47,9 @@ describe('useDocumentAutosave', () => {
     }
     const { rerender } = renderHook(
       ({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }),
-      { initialProps: { keyValue: 'ideia-1' } },
+      { initialProps: { keyValue: 'doc-1' } },
     )
-    rerender({ keyValue: 'ideia-2' })
+    rerender({ keyValue: 'doc-2' })
     await act(async () => vi.advanceTimersByTimeAsync(599))
     expect(save).not.toHaveBeenCalled()
     await act(async () => vi.advanceTimersByTimeAsync(1))
@@ -76,11 +76,11 @@ describe('useDocumentAutosave', () => {
     }
     const { rerender } = renderHook(
       ({ keyValue }) => useDocumentAutosave({ ...props, documentKey: keyValue }),
-      { initialProps: { keyValue: 'ideia-1' } },
+      { initialProps: { keyValue: 'doc-1' } },
     )
     await act(async () => vi.advanceTimersByTimeAsync(600))
     expect(save).toHaveBeenCalledOnce()
-    rerender({ keyValue: 'ideia-2' })
+    rerender({ keyValue: 'doc-2' })
     expect(captured.signal).toBeDefined()
     expect(captured.signal?.aborted).toBe(true)
     expect(props.onError).not.toHaveBeenCalled()
@@ -91,7 +91,7 @@ describe('useDocumentAutosave', () => {
     const save = vi.fn().mockResolvedValue('salvo')
     const props = {
       ativo: true,
-      documentKey: 'ideia-1',
+      documentKey: 'doc-1',
       onStart: vi.fn(),
       save,
       onSaved: vi.fn(),
@@ -124,7 +124,7 @@ describe('useDocumentAutosave', () => {
       useDocumentAutosave({
         ativo: true,
         dirty: true,
-        documentKey: 'ideia-1',
+        documentKey: 'doc-1',
         onStart: vi.fn(),
         save,
         onSaved,

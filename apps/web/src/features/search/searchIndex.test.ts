@@ -8,6 +8,7 @@ import {
   normalizeSingleValue,
   searchEntries,
 } from './searchIndex'
+import type { SearchProvider } from './types'
 import { scopeTokenStyle } from './scopeColors'
 import { matchesShortcut } from './shortcuts'
 
@@ -15,28 +16,28 @@ const t: TFn = (key, vars) => {
   const values: Record<string, string> = {
     'search.kind.project': 'projeto',
     'search.kind.task': 'tarefa',
-    'search.kind.idea': 'nota',
+    'search.kind.plugin': 'nota',
     'search.kind.archive': 'arquivo',
     'search.kind.screen': 'atalho',
-    'search.location.ideas': 'notas',
+    'search.location.notes': 'notas',
     'search.location.archive': 'arquivo',
     'search.location.screen': 'tela',
     'search.location.project_status': `projetos / ${vars?.status ?? ''}`,
     'search.location.task_status': `${vars?.projeto ?? ''} / ${vars?.status ?? ''}`,
     'search.location.archived_project': `arquivo / ${vars?.titulo ?? ''}`,
     'search.screen_summary.projects': 'quadro principal',
-    'search.screen_summary.ideas': 'notas',
+    'search.screen_summary.notes': 'notas',
     'search.screen_summary.archive': 'arquivo',
     'search.screen_summary.backup': 'snapshots',
     'search.screen_summary.settings': 'ajustes',
     'shell.nav.projetos': 'projetos',
-    'shell.nav.ideias': 'notas',
+    'shell.nav.notas': 'notas',
     'shell.nav.arquivo': 'arquivo',
     'shell.nav.backup': 'snapshots',
     'shell.nav.config': 'ajustes',
     'archive_view.entity_label.projeto': 'projeto',
     'archive_view.entity_label.tarefa': 'tarefa',
-    'archive_view.entity_label.ideia': 'nota',
+    'archive_view.entity_label.note': 'nota',
     'archive_view.entity_label.item': 'item',
   }
   return values[key] ?? key
@@ -72,12 +73,12 @@ const workspace: Bootstrap = {
       },
     ],
   },
-  ideias: {
+  notes: {
     revision: 1,
     notas: [
       {
-        id: 'idea-1',
-        pasta: 'ideia-busca',
+        id: 'note-1',
+        pasta: 'nota-busca',
         titulo: 'Busca rápida',
         cor: '#FAD344',
         criado_em: '2026-05-28T00:00:00Z',
@@ -85,6 +86,37 @@ const workspace: Bootstrap = {
       },
     ],
   },
+}
+
+/// Notes are no longer indexed inline by the core builder — they arrive through a
+/// plugin `SearchProvider` (`registry.searchProviders()`). This stand-in mirrors
+/// the builtin Notes contribution so the core builder can be exercised the way it
+/// runs in production (merging provider entries, scope aliases, and colors)
+/// without the core test naming or importing any plugin.
+const noteProvider: SearchProvider = {
+  // Indexes the workspace handed in via the `SearchProviderContext`, not a module
+  // global — mirroring the real Notes provider after the search decoupling: the
+  // host builds entries from the current `{ workspace, t }`, so notes are indexed
+  // whether or not the Notes screen ever mounted.
+  entries: ({ workspace: ws, t: tt }) =>
+    ws.notes.notas.map((note) => ({
+      id: `note:${note.id}`,
+      kind: 'plugin' as const,
+      title: note.titulo,
+      location: tt('search.location.notes'),
+      color: note.cor,
+      updatedAt: note.atualizado_em,
+      searchText: normalizeSingleValue([note.titulo, note.pasta, tt('search.kind.plugin'), tt('search.location.notes')].join(' ')),
+      scopeText: normalizeSingleValue([tt('search.kind.plugin'), tt('search.location.notes'), note.titulo, note.pasta].join(' ')),
+      action: { type: 'plugin', pluginId: 'notes', screen: 'notes', focus: note.id },
+    })),
+  scopeAliases: {
+    note: ['plugin'],
+    notes: ['plugin'],
+    nota: ['plugin'],
+    notas: ['plugin'],
+  },
+  colors: { plugin: '#FAD344' },
 }
 
 const projectDocument: DocumentResponse<Project> = {
@@ -117,10 +149,10 @@ const projectDocument: DocumentResponse<Project> = {
 
 describe('global search index', () => {
   it('indexa projetos, tarefas e notas com o alvo de navegacao correto', () => {
-    const entries = buildSearchEntries({ workspace, projectDocuments: [projectDocument], t })
+    const entries = buildSearchEntries({ workspace, projectDocuments: [projectDocument], searchProviders: [noteProvider], t })
 
     expect(entries.some((entry) => entry.id === 'project:project-1')).toBe(true)
-    expect(entries.some((entry) => entry.id === 'idea:idea-1')).toBe(true)
+    expect(entries.some((entry) => entry.id === 'note:note-1')).toBe(true)
     expect(searchEntries(entries, 'command k')[0].action).toEqual({
       type: 'task',
       projectId: 'project-1',
@@ -170,12 +202,12 @@ describe('global search index', () => {
   })
 
   it('aceita aliases em portugues e ingles para limitar por tipo', () => {
-    const entries = buildSearchEntries({ workspace, projectDocuments: [projectDocument], t })
+    const entries = buildSearchEntries({ workspace, projectDocuments: [projectDocument], searchProviders: [noteProvider], t })
 
     expect(searchEntries(entries, 'tasks/command')[0].kind).toBe('task')
     expect(searchEntries(entries, 'tarefas/command')[0].kind).toBe('task')
-    expect(searchEntries(entries, 'notas/busca')[0].kind).toBe('idea')
-    expect(searchEntries(entries, 'ideas/busca')[0].kind).toBe('idea')
+    expect(searchEntries(entries, 'notas/busca')[0].kind).toBe('plugin')
+    expect(searchEntries(entries, 'note/busca')[0].kind).toBe('plugin')
   })
 
   it('trata alias exato sem barra como escopo geral do tipo', () => {

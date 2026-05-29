@@ -1,11 +1,23 @@
 import type { ArchiveIndex, Bootstrap, Config, DocumentResponse, Project, ProjectCard, Tag, TaskCard } from '../../lib/types'
 import { localizeColumnTitle, type TFn } from '../../i18n'
-import type { GlobalSearchEntry, GlobalSearchKind, GlobalSearchTag, SearchScopeToken, SearchScreen } from './types'
+import type {
+  GlobalSearchEntry,
+  GlobalSearchKind,
+  GlobalSearchTag,
+  SearchProvider,
+  SearchProviderContext,
+  SearchScopeToken,
+  SearchScreen,
+} from './types'
 
 type BuildSearchEntriesInput = {
   workspace: Bootstrap
   projectDocuments?: Array<DocumentResponse<Project>>
   archive?: ArchiveIndex | null
+  /// Plugin-contributed search providers, typically `registry.searchProviders()`.
+  /// Core stays plugin-agnostic: it merges their entries, scope aliases, and
+  /// colors without naming any individual plugin.
+  searchProviders?: readonly SearchProvider[]
   t: TFn
 }
 
@@ -15,7 +27,6 @@ type SearchScopeFilter =
 
 const SCREEN_COLORS: Record<SearchScreen, string> = {
   projetos: 'var(--accent)',
-  ideias: '#FAD344',
   arquivo: '#B8B3A4',
   backup: '#61E141',
   config: '#FF8A48',
@@ -24,20 +35,25 @@ const SCREEN_COLORS: Record<SearchScreen, string> = {
 const KIND_PRIORITY: Record<GlobalSearchKind, number> = {
   project: 6,
   task: 5,
-  idea: 4,
+  plugin: 4,
   archive: 2,
   screen: 1,
 }
 
-const SCOPE_KIND_COLORS: Record<GlobalSearchKind, string> = {
+/// Native, plugin-agnostic kind colors. Plugin providers contribute additional
+/// colors (e.g. for the generic `plugin` kind) which are merged in at build time.
+const BASE_SCOPE_KIND_COLORS: Record<GlobalSearchKind, string> = {
   project: 'var(--accent)',
   task: '#55B9F7',
-  idea: '#FAD344',
+  plugin: 'var(--accent)',
   archive: '#B8B3A4',
   screen: 'var(--accent)',
 }
 
-const SCOPE_ALIASES: Record<string, GlobalSearchKind[]> = {
+/// Native, plugin-agnostic scope aliases. Domain-specific aliases (`note`,
+/// `notas`, …) are no longer hardcoded here — providers supply them, so when a
+/// plugin is disabled its aliases simply disappear.
+const BASE_SCOPE_ALIASES: Record<string, GlobalSearchKind[]> = {
   projeto: ['project'],
   projetos: ['project'],
   project: ['project'],
@@ -46,14 +62,6 @@ const SCOPE_ALIASES: Record<string, GlobalSearchKind[]> = {
   tarefas: ['task'],
   task: ['task'],
   tasks: ['task'],
-  nota: ['idea'],
-  notas: ['idea'],
-  note: ['idea'],
-  notes: ['idea'],
-  ideia: ['idea'],
-  ideias: ['idea'],
-  idea: ['idea'],
-  ideas: ['idea'],
   arquivo: ['archive'],
   arquivados: ['archive'],
   archive: ['archive'],
@@ -75,7 +83,41 @@ const SCOPE_ALIASES: Record<string, GlobalSearchKind[]> = {
   config: ['screen'],
 }
 
-export function buildSearchEntries({ workspace, projectDocuments = [], archive, t }: BuildSearchEntriesInput) {
+/// Live scope maps: the native base merged with the current build's
+/// provider contributions. Refreshed by `buildSearchEntries` so the scope-query
+/// helpers (`getScopedSearchQuery`, `getImplicitScopeQuery`, …) — which only
+/// receive `entries` — see the same aliases/colors the entries were built with.
+let SCOPE_ALIASES: Record<string, GlobalSearchKind[]> = { ...BASE_SCOPE_ALIASES }
+let SCOPE_KIND_COLORS: Record<GlobalSearchKind, string> = { ...BASE_SCOPE_KIND_COLORS }
+
+function applyProviderScopes(providers: readonly SearchProvider[]) {
+  const aliases: Record<string, GlobalSearchKind[]> = { ...BASE_SCOPE_ALIASES }
+  const colors: Record<GlobalSearchKind, string> = { ...BASE_SCOPE_KIND_COLORS }
+  for (const provider of providers) {
+    if (provider.scopeAliases) {
+      for (const [alias, kinds] of Object.entries(provider.scopeAliases)) {
+        aliases[normalizeSingleValue(alias)] = kinds
+      }
+    }
+    if (provider.colors) {
+      for (const [kind, color] of Object.entries(provider.colors) as Array<[GlobalSearchKind, string]>) {
+        colors[kind] = color
+      }
+    }
+  }
+  SCOPE_ALIASES = aliases
+  SCOPE_KIND_COLORS = colors
+}
+
+export function buildSearchEntries({
+  workspace,
+  projectDocuments = [],
+  archive,
+  searchProviders = [],
+  t,
+}: BuildSearchEntriesInput) {
+  applyProviderScopes(searchProviders)
+
   const entries: GlobalSearchEntry[] = []
   const projectDocumentById = new Map(projectDocuments.map((document) => [document.dados.id, document]))
 
@@ -90,18 +132,9 @@ export function buildSearchEntries({ workspace, projectDocuments = [], archive, 
     }
   }
 
-  for (const idea of workspace.ideias.notas) {
-    entries.push({
-      id: `idea:${idea.id}`,
-      kind: 'idea',
-      title: idea.titulo,
-      location: t('search.location.ideas'),
-      color: idea.cor,
-      updatedAt: idea.atualizado_em,
-      searchText: normalizeSearchText([idea.titulo, idea.pasta, t('search.kind.idea'), t('search.location.ideas')]),
-      scopeText: normalizeSearchText([t('search.kind.idea'), t('search.location.ideas'), idea.titulo, idea.pasta]),
-      action: { type: 'idea', ideaId: idea.id },
-    })
+  const providerContext: SearchProviderContext = { workspace, t }
+  for (const provider of searchProviders) {
+    entries.push(...provider.entries(providerContext))
   }
 
   for (const item of archive?.itens ?? []) {
@@ -351,7 +384,6 @@ function taskEntry(task: TaskCard, project: Project, t: TFn): GlobalSearchEntry 
 function screenEntries(t: TFn): GlobalSearchEntry[] {
   const screens: Array<{ screen: SearchScreen; summary: string }> = [
     { screen: 'projetos', summary: t('search.screen_summary.projects') },
-    { screen: 'ideias', summary: t('search.screen_summary.ideas') },
     { screen: 'arquivo', summary: t('search.screen_summary.archive') },
     { screen: 'backup', summary: t('search.screen_summary.backup') },
     { screen: 'config', summary: t('search.screen_summary.settings') },

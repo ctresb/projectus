@@ -7,7 +7,7 @@ import type { GlobalSearchEntry, GlobalSearchKind } from '../types'
 const ICONS: Record<GlobalSearchKind, typeof FolderKanban> = {
   project: FolderKanban,
   task: SquareCheckBig,
-  idea: StickyNote,
+  plugin: StickyNote,
   archive: Archive,
   screen: Map,
 }

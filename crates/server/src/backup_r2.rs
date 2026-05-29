@@ -322,7 +322,7 @@ mod tests {
             "history.json",
             "projetos/jogo-12345678/project.json",
             "projetos/jogo-12345678/tarefas/card-12345678/card.md",
-            "ideias/ideia-12345678/note.md",
+            "notes/note-12345678/note.md",
             "arquivo/task-12345678/card.md",
             "arquivo/index.json",
         ] {
@@ -342,7 +342,7 @@ mod tests {
         assert_eq!(paths.len(), 8);
         assert!(paths.contains(&"config.json"));
         assert!(paths.contains(&"board.json"));
-        assert!(paths.contains(&"ideias/ideia-12345678/note.md"));
+        assert!(paths.contains(&"notes/note-12345678/note.md"));
         assert!(paths.contains(&"arquivo/task-12345678/card.md"));
         assert!(staging.path().join("PROJECTUS/config.json").exists());
         assert!(!paths.contains(&".DS_Store"));

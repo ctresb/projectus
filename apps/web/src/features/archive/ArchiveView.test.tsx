@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../../i18n'
 import { api } from '../../lib/api'
-import type { ArchiveIndex, ArchivedItem, Board, Ideas } from '../../lib/types'
+import type { ArchiveIndex, ArchivedItem, Board, NotesIndex } from '../../lib/types'
 import { ArchiveView } from './ArchiveView'
 
 vi.mock('../../lib/api', () => ({
@@ -17,7 +17,7 @@ vi.mock('../../lib/api', () => ({
 }))
 
 const board: Board = { revision: 10, projetos: [] }
-const ideas: Ideas = { revision: 20, notas: [] }
+const notes: NotesIndex = { revision: 20, notas: [] }
 
 const projectItem: ArchivedItem = {
   id: 'archive-project',
@@ -30,12 +30,12 @@ const projectItem: ArchivedItem = {
   arquivado_em: '2026-05-27T00:00:00Z',
 }
 
-const ideaItem: ArchivedItem = {
-  id: 'archive-idea',
-  entidade: 'ideia',
-  entidade_id: 'idea-1',
-  titulo: 'Ideia',
-  pasta: 'ideia-archive-idea',
+const noteItem: ArchivedItem = {
+  id: 'archive-note',
+  entidade: 'note',
+  entidade_id: 'note-1',
+  titulo: 'Nota',
+  pasta: 'nota-archive-note',
   projeto_id: null,
   projeto_titulo: null,
   arquivado_em: '2026-05-27T00:00:00Z',
@@ -43,10 +43,10 @@ const ideaItem: ArchivedItem = {
 
 const archive: ArchiveIndex = {
   revision: 2,
-  itens: [projectItem, ideaItem],
+  itens: [projectItem, noteItem],
 }
 
-const workspace = { board, ideias: ideas, config: {} } as Awaited<ReturnType<typeof api.bootstrap>>
+const workspace = { board, notes, config: {} } as Awaited<ReturnType<typeof api.bootstrap>>
 
 function renderArchiveView(input: ArchiveIndex = archive) {
   vi.mocked(api.archive).mockResolvedValue(input)
@@ -67,7 +67,7 @@ afterEach(() => {
 
 describe('ArchiveView selection mode', () => {
   it('restaura um item individual usando dados frescos', async () => {
-    vi.mocked(api.restoreArchived).mockResolvedValue({ revision: 3, itens: [ideaItem] })
+    vi.mocked(api.restoreArchived).mockResolvedValue({ revision: 3, itens: [noteItem] })
     renderArchiveView()
 
     await screen.findByText('Projeto')
@@ -81,7 +81,7 @@ describe('ArchiveView selection mode', () => {
 
   it('exclui um item individual usando revisao fresca', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
-    vi.mocked(api.deleteArchived).mockResolvedValue({ revision: 3, itens: [ideaItem] })
+    vi.mocked(api.deleteArchived).mockResolvedValue({ revision: 3, itens: [noteItem] })
     renderArchiveView()
 
     await screen.findByText('Projeto')
@@ -133,7 +133,7 @@ describe('ArchiveView selection mode', () => {
   it('exclui selecionados em sequencia usando revisoes retornadas', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(api.deleteArchived)
-      .mockResolvedValueOnce({ revision: 3, itens: [ideaItem] })
+      .mockResolvedValueOnce({ revision: 3, itens: [noteItem] })
       .mockResolvedValueOnce({ revision: 4, itens: [] })
     renderArchiveView()
 
@@ -144,13 +144,13 @@ describe('ArchiveView selection mode', () => {
 
     await waitFor(() => expect(api.deleteArchived).toHaveBeenCalledTimes(2))
     expect(api.deleteArchived).toHaveBeenNthCalledWith(1, 'archive-project', 2)
-    expect(api.deleteArchived).toHaveBeenNthCalledWith(2, 'archive-idea', 3)
+    expect(api.deleteArchived).toHaveBeenNthCalledWith(2, 'archive-note', 3)
   })
 
   it('restaura selecionados em sequencia e atualiza workspace', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(api.restoreArchived)
-      .mockResolvedValueOnce({ revision: 3, itens: [ideaItem] })
+      .mockResolvedValueOnce({ revision: 3, itens: [noteItem] })
       .mockResolvedValueOnce({ revision: 4, itens: [] })
     const onRefresh = vi.fn().mockResolvedValue(undefined)
     vi.mocked(api.bootstrap).mockResolvedValue(workspace)
@@ -170,7 +170,7 @@ describe('ArchiveView selection mode', () => {
 
     await waitFor(() => expect(api.restoreArchived).toHaveBeenCalledTimes(2))
     expect(api.restoreArchived).toHaveBeenNthCalledWith(1, 'archive-project', 2, 10)
-    expect(api.restoreArchived).toHaveBeenNthCalledWith(2, 'archive-idea', 3, 20)
+    expect(api.restoreArchived).toHaveBeenNthCalledWith(2, 'archive-note', 3, 20)
     expect(onRefresh).toHaveBeenCalledTimes(1)
   })
 })

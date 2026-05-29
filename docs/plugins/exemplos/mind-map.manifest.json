@@ -1,0 +1,79 @@
+{
+  "$comment": "INERT planning example. Not registered, not loaded, not wired into any code. A complete, plausible PluginManifest for a FUTURE Mind Map plugin, mirroring the marketplace contract (crates/server/src/plugins/manifest.rs). Field names stay English (the plugin contract is the marketplace surface); host PROJECTUS domain identifiers (titulo, cor, notas, projeto, tarefa, pasta) are untouched.",
+  "id": "mind-map",
+  "title": "Mind Map",
+  "short_description": "Spatial canvas view of your notes, projects and tasks.",
+  "long_description": "Mind Map gives PROJECTUS a freeform spatial canvas. Drop any nota, projeto or tarefa onto the board as a node, draw edges to express relationships, and lay everything out by dragging. Node colors follow the host cor field and titles follow titulo, so the canvas stays in sync with the underlying items. The layout (node positions and edges) is persisted in the plugin's own namespaced storage; the host entities themselves are read-only here. A routed screen and a side-nav entry expose the canvas; an editor toolbar action turns the current selection into a node.",
+  "version": "0.2.1",
+  "author": "PROJECTUS Labs",
+  "publisher": "projectus-labs",
+  "homepage": "https://plugins.projectus.app/mind-map",
+  "repository": "https://github.com/projectus-labs/mind-map",
+  "license": "Apache-2.0",
+  "icon": "Network",
+  "screenshots": [
+    "https://plugins.projectus.app/mind-map/shots/canvas.png"
+  ],
+  "changelog": "0.2.1 - Edge styling and node color from host cor.\n0.2.0 - Persisted layout in plugin storage.\n0.1.0 - Initial spatial canvas.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": null,
+  "storage_schema_version": 1,
+  "migrations": [],
+  "extension_points": ["navItem", "screen", "editorToolbar"],
+  "permissions": [
+    "notes:read",
+    "projects:read",
+    "tasks:read",
+    "screens:add",
+    "shortcuts:register",
+    "file:storage"
+  ],
+  "shortcuts": [
+    {
+      "id": "open-canvas",
+      "keys": "mod+shift+m",
+      "description": "Open the mind map canvas"
+    }
+  ],
+  "commands": [
+    {
+      "id": "mind-map.add-node",
+      "title": "Mind Map: Add current item as node",
+      "description": "Place the open note, project or task on the canvas."
+    }
+  ],
+  "interacts_with": [
+    "SIDE_NAVIGATION",
+    "MARKDOWN_EDITOR",
+    "PROJECT_CARDS",
+    "TASK_CARDS",
+    "FILE_STORAGE",
+    "SHORTCUTS"
+  ],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "projectus-labs",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "visualization",
+    "tags": ["mind-map", "canvas", "graph", "visual"],
+    "verified": false,
+    "featured": false,
+    "downloads": 0,
+    "rating": 0
+  }
+}

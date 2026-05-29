@@ -6,8 +6,6 @@ import type {
   Config,
   DaemonStatus,
   DocumentResponse,
-  IdeaCard,
-  Ideas,
   LanStatus,
   LiveEvent,
   Project,
@@ -24,10 +22,11 @@ export class ApiFailure extends Error {
 }
 
 const isHttpPage = window.location.protocol === 'http:' || window.location.protocol === 'https:'
-const base = import.meta.env.VITE_API_BASE ?? (isHttpPage ? '' : 'http://127.0.0.1:4387')
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${base}/api${path}`, {
+export const apiBase = import.meta.env.VITE_API_BASE ?? (isHttpPage ? '' : 'http://127.0.0.1:4387')
+
+export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${apiBase}/api${path}`, {
     ...init,
     headers: {
       ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
@@ -42,6 +41,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return response.json() as Promise<T>
 }
+
+const base = apiBase
+const request = apiRequest
 
 export const api = {
   bootstrap: () => request<Bootstrap>('/bootstrap'),
@@ -99,13 +101,6 @@ export const api = {
     }),
   moveTask: (projectId: string, input: { revision: number; id: string; status: string; indice: number }) =>
     request<Project>(`/projects/${projectId}/tasks/move`, { method: 'POST', body: JSON.stringify(input) }),
-  idea: (id: string) => request<DocumentResponse<IdeaCard>>(`/ideas/${id}`),
-  createIdea: (input: { titulo: string; markdown: string }) =>
-    request<DocumentResponse<IdeaCard>>('/ideas', { method: 'POST', body: JSON.stringify(input) }),
-  updateIdea: (id: string, input: { revision: number; titulo: string; markdown: string; cor: string }) =>
-    request<DocumentResponse<IdeaCard>>(`/ideas/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
-  archiveIdea: (id: string, revision: number) =>
-    request<ArchiveIndex>(`/ideas/${id}/archive`, { method: 'POST', body: JSON.stringify({ revision }) }),
   restoreArchived: (id: string, revision: number, destinoRevision: number) =>
     request<ArchiveIndex>(`/archive/${id}/restore`, {
       method: 'POST',
@@ -113,7 +108,6 @@ export const api = {
     }),
   deleteArchived: (id: string, revision: number) =>
     request<ArchiveIndex>(`/archive/${id}?revision=${revision}`, { method: 'DELETE' }),
-  ideas: () => request<Ideas>('/ideas'),
   uploadImage: async (path: string, image: File) => {
     const data = new FormData()
     data.append('imagem', image)

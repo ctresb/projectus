@@ -1,0 +1,47 @@
+{
+  "id": "sample-plugin",
+  "title": "Sample Plugin",
+  "short_description": "A minimal sample plugin used as a test fixture.",
+  "long_description": "This plugin exists purely as a fixture for backend install/verify tests and frontend loader tests. It contributes nothing to the running app and is never shipped or registered.",
+  "version": "1.0.0",
+  "author": "PROJECTUS",
+  "publisher": "projectus",
+  "homepage": "https://example.com/sample-plugin",
+  "repository": "https://example.com/sample-plugin.git",
+  "license": "MIT",
+  "icon": "",
+  "screenshots": [],
+  "changelog": "1.0.0 - Initial fixture.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": null,
+  "storage_schema_version": 1,
+  "migrations": [],
+  "extension_points": [],
+  "permissions": [],
+  "shortcuts": [],
+  "commands": [],
+  "interacts_with": [],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "developer-tools",
+    "tags": ["fixture", "test"],
+    "verified": false
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "$comment": "INERT planning example. Not registered, not loaded, not wired into any code. A complete, plausible PluginManifest for a FUTURE AI assistant plugin, mirroring the marketplace contract (crates/server/src/plugins/manifest.rs). Field names stay English (marketplace surface); host PROJECTUS domain identifiers (nota, projeto, tarefa, titulo, notas) are untouched.",
+  "id": "ai",
+  "title": "AI Assistant",
+  "short_description": "Summarize, rewrite and ask questions across your notes, projects and tasks.",
+  "long_description": "AI Assistant brings a writing and reasoning companion into PROJECTUS. From the markdown editor, select text to summarize, rewrite, expand or translate via slash and toolbar actions. From a routed chat screen, ask questions grounded in your own nota, projeto and tarefa content. A global-search provider answers natural-language queries over the workspace. Provider API keys are stored in the host secret store, all model calls go out over the network, and longer jobs (workspace-wide summaries) run as background jobs. The plugin only reads host entities; any results you keep are written back through the standard host APIs, never directly to disk.",
+  "version": "0.6.0",
+  "author": "PROJECTUS Labs",
+  "publisher": "projectus-labs",
+  "homepage": "https://plugins.projectus.app/ai",
+  "repository": "https://github.com/projectus-labs/ai-assistant",
+  "license": "MIT",
+  "icon": "Sparkles",
+  "screenshots": [
+    "https://plugins.projectus.app/ai/shots/chat.png",
+    "https://plugins.projectus.app/ai/shots/editor-actions.png"
+  ],
+  "changelog": "0.6.0 - Workspace-grounded chat screen.\n0.5.0 - Editor slash actions (summarize, rewrite).\n0.4.0 - Provider keys in host secret store.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": null,
+  "storage_schema_version": 1,
+  "migrations": [],
+  "extension_points": ["editorToolbar", "navItem", "screen", "searchProvider", "settingsPanel", "commandPalette"],
+  "permissions": [
+    "notes:read",
+    "projects:read",
+    "tasks:read",
+    "editor:extend",
+    "search:provide",
+    "screens:add",
+    "settings:add",
+    "commands:register",
+    "network",
+    "secrets",
+    "background-jobs",
+    "events"
+  ],
+  "shortcuts": [
+    {
+      "id": "ask-ai",
+      "keys": "mod+shift+a",
+      "description": "Open the AI assistant"
+    }
+  ],
+  "commands": [
+    {
+      "id": "ai.summarize-selection",
+      "title": "AI: Summarize selection",
+      "description": "Summarize the selected text in the markdown editor."
+    },
+    {
+      "id": "ai.ask-workspace",
+      "title": "AI: Ask about my workspace",
+      "description": "Ask a question grounded in your notes, projects and tasks."
+    }
+  ],
+  "interacts_with": [
+    "MARKDOWN_EDITOR",
+    "SIDE_NAVIGATION",
+    "GLOBAL_SEARCH",
+    "SETTINGS",
+    "SECRETS",
+    "NETWORK",
+    "BACKGROUND_JOBS"
+  ],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "projectus-labs",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "ai",
+    "tags": ["ai", "assistant", "summarize", "chat", "writing"],
+    "verified": false,
+    "featured": false,
+    "downloads": 0,
+    "rating": 0
+  }
+}

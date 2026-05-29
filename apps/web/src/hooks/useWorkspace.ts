@@ -21,7 +21,7 @@ export function useWorkspace() {
   useEffect(() => {
     void refresh()
     return api.events((event) => {
-      // Backup events drive the SnapshotButton; they don't change board/ideas/config.
+      // Backup events drive the SnapshotButton; they don't change board/notes/config.
       if (event.tipo.startsWith('backup_')) return
       void refresh()
     })

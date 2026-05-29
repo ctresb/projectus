@@ -23,8 +23,8 @@ function roundtrip(markdown: string) {
 
 describe('markdown roundtrip', () => {
   it('preserves custom wikilinks, mentions, and images', () => {
-    expect(roundtrip('[[idea-1|Idea one]] and @[Alice](mention:user-1)\n\n![alt](/conteudo/img.png)')).toBe(
-      '[[idea-1|Idea one]] and @[Alice](mention:user-1)\n\n![alt](/conteudo/img.png)',
+    expect(roundtrip('[[note-1|Note one]] and @[Alice](mention:user-1)\n\n![alt](/conteudo/img.png)')).toBe(
+      '[[note-1|Note one]] and @[Alice](mention:user-1)\n\n![alt](/conteudo/img.png)',
     )
   })
 

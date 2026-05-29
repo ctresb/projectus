@@ -64,28 +64,42 @@ impl Storage {
         &self.root
     }
 
+    /// The global write mutex guard. Held by every durable mutation (including the
+    /// plugin data store) so the backend stays the sole writer.
+    pub(crate) fn lock_writes(&self) -> std::sync::MutexGuard<'_, ()> {
+        self.writes.lock().expect("storage mutex poisoned")
+    }
+
     pub fn subscribe(&self) -> broadcast::Receiver<LiveEvent> {
         self.events.subscribe()
     }
 
     pub fn initialize(&self) -> StoreResult<()> {
         fs::create_dir_all(self.root.join("projetos"))?;
-        fs::create_dir_all(self.root.join("ideias"))?;
         fs::create_dir_all(self.root.join("lixeira"))?;
         fs::create_dir_all(self.root.join("arquivo"))?;
+        fs::create_dir_all(self.root.join("plugins"))?;
         write_default(&self.root.join("config.json"), &Config::default())?;
         write_default(&self.root.join("board.json"), &Board::default())?;
         write_default(&self.root.join("history.json"), &HistoryLog::default())?;
         write_default(
-            &self.root.join("ideias").join("ideas.json"),
-            &IdeasIndex::default(),
-        )?;
-        write_default(
             &self.root.join("arquivo").join("index.json"),
             &ArchiveIndex::default(),
         )?;
+        // Migrate the legacy ideias/ tree before we create or seed notes/, so the
+        // migration can detect the absence of notes/ and adopt the old folder.
+        self.migrate_ideias_to_notes()?;
+        fs::create_dir_all(self.root.join("notes"))?;
+        write_default(
+            &self.root.join("notes").join("notes.json"),
+            &NotesIndex::default(),
+        )?;
         self.migrate_config()?;
         self.migrate_legacy_trash()?;
+        // Seed the host-shipped builtin plugin contributions (idempotent). Core
+        // stays plugin-agnostic: this registers them as registry *data*, never by
+        // naming a plugin from core control flow.
+        crate::plugins::registry::seed_builtins(&self.root)?;
         Ok(())
     }
 
@@ -94,7 +108,7 @@ impl Storage {
         Ok(Bootstrap {
             config: self.read_config_inner()?,
             board: self.read_board_inner()?,
-            ideias: self.read_ideas_inner()?,
+            notes: self.read_notes_inner()?,
             capacidades: ApiCapabilities::default(),
         })
     }
@@ -621,35 +635,35 @@ impl Storage {
         self.project(project_id).map(|document| document.dados)
     }
 
-    pub fn ideas(&self) -> StoreResult<IdeasIndex> {
+    pub fn notes(&self) -> StoreResult<NotesIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
-        self.read_ideas_inner()
+        self.read_notes_inner()
     }
 
-    pub fn idea(&self, id: &str) -> StoreResult<DocumentResponse<IdeaCard>> {
+    pub fn note(&self, id: &str) -> StoreResult<DocumentResponse<Note>> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
-        let ideas = self.read_ideas_inner()?;
-        let idea = ideas
+        let notes = self.read_notes_inner()?;
+        let note = notes
             .notas
             .into_iter()
-            .find(|idea| idea.id == id)
+            .find(|note| note.id == id)
             .ok_or(StoreError::NotFound)?;
         let markdown =
-            fs::read_to_string(self.root.join("ideias").join(&idea.pasta).join("note.md"))?;
+            fs::read_to_string(self.root.join("notes").join(&note.pasta).join("note.md"))?;
         Ok(DocumentResponse {
-            dados: idea,
+            dados: note,
             markdown,
         })
     }
 
-    pub fn create_idea(&self, input: CreateIdea) -> StoreResult<DocumentResponse<IdeaCard>> {
+    pub fn create_note(&self, input: CreateNote) -> StoreResult<DocumentResponse<Note>> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         validate_title(&input.titulo)?;
-        let mut ideas = self.read_ideas_inner()?;
+        let mut notes = self.read_notes_inner()?;
         let id = id8();
         let folder = stable_folder(&input.titulo, &id);
         let now = Utc::now();
-        let idea = IdeaCard {
+        let note = Note {
             id: id.clone(),
             pasta: folder.clone(),
             titulo: input.titulo.trim().to_owned(),
@@ -657,114 +671,114 @@ impl Storage {
             criado_em: now,
             atualizado_em: now,
         };
-        let markdown = markdown_with_title(&idea.titulo, &input.markdown);
-        fs::create_dir_all(self.root.join("ideias").join(&folder))?;
+        let markdown = markdown_with_title(&note.titulo, &input.markdown);
+        fs::create_dir_all(self.root.join("notes").join(&folder))?;
         atomic_text(
-            &self.root.join("ideias").join(&folder).join("note.md"),
+            &self.root.join("notes").join(&folder).join("note.md"),
             &markdown,
         )?;
-        ideas.notas.insert(0, idea.clone());
-        ideas.revision += 1;
-        atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+        notes.notas.insert(0, note.clone());
+        notes.revision += 1;
+        atomic_json(&self.root.join("notes").join("notes.json"), &notes)?;
         self.history_inner(
-            "ideia_criada",
-            "ideia",
+            "nota_criada",
+            "note",
             &id,
             None,
-            Some(json!(idea)),
+            Some(json!(note)),
             Some(hash_text(&markdown)),
             None,
         )?;
-        self.emit("ideia_criada", "ideia", &id);
+        self.emit("nota_criada", "note", &id);
         Ok(DocumentResponse {
-            dados: idea,
+            dados: note,
             markdown,
         })
     }
 
-    pub fn update_idea(
+    pub fn update_note(
         &self,
         id: &str,
-        input: UpdateIdea,
-    ) -> StoreResult<DocumentResponse<IdeaCard>> {
+        input: UpdateNote,
+    ) -> StoreResult<DocumentResponse<Note>> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
         validate_title(&input.titulo)?;
-        let mut ideas = self.read_ideas_inner()?;
-        ensure_revision(ideas.revision, input.revision)?;
-        let idea = ideas
+        let mut notes = self.read_notes_inner()?;
+        ensure_revision(notes.revision, input.revision)?;
+        let note = notes
             .notas
             .iter_mut()
-            .find(|idea| idea.id == id)
+            .find(|note| note.id == id)
             .ok_or(StoreError::NotFound)?;
-        idea.titulo = input.titulo.trim().to_owned();
-        idea.cor = input.cor;
-        idea.atualizado_em = Utc::now();
-        let updated = idea.clone();
+        note.titulo = input.titulo.trim().to_owned();
+        note.cor = input.cor;
+        note.atualizado_em = Utc::now();
+        let updated = note.clone();
         let markdown = markdown_with_title(&updated.titulo, &input.markdown);
         atomic_text(
             &self
                 .root
-                .join("ideias")
+                .join("notes")
                 .join(&updated.pasta)
                 .join("note.md"),
             &markdown,
         )?;
-        ideas.revision += 1;
-        atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+        notes.revision += 1;
+        atomic_json(&self.root.join("notes").join("notes.json"), &notes)?;
         self.history_inner(
-            "ideia_editada",
-            "ideia",
+            "nota_editada",
+            "note",
             id,
             None,
             Some(json!(updated)),
             Some(hash_text(&markdown)),
             None,
         )?;
-        self.emit("ideia_editada", "ideia", id);
+        self.emit("nota_editada", "note", id);
         Ok(DocumentResponse {
             dados: updated,
             markdown,
         })
     }
 
-    pub fn archive_idea(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
+    pub fn archive_note(&self, id: &str, revision: u64) -> StoreResult<ArchiveIndex> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
-        let mut ideas = self.read_ideas_inner()?;
-        ensure_revision(ideas.revision, revision)?;
-        let pos = ideas
+        let mut notes = self.read_notes_inner()?;
+        ensure_revision(notes.revision, revision)?;
+        let pos = notes
             .notas
             .iter()
-            .position(|idea| idea.id == id)
+            .position(|note| note.id == id)
             .ok_or(StoreError::NotFound)?;
-        let idea = ideas.notas.remove(pos);
-        let source = self.root.join("ideias").join(&idea.pasta);
+        let note = notes.notas.remove(pos);
+        let source = self.root.join("notes").join(&note.pasta);
         let archive = self.archive_item(
-            "ideia",
-            &idea.id,
-            &idea.titulo,
+            "note",
+            &note.id,
+            &note.titulo,
             &source,
             None,
             None,
-            serde_json::to_value(&idea)?,
+            serde_json::to_value(&note)?,
         )?;
-        ideas.revision += 1;
-        atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+        notes.revision += 1;
+        atomic_json(&self.root.join("notes").join("notes.json"), &notes)?;
         self.history_inner(
-            "ideia_arquivada",
-            "ideia",
+            "nota_arquivada",
+            "note",
             id,
-            Some(json!(idea)),
+            Some(json!(note)),
             None,
             None,
             None,
         )?;
-        self.emit("ideia_arquivada", "ideia", id);
+        self.emit("nota_arquivada", "note", id);
         Ok(archive)
     }
 
-    pub fn delete_idea(&self, id: &str, revision: u64) -> StoreResult<IdeasIndex> {
-        self.archive_idea(id, revision)?;
-        self.ideas()
+    pub fn delete_note(&self, id: &str, revision: u64) -> StoreResult<NotesIndex> {
+        self.archive_note(id, revision)?;
+        self.notes()
     }
 
     pub fn restore_archived(&self, id: &str, input: RestoreArchive) -> StoreResult<ArchiveIndex> {
@@ -789,15 +803,15 @@ impl Storage {
                 board.revision += 1;
                 atomic_json(&self.root.join("board.json"), &board)?;
             }
-            "ideia" => {
-                let idea: IdeaCard = serde_json::from_value(item.dados.clone())?;
-                let mut ideas = self.read_ideas_inner()?;
-                ensure_revision(ideas.revision, input.destino_revision)?;
-                let target = self.root.join("ideias").join(&idea.pasta);
+            "note" => {
+                let note: Note = serde_json::from_value(item.dados.clone())?;
+                let mut notes = self.read_notes_inner()?;
+                ensure_revision(notes.revision, input.destino_revision)?;
+                let target = self.root.join("notes").join(&note.pasta);
                 restore_directory(&source, &target)?;
-                ideas.notas.insert(0, idea);
-                ideas.revision += 1;
-                atomic_json(&self.root.join("ideias").join("ideas.json"), &ideas)?;
+                notes.notas.insert(0, note);
+                notes.revision += 1;
+                atomic_json(&self.root.join("notes").join("notes.json"), &notes)?;
             }
             "tarefa" => {
                 let task: TaskCard = serde_json::from_value(item.dados.clone())?;
@@ -915,24 +929,24 @@ impl Storage {
         Ok(format!("/conteudo/{}", relative.to_string_lossy()))
     }
 
-    pub fn save_idea_attachment(
+    pub fn save_note_attachment(
         &self,
         id: &str,
         file_name: &str,
         bytes: &[u8],
     ) -> StoreResult<String> {
         let _guard = self.writes.lock().expect("storage mutex poisoned");
-        let ideas = self.read_ideas_inner()?;
-        let idea = ideas
+        let notes = self.read_notes_inner()?;
+        let note = notes
             .notas
             .iter()
-            .find(|idea| idea.id == id)
+            .find(|note| note.id == id)
             .ok_or(StoreError::NotFound)?;
-        let relative = PathBuf::from("ideias")
-            .join(&idea.pasta)
+        let relative = PathBuf::from("notes")
+            .join(&note.pasta)
             .join(safe_attachment_name(file_name));
         atomic_bytes(&self.root.join(&relative), bytes)?;
-        self.emit("anexo_salvo", "ideia", id);
+        self.emit("anexo_salvo", "note", id);
         Ok(format!("/conteudo/{}", relative.to_string_lossy()))
     }
 
@@ -946,8 +960,8 @@ impl Storage {
         Ok(board)
     }
 
-    fn read_ideas_inner(&self) -> StoreResult<IdeasIndex> {
-        read_json(&self.root.join("ideias").join("ideas.json"))
+    fn read_notes_inner(&self) -> StoreResult<NotesIndex> {
+        read_json(&self.root.join("notes").join("notes.json"))
     }
 
     fn read_archive_inner(&self) -> StoreResult<ArchiveIndex> {
@@ -1020,6 +1034,76 @@ impl Storage {
         archive.revision += 1;
         atomic_json(&self.root.join("arquivo").join("index.json"), &archive)?;
         Ok(archive)
+    }
+
+    /// One-shot migration of the legacy `ideias/` tree to the new `notes/` tree.
+    /// Idempotent: if `notes/` already exists it does nothing. This is the ONLY
+    /// legacy-aware code path in storage and may reference the old `ideia`/`ideias`
+    /// names; everything else is grep-clean.
+    fn migrate_ideias_to_notes(&self) -> StoreResult<()> {
+        let legacy_dir = self.root.join("ideias");
+        let notes_dir = self.root.join("notes");
+        // Already migrated (or fresh install): leave everything untouched.
+        if notes_dir.exists() {
+            if legacy_dir.exists() {
+                eprintln!(
+                    "aviso: pastas 'ideias/' e 'notes/' coexistem; \
+                     mantendo 'ideias/' intacta e ignorando a migração"
+                );
+            }
+            return Ok(());
+        }
+        // Nothing legacy to migrate.
+        if !legacy_dir.exists() {
+            return Ok(());
+        }
+        // Move the whole folder, then rename the index file inside it.
+        fs::rename(&legacy_dir, &notes_dir)?;
+        let legacy_index = notes_dir.join("ideas.json");
+        if legacy_index.exists() {
+            fs::rename(&legacy_index, notes_dir.join("notes.json"))?;
+        }
+        // Rewrite archive entries: any `entidade == "ideia"` becomes `"note"`,
+        // including the nested `dados.entidade` if present. Preserve everything
+        // else, bump the archive revision. No destructive deletes.
+        let archive_path = self.root.join("arquivo").join("index.json");
+        if archive_path.exists() {
+            let mut archive: Value = read_json(&archive_path)?;
+            let mut changed = false;
+            if let Some(itens) = archive.get_mut("itens").and_then(Value::as_array_mut) {
+                for item in itens {
+                    if item.get("entidade").and_then(Value::as_str) == Some("ideia") {
+                        if let Some(entidade) = item.get_mut("entidade") {
+                            *entidade = Value::String("note".into());
+                            changed = true;
+                        }
+                        if let Some(dados_entidade) = item
+                            .get_mut("dados")
+                            .and_then(|dados| dados.get_mut("entidade"))
+                        {
+                            if dados_entidade.as_str() == Some("ideia") {
+                                *dados_entidade = Value::String("note".into());
+                            }
+                        }
+                    }
+                }
+            }
+            if changed {
+                let revision = archive.get("revision").and_then(Value::as_u64).unwrap_or(0);
+                archive["revision"] = Value::from(revision + 1);
+                atomic_json(&archive_path, &archive)?;
+            }
+        }
+        self.history_inner(
+            "notes_migradas",
+            "note",
+            "note",
+            None,
+            Some(json!({"de": "ideias", "para": "notes"})),
+            None,
+            None,
+        )?;
+        Ok(())
     }
 
     fn migrate_config(&self) -> StoreResult<()> {
@@ -1702,17 +1786,17 @@ mod tests {
     }
 
     #[test]
-    fn archives_and_restores_an_idea() {
+    fn archives_and_restores_a_note() {
         let (_dir, store) = store();
-        let idea = store
-            .create_idea(CreateIdea {
+        let note = store
+            .create_note(CreateNote {
                 titulo: "Pista".into(),
                 markdown: String::new(),
             })
             .unwrap();
-        let ideas = store.ideas().unwrap();
-        let archived = store.archive_idea(&idea.dados.id, ideas.revision).unwrap();
-        assert!(store.ideas().unwrap().notas.is_empty());
+        let notes = store.notes().unwrap();
+        let archived = store.archive_note(&note.dados.id, notes.revision).unwrap();
+        assert!(store.notes().unwrap().notas.is_empty());
         assert!(
             store
                 .root()
@@ -1727,25 +1811,93 @@ mod tests {
                 &archived.itens[0].id,
                 RestoreArchive {
                     revision: archived.revision,
-                    destino_revision: store.ideas().unwrap().revision,
+                    destino_revision: store.notes().unwrap().revision,
                 },
             )
             .unwrap();
         assert!(restored.itens.is_empty());
-        assert_eq!(store.ideas().unwrap().notas[0].titulo, "Pista");
+        assert_eq!(store.notes().unwrap().notas[0].titulo, "Pista");
+    }
+
+    #[test]
+    fn migrates_legacy_ideias_folder_to_notes() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("PROJECTUS");
+        // Seed a legacy ideias/ tree before the store ever runs initialize().
+        let legacy_folder = "pista-legada-aaaaaaaa";
+        let legacy_dir = root.join("ideias").join(legacy_folder);
+        fs::create_dir_all(&legacy_dir).unwrap();
+        fs::write(legacy_dir.join("note.md"), "# Pista legada\n\ncorpo\n").unwrap();
+        atomic_json(
+            &root.join("ideias").join("ideas.json"),
+            &json!({
+                "revision": 3,
+                "notas": [{
+                    "id": "legacy01",
+                    "pasta": legacy_folder,
+                    "titulo": "Pista legada",
+                    "cor": "#FFFFFF",
+                    "criado_em": Utc::now(),
+                    "atualizado_em": Utc::now(),
+                }],
+            }),
+        )
+        .unwrap();
+        // Seed an archive entry with the old "ideia" entity string.
+        atomic_json(
+            &root.join("arquivo").join("index.json"),
+            &json!({
+                "revision": 5,
+                "itens": [{
+                    "id": "arc01",
+                    "entidade": "ideia",
+                    "entidade_id": "legacy02",
+                    "titulo": "Ideia arquivada",
+                    "pasta": "ideia-arquivada-bbbbbbbb",
+                    "projeto_id": null,
+                    "projeto_titulo": null,
+                    "arquivado_em": Utc::now(),
+                    "dados": {"entidade": "ideia", "id": "legacy02"},
+                }],
+            }),
+        )
+        .unwrap();
+
+        let store = Storage::open(root.clone()).unwrap();
+
+        // notes/ now exists with its index, and the legacy ideias/ is gone.
+        assert!(root.join("notes").exists());
+        assert!(root.join("notes").join("notes.json").exists());
+        assert!(!root.join("ideias").exists());
+        // The per-note markdown survived the move.
+        assert_eq!(
+            fs::read_to_string(root.join("notes").join(legacy_folder).join("note.md")).unwrap(),
+            "# Pista legada\n\ncorpo\n"
+        );
+        // The notes index revision (3) was preserved through the rename.
+        let notes = store.notes().unwrap();
+        assert_eq!(notes.revision, 3);
+        assert_eq!(notes.notas[0].titulo, "Pista legada");
+        // The archive entry entidade is now "note" (top-level and nested dados).
+        let archive = read_json::<Value>(&root.join("arquivo").join("index.json")).unwrap();
+        let item = &archive["itens"][0];
+        assert_eq!(item["entidade"], "note");
+        assert_eq!(item["dados"]["entidade"], "note");
+        // Archive revision was bumped (5 -> 6).
+        assert_eq!(archive["revision"], 6);
     }
 
     #[test]
     fn deletes_archived_item_permanently() {
         let (_dir, store) = store();
-        let idea = store
-            .create_idea(CreateIdea {
+        let note = store
+            .create_note(CreateNote {
                 titulo: "Descartar".into(),
                 markdown: String::new(),
             })
             .unwrap();
         let archived = store
-            .archive_idea(&idea.dados.id, store.ideas().unwrap().revision)
+            .archive_note(&note.dados.id, store.notes().unwrap().revision)
             .unwrap();
         let item = archived.itens[0].clone();
         let archived_dir = store.root().join("arquivo").join(&item.pasta);
@@ -1761,14 +1913,14 @@ mod tests {
     #[test]
     fn rejects_archived_delete_with_stale_revision() {
         let (_dir, store) = store();
-        let idea = store
-            .create_idea(CreateIdea {
+        let note = store
+            .create_note(CreateNote {
                 titulo: "Conflito".into(),
                 markdown: String::new(),
             })
             .unwrap();
         let archived = store
-            .archive_idea(&idea.dados.id, store.ideas().unwrap().revision)
+            .archive_note(&note.dados.id, store.notes().unwrap().revision)
             .unwrap();
 
         let result = store.delete_archived(&archived.itens[0].id, archived.revision + 1);

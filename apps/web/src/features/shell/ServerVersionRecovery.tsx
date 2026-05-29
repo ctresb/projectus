@@ -3,7 +3,10 @@ import { api, ApiFailure } from '../../lib/api'
 import { Button, ErrorState } from '../../components/ui'
 import { useT } from '../../i18n'
 
-export const REQUIRED_API_VERSION = 6
+// Must track the backend `API_VERSION` (crates/server/src/domain.rs). The plugin
+// system bumped it 6 -> 7; leaving this at 6 makes the app treat a current server
+// as "newer than I support" and render the interface-outdated recovery screen.
+export const REQUIRED_API_VERSION = 7
 
 function wait(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))

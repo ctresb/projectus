@@ -1,0 +1,87 @@
+{
+  "$comment": "INERT planning example. Not registered, not loaded, not wired into any code. A complete, plausible PluginManifest for a FUTURE Smart Links plugin, mirroring the marketplace contract (crates/server/src/plugins/manifest.rs). Field names stay English (the plugin contract is the marketplace surface); host PROJECTUS domain identifiers (titulo, notas, projeto, tarefa, revision, atualizado_em) are untouched.",
+  "id": "smart-links",
+  "title": "Smart Links",
+  "short_description": "Inline backlinks and live link previews across notes, projects and tasks.",
+  "long_description": "Smart Links turns plain references into a live web of connections. Type [[ inside the markdown editor to autocomplete and link to any nota, projeto or tarefa; hover a link to see a preview card (titulo, cor, atualizado_em); and open a per-entity backlinks panel that lists everything pointing at the current item. Links resolve by stable id, so they survive title edits and folder (pasta) moves. A global-search provider surfaces orphaned and broken links so the knowledge graph stays clean.",
+  "version": "0.4.0",
+  "author": "PROJECTUS Labs",
+  "publisher": "projectus-labs",
+  "homepage": "https://plugins.projectus.app/smart-links",
+  "repository": "https://github.com/projectus-labs/smart-links",
+  "license": "MIT",
+  "icon": "Link2",
+  "screenshots": [
+    "https://plugins.projectus.app/smart-links/shots/autocomplete.png",
+    "https://plugins.projectus.app/smart-links/shots/backlinks-panel.png"
+  ],
+  "changelog": "0.4.0 - Backlinks panel and broken-link detection.\n0.3.0 - Hover preview cards.\n0.2.0 - [[ autocomplete in the markdown editor.",
+  "min_api_version": 7,
+  "api_version_range": {
+    "min": 7,
+    "max": 7
+  },
+  "frontend_entry": "index.js",
+  "backend_entry": null,
+  "storage_schema_version": 1,
+  "migrations": [],
+  "extension_points": ["editorToolbar", "contextMenu", "searchProvider", "navItem"],
+  "permissions": [
+    "notes:read",
+    "projects:read",
+    "tasks:read",
+    "editor:extend",
+    "search:provide",
+    "screens:add",
+    "events",
+    "file:storage"
+  ],
+  "shortcuts": [
+    {
+      "id": "insert-link",
+      "keys": "mod+k",
+      "description": "Insert a smart link to a note, project or task"
+    }
+  ],
+  "commands": [
+    {
+      "id": "smart-links.open-backlinks",
+      "title": "Smart Links: Open backlinks for current item",
+      "description": "Show every note, project or task that links to the open item."
+    },
+    {
+      "id": "smart-links.find-broken",
+      "title": "Smart Links: Find broken links",
+      "description": "List links whose target no longer exists."
+    }
+  ],
+  "interacts_with": [
+    "MARKDOWN_EDITOR",
+    "GLOBAL_SEARCH",
+    "PROJECT_CARDS",
+    "TASK_CARDS",
+    "SIDE_NAVIGATION",
+    "FILE_STORAGE"
+  ],
+  "conflicts": [],
+  "integrity": {
+    "package_sha256": "",
+    "manifest_sha256": "",
+    "algorithm": "sha256"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "",
+    "signature": "",
+    "publisher_identity": "projectus-labs",
+    "verified_publisher": false
+  },
+  "marketplace": {
+    "category": "productivity",
+    "tags": ["links", "backlinks", "knowledge-graph", "editor"],
+    "verified": false,
+    "featured": false,
+    "downloads": 0,
+    "rating": 0
+  }
+}
