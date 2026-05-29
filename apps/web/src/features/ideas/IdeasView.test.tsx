@@ -47,7 +47,7 @@ const config: Config = {
 const createdIdea: IdeaCard = {
   id: 'idea-1',
   pasta: 'nova-ideia-idea-1',
-  titulo: 'nova ideia',
+  titulo: 'nova nota',
   cor: '#55B9F7',
   criado_em: '2026-05-27T00:00:00Z',
   atualizado_em: '2026-05-27T00:00:00Z',
@@ -68,10 +68,10 @@ afterEach(() => {
 })
 
 describe('IdeasView quick create', () => {
-  it('cria uma unica ideia e atualiza a mesma nota enquanto o usuario digita', async () => {
+  it('cria uma unica nota e atualiza a mesma nota enquanto o usuario digita', async () => {
     vi.useFakeTimers()
-    vi.mocked(api.createIdea).mockResolvedValue({ dados: createdIdea, markdown: '# nova ideia\n\na' })
-    vi.mocked(api.updateIdea).mockResolvedValue({ dados: createdIdea, markdown: '# nova ideia\n\nabc' })
+    vi.mocked(api.createIdea).mockResolvedValue({ dados: createdIdea, markdown: '# nova nota\n\na' })
+    vi.mocked(api.updateIdea).mockResolvedValue({ dados: createdIdea, markdown: '# nova nota\n\nabc' })
     vi.mocked(api.ideas).mockResolvedValue({ revision: 2, notas: [createdIdea] })
 
     renderIdeasView()
@@ -83,7 +83,7 @@ describe('IdeasView quick create', () => {
     await act(async () => Promise.resolve())
 
     expect(api.createIdea).toHaveBeenCalledTimes(1)
-    expect(api.createIdea).toHaveBeenCalledWith({ titulo: 'nova ideia', markdown: 'a' })
+    expect(api.createIdea).toHaveBeenCalledWith({ titulo: 'nova nota', markdown: 'a' })
 
     await act(async () => vi.advanceTimersByTimeAsync(160))
     await act(async () => Promise.resolve())
@@ -93,14 +93,14 @@ describe('IdeasView quick create', () => {
       'idea-1',
       expect.objectContaining({
         markdown: 'abc',
-        titulo: 'nova ideia',
+        titulo: 'nova nota',
       }),
     )
 
     await act(async () => vi.advanceTimersByTimeAsync(160))
   })
 
-  it('mantem o titulo visivel quando cria ideia vazia com command n', async () => {
+  it('mantem o titulo visivel quando cria nota vazia com command n', async () => {
     vi.useFakeTimers()
     vi.mocked(api.createIdea).mockReturnValue(new Promise(() => undefined))
 
@@ -108,7 +108,7 @@ describe('IdeasView quick create', () => {
 
     fireEvent.keyDown(window, { key: 'n', metaKey: true })
 
-    expect(api.createIdea).toHaveBeenCalledWith({ titulo: 'nova ideia', markdown: '' })
-    expect(screen.getAllByDisplayValue('nova ideia')).toHaveLength(1)
+    expect(api.createIdea).toHaveBeenCalledWith({ titulo: 'nova nota', markdown: '' })
+    expect(screen.getAllByDisplayValue('nova nota')).toHaveLength(1)
   })
 })

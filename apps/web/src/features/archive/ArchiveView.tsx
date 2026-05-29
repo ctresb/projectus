@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArchiveRestore, CheckSquare, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { cx } from '../../lib/classnames'
@@ -8,9 +8,11 @@ import { useT, type TFn } from '../../i18n'
 import { Button, Checkbox, Container, EmptyState, LoadingState, PageHeader } from '../../components/ui'
 
 export function ArchiveView({
+  focusRequest,
   onRefresh,
   onMessage,
 }: {
+  focusRequest?: { id: string; token: number } | null
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
@@ -19,6 +21,8 @@ export function ArchiveView({
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(null)
+  const handledFocusToken = useRef<number | null>(null)
 
   const loadArchive = useCallback(async () => {
     const current = await api.archive()
@@ -37,6 +41,24 @@ export function ArchiveView({
     setSelectedIds((current) => current.filter((id) => visibleIds.has(id)))
     if (archive.itens.length === 0) setSelectionMode(false)
   }, [archive])
+
+  useEffect(() => {
+    if (!archive || !focusRequest || handledFocusToken.current === focusRequest.token) return
+    handledFocusToken.current = focusRequest.token
+    if (!archive.itens.some((item) => item.id === focusRequest.id)) return
+
+    setFocusedItemId(focusRequest.id)
+    const selector = `[data-archive-id="${focusRequest.id.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`
+    const frame = requestAnimationFrame(() => document.querySelector<HTMLElement>(selector)?.scrollIntoView({ block: 'center' }))
+    const timer = window.setTimeout(() => {
+      setFocusedItemId((current) => (current === focusRequest.id ? null : current))
+    }, 2600)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(timer)
+    }
+  }, [archive, focusRequest])
 
   const items = archive?.itens ?? []
   const selectedItems = items.filter((item) => selectedIds.includes(item.id))
@@ -186,7 +208,15 @@ export function ArchiveView({
           </div>
         )}
         {items.map((item) => (
-          <article className={cx('archive-item', selectionMode && 'archive-item--selecting')} key={item.id}>
+          <article
+            className={cx(
+              'archive-item',
+              selectionMode && 'archive-item--selecting',
+              focusedItemId === item.id && 'archive-item--focused',
+            )}
+            data-archive-id={item.id}
+            key={item.id}
+          >
             {selectionMode && (
               <Checkbox
                 aria-label={t('archive_view.aria_select_item', { titulo: item.titulo })}

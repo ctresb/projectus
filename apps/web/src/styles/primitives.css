@@ -316,6 +316,11 @@ input::placeholder {
   justify-content: flex-end;
   background: rgba(0, 0, 0, 0.64);
 }
+.modal-backdrop--center {
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(48px, 9vh, 88px) var(--s-4) var(--s-4);
+}
 .modal {
   display: flex;
   flex-direction: column;
@@ -328,6 +333,11 @@ input::placeholder {
 }
 .modal--amplo {
   width: min(720px, 100vw);
+}
+.modal--center {
+  height: auto;
+  max-height: min(78dvh, 760px);
+  border: 1px solid var(--hair);
 }
 .modal__head {
   position: sticky;
@@ -351,4 +361,13 @@ input::placeholder {
 }
 .form-actions--spread {
   justify-content: space-between;
+}
+@media (max-width: 640px) {
+  .modal-backdrop--center {
+    padding: var(--s-3);
+  }
+  .modal--center {
+    width: 100%;
+    max-height: calc(100dvh - var(--s-6));
+  }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ExternalLink, Pencil, Plus } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { Config, DocumentResponse, Project, ProjectCard, TaskCard } from '../../lib/types'
@@ -9,10 +9,15 @@ import { KanbanBoard } from './KanbanBoard'
 import { useT } from '../../i18n'
 import { Button, Container, LoadingState } from '../../components/ui'
 
+type ProjectNavigationRequest =
+  | { type: 'project'; token: number }
+  | { type: 'task'; taskId: string; token: number }
+
 export function ProjectDetail({
   id,
   card,
   config,
+  navigationRequest,
   onBack,
   onRefresh,
   onMessage,
@@ -20,6 +25,7 @@ export function ProjectDetail({
   id: string
   card: ProjectCard
   config: Config
+  navigationRequest?: ProjectNavigationRequest | null
   onBack: () => void
   onRefresh: () => Promise<void>
   onMessage: (type: 'ok' | 'erro', text: string) => void
@@ -30,6 +36,7 @@ export function ProjectDetail({
   const [initialTitle, setInitialTitle] = useState('')
   const [editProject, setEditProject] = useState(false)
   const [taskOpen, setTaskOpen] = useState<TaskCard | null>(null)
+  const handledNavigationToken = useRef<number | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -40,8 +47,37 @@ export function ProjectDetail({
   }, [id, onMessage, t])
 
   useEffect(() => {
+    setDocument(null)
+    setCreating(false)
+    setEditProject(false)
+    setTaskOpen(null)
     void load()
   }, [load])
+
+  useEffect(() => {
+    if (
+      !document ||
+      document.dados.id !== id ||
+      !navigationRequest ||
+      handledNavigationToken.current === navigationRequest.token
+    ) {
+      return
+    }
+    handledNavigationToken.current = navigationRequest.token
+    if (navigationRequest.type === 'project') {
+      setCreating(false)
+      setEditProject(false)
+      setTaskOpen(null)
+      return
+    }
+
+    const task = document.dados.tarefas.find((candidate) => candidate.id === navigationRequest.taskId)
+    if (task) {
+      setCreating(false)
+      setEditProject(false)
+      setTaskOpen(task)
+    }
+  }, [document, navigationRequest])
 
   const openCreator = useCallback((title: string) => {
     setInitialTitle(title)

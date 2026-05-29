@@ -33,11 +33,13 @@ function wait(ms: number) {
 export function IdeasView({
   config,
   ideas,
+  navigationRequest,
   onIdeas,
   onMessage,
 }: {
   config: Config
   ideas: Ideas
+  navigationRequest?: { id: string; token: number } | null
   onIdeas: (ideas: Ideas) => void
   onMessage: (type: 'ok' | 'erro', text: string) => void
 }) {
@@ -50,6 +52,7 @@ export function IdeasView({
   const quickDraftRef = useRef<QuickDraft | null>(null)
   const quickPersisting = useRef(false)
   const quickSession = useRef(0)
+  const handledNavigationToken = useRef<number | null>(null)
   const draftEditor = useRef<MarkdownEditorHandle>(null)
   const filtered = useMemo(
     () => ideas.notas.filter((note) => note.titulo.toLowerCase().includes(search.toLowerCase())),
@@ -152,6 +155,19 @@ export function IdeasView({
     setFocusIdeaId(null)
     setSelected(id)
   }, [replaceQuickDraft])
+
+  useEffect(() => {
+    if (!navigationRequest || handledNavigationToken.current === navigationRequest.token) return
+    handledNavigationToken.current = navigationRequest.token
+    if (!ideas.notas.some((idea) => idea.id === navigationRequest.id)) return
+
+    quickSession.current += 1
+    replaceQuickDraft(null)
+    setSearch('')
+    setFocusIdeaId(navigationRequest.id)
+    setFocusToken((current) => current + 1)
+    setSelected(navigationRequest.id)
+  }, [ideas.notas, navigationRequest, replaceQuickDraft])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

@@ -18,12 +18,12 @@
     "crumbs_root": "projectus",
     "data_section": "data",
     "backup_section": "snapshots",
-    "shortcut_hint": "Cmd+N quick create",
+    "shortcut_hint": "Cmd+K search · Cmd+N quick create",
     "local_badge": "local",
     "aria_rail": "Spaces",
     "nav": {
       "projetos": "projects",
-      "ideias": "ideas",
+      "ideias": "notes",
       "arquivo": "archive",
       "backup": "snapshots",
       "config": "settings"
@@ -68,6 +68,38 @@
   "modal": {
     "close": "Close",
     "cancel": "cancel"
+  },
+  "search": {
+    "title": "global search",
+    "placeholder": "search projects, tasks, notes...",
+    "scoped_placeholder": "search this scope...",
+    "indexing": "indexing tasks...",
+    "partial_error": "some items were not indexed",
+    "empty_query": "recent items appear here",
+    "empty": "no results",
+    "result_count": "{count} results",
+    "kind": {
+      "project": "project",
+      "task": "task",
+      "idea": "note",
+      "archive": "archive",
+      "screen": "shortcut"
+    },
+    "location": {
+      "ideas": "notes",
+      "archive": "archive",
+      "screen": "screen",
+      "project_status": "projects / {status}",
+      "task_status": "{projeto} / {status}",
+      "archived_project": "archive / {titulo}"
+    },
+    "screen_summary": {
+      "projects": "main project board",
+      "ideas": "notes and drafts",
+      "archive": "archived projects, tasks, and notes",
+      "backup": "snapshots and restore",
+      "settings": "columns, tags, colors, and local server"
+    }
   },
   "markdown": {
     "placeholder": "write in markdown...",
@@ -171,19 +203,19 @@
     "entity_task": "this task"
   },
   "ideas": {
-    "eyebrow": "ideas",
-    "aria_new": "New idea",
+    "eyebrow": "notes",
+    "aria_new": "New note",
     "search_placeholder": "search note",
     "list_empty": "no notes",
-    "view_empty": "no ideas yet",
-    "new_button": "new idea",
+    "view_empty": "no notes yet",
+    "new_button": "new note",
     "loading_note": "loading note...",
-    "label_color": "Idea color",
-    "default_title": "new idea",
-    "fail_create": "could not create the idea",
-    "archived": "idea moved to Archive",
-    "fail_archive": "could not archive the idea",
-    "entity": "this idea"
+    "label_color": "Note color",
+    "default_title": "new note",
+    "fail_create": "could not create the note",
+    "archived": "note moved to Archive",
+    "fail_archive": "could not archive the note",
+    "entity": "this note"
   },
   "archive_view": {
     "eyebrow": "archive",
@@ -210,7 +242,7 @@
     "entity_label": {
       "projeto": "project",
       "tarefa": "task",
-      "ideia": "idea",
+      "ideia": "note",
       "item": "item"
     },
     "project_of": "project / {titulo}"
@@ -219,7 +251,7 @@
     "eyebrow": "r2-syncs",
     "title": "snapshots",
     "snapshot_now": "[SNAPSHOT] now",
-    "description": "each snapshot uploads the full ~/Documents/PROJECTUS folder: settings, kanban boards, ideas, Archive, history, and attachments.",
+    "description": "each snapshot uploads the full ~/Documents/PROJECTUS folder: settings, kanban boards, notes, Archive, history, and attachments.",
     "not_configured": "R2 is not configured yet.",
     "not_configured_hint": "set bucket and credentials in settings.",
     "history": "remote history",

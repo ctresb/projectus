@@ -43,7 +43,7 @@ export function Shell({
             {t('shell.crumbs_root')}
           </button>
           <span>/</span>
-          <strong>{projectTitle ?? screen}</strong>
+          <strong>{projectTitle ?? t(`shell.nav.${screen}`)}</strong>
         </div>
         <SaveIndicator />
         <HostButton porta={config.porta} />
